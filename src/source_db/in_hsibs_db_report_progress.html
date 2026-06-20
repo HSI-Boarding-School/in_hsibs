@@ -1,0 +1,313 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{padding:.75rem 0}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.top h2{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.top small{font-size:10px;color:var(--color-text-secondary)}
+.btns{display:flex;gap:6px}
+.btn{font-size:11px;padding:5px 10px;border:0.5px solid var(--color-border-secondary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn:hover{background:var(--color-background-secondary)}
+.btn.p{background:#1565C0;color:#fff;border-color:#1565C0}
+.btn.add{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+.btn.add:hover{background:#dcfce7}
+.tabs{display:flex;gap:0;margin-bottom:12px;border:0.5px solid var(--color-border-secondary);border-radius:8px;overflow:hidden}
+.tab{flex:1;font-size:12px;padding:8px 4px;cursor:pointer;color:var(--color-text-secondary);background:var(--color-background-primary);border:none;text-align:center;transition:all .15s}
+.tab:hover{background:var(--color-background-secondary)}
+.tab.active{background:#1565C0;color:#fff;font-weight:500}
+.stats{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.st{background:var(--color-background-secondary);border-radius:6px;padding:4px 10px;font-size:10px;color:var(--color-text-secondary);text-align:center}
+.st b{display:block;font-size:14px;font-weight:500;color:var(--color-text-primary)}
+/* table */
+.tw{border:0.5px solid var(--color-border-tertiary);border-radius:10px;overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{background:var(--color-background-secondary);padding:6px 6px;text-align:left;font-weight:500;font-size:9px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+td{padding:4px 5px;border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:var(--color-background-secondary)}
+.sid{font-size:10px;font-weight:500;color:#1565C0;font-family:var(--font-mono)}
+.sname{font-size:11px;font-weight:500;color:var(--color-text-primary)}
+.sloc{font-size:9px;color:var(--color-text-secondary)}
+input[type=text],textarea{font-size:11px;padding:3px 5px;border:0.5px solid var(--color-border-secondary);border-radius:4px;background:var(--color-background-primary);color:var(--color-text-primary);width:100%}
+input[type=text]:focus,textarea:focus{outline:none;border-color:#1565C0}
+textarea{resize:none;height:42px;font-family:inherit}
+.sel{font-size:11px;padding:2px 4px;border:0.5px solid var(--color-border-secondary);border-radius:4px;background:var(--color-background-primary);color:var(--color-text-primary);width:100%}
+.sel:focus{outline:none;border-color:#1565C0}
+/* badges */
+.mood-g{background:#dcfce7;color:#166534;padding:2px 6px;border-radius:20px;font-size:10px}
+.mood-y{background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:20px;font-size:10px}
+.mood-r{background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:20px;font-size:10px}
+.status-green{background:#dcfce7;color:#166534;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500}
+.status-yellow{background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500}
+.status-red{background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500}
+.status-tbd{background:var(--color-background-secondary);color:var(--color-text-secondary);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500}
+.chip{border-radius:3px;padding:1px 5px;font-size:9px;white-space:nowrap;display:inline-block;font-weight:500}
+.c-track{background:#f1f5f9;color:#475569}
+.validated{background:#dcfce7;color:#166534;border-radius:3px;padding:1px 5px;font-size:9px}
+.pending-v{background:#fef3c7;color:#92400e;border-radius:3px;padding:1px 5px;font-size:9px}
+.note{font-size:10px;color:var(--color-text-secondary);margin-top:8px;padding:6px 10px;border-left:3px solid #1565C0;background:var(--color-background-secondary);border-radius:0 6px 6px 0}
+.section-desc{font-size:11px;color:var(--color-text-secondary);margin-bottom:8px;padding:6px 10px;background:var(--color-background-secondary);border-radius:6px}
+.section-desc strong{color:var(--color-text-primary)}
+</style>
+
+<div class="w">
+  <div class="top">
+    <div>
+      <h2><i class="ti ti-chart-line" aria-hidden="true"></i> DB Report & Progress — IN_HSIBS</h2>
+      <small>Daily Log · Weekly Review · Monthly Evaluation</small>
+    </div>
+    <div class="btns">
+      <button class="btn add" id="add-btn" onclick="addRow()"><i class="ti ti-plus" aria-hidden="true"></i> Add Entry</button>
+      <button class="btn" onclick="copyCSV()"><i class="ti ti-copy" aria-hidden="true"></i> Copy</button>
+      <button class="btn p" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Download CSV</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setTab('daily',this)">📅 Daily Log</button>
+    <button class="tab" onclick="setTab('weekly',this)">📊 Weekly Review</button>
+    <button class="tab" onclick="setTab('monthly',this)">📋 Monthly Evaluation</button>
+  </div>
+
+  <div id="tab-content"></div>
+  <p class="note" id="tab-note"></p>
+</div>
+
+<script>
+const SANTRI=[
+  {id:"S01",name:"Abdullah Al Farros",loc:"Pandeglang",picDiv:"Kak Abdur",picReg:"Ust. Raakin"},
+  {id:"S02",name:"Abdulloh",loc:"Sukabumi",picDiv:"Ust. Haidar",picReg:"Ust. Raakin"},
+  {id:"S03",name:"Abdurrahman Hammaam Bariq",loc:"Purworejo",picDiv:"Ust. Zicko",picReg:"Kak Ari"},
+  {id:"S04",name:"Abu Musa Al Asyary",loc:"Solo",picDiv:"Kak Abdur",picReg:"Kak Ari"},
+  {id:"S05",name:"Ahmad Faiz",loc:"Bekasi",picDiv:"Pak Gusti",picReg:"Ust. Raakin"},
+  {id:"S06",name:"Ahmad Haidar Hutasuhut",loc:"Solo",picDiv:"Ust. Haidar",picReg:"Kak Ari"},
+  {id:"S07",name:"Ahmad Harits",loc:"Purworejo",picDiv:"Mr. Azis",picReg:"Kak Ari"},
+  {id:"S08",name:"Ayyub El Kaisi",loc:"Sukabumi",picDiv:"Ust. Zicko",picReg:"Ust. Raakin"},
+  {id:"S09",name:"Bagus Surya Dimeja",loc:"Solo",picDiv:"Ust. Zicko",picReg:"Kak Ari"},
+  {id:"S10",name:"Maulana Aqila Umar Abdul Aziz",loc:"Sukabumi",picDiv:"Kak Abdur",picReg:"Ust. Raakin"},
+  {id:"S11",name:"Mu'adz Jundyurrahman",loc:"Purworejo",picDiv:"Ust. Zicko",picReg:"Kak Ari"},
+  {id:"S12",name:"Muhammad Afif Hikam",loc:"Bekasi",picDiv:"Kak Abdur",picReg:"Ust. Raakin"},
+  {id:"S13",name:"Muhammad Atsaal Hakim",loc:"Sukabumi",picDiv:"Kak Andy",picReg:"Ust. Raakin"},
+  {id:"S14",name:"Muhammad Dafa Al Fatih",loc:"Sukabumi",picDiv:"Kak Andy",picReg:"Ust. Raakin"},
+  {id:"S15",name:"Muhammad Daffa Al Hafizh",loc:"Pandeglang",picDiv:"Ust. Haidar",picReg:"Ust. Raakin"},
+  {id:"S16",name:"Muhammad Firdaus Abdurrohim",loc:"Remote",picDiv:"Ust. Zicko",picReg:"Ust. Raakin"},
+  {id:"S17",name:"Muhammad Rabbani Ibnu Ridwan",loc:"Sukabumi",picDiv:"Ust. Zicko",picReg:"Ust. Raakin"},
+  {id:"S18",name:"Muhammad Sultan Al Faisal",loc:"Bantul",picDiv:"Ust. Zicko",picReg:"Kak Ari"},
+  {id:"S19",name:"Muhammad Zaki NIF",loc:"Purworejo",picDiv:"Ust. Zicko",picReg:"Kak Ari"},
+  {id:"S20",name:"Mujahiddin Khoirusysyifa",loc:"Purworejo",picDiv:"Ust. Zicko",picReg:"Kak Ari"},
+  {id:"S21",name:"Tsabit Az Zaqi",loc:"Bantul",picDiv:"Ust. Zicko",picReg:"Kak Ari"},
+];
+
+const MONTHS=["Jul 2025","Aug 2025","Sep 2025","Oct 2025","Nov 2025","Dec 2025","Jan 2026","Feb 2026","Mar 2026","Apr 2026","May 2026","Jun 2026"];
+
+// ── Data stores ──────────────────────────────────────────────
+const daily=SANTRI.map(s=>({sid:s.id,date:"",loc:s.loc,plan:"",done:"",blocker:"Clear",mood:"Good"}));
+const weekly=SANTRI.map(s=>({sid:s.id,week:"W01",sowProgress:"On Track",highlight:"",lowlight:"",picNote:"",validated:false}));
+const monthly=SANTRI.map((s,i)=>({sid:s.id,month:MONTHS[0],learnAtt:0,projApproved:0,sowPct:0,adab:3,issues:"",followUp:"",picDivNote:"",picRegNote:"",status:"TBD"}));
+
+let currentTab="daily";
+let rowCounters={daily:22,weekly:22,monthly:22};
+
+function setTab(tab,el){
+  currentTab=tab;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  render();
+}
+
+function addRow(){
+  const s=SANTRI[0];
+  if(currentTab==="daily") daily.push({sid:s.id,date:"",loc:s.loc,plan:"",done:"",blocker:"Clear",mood:"Good"});
+  else if(currentTab==="weekly") weekly.push({sid:s.id,week:"W01",sowProgress:"On Track",highlight:"",lowlight:"",picNote:"",validated:false});
+  else monthly.push({sid:s.id,month:MONTHS[0],learnAtt:0,projApproved:0,sowPct:0,adab:3,issues:"",followUp:"",picDivNote:"",picRegNote:"",status:"TBD"});
+  render();
+}
+
+function statusBadge(s){
+  if(s==="Green") return`<span class="status-green">🟢 Green</span>`;
+  if(s==="Yellow") return`<span class="status-yellow">🟡 Yellow</span>`;
+  if(s==="Red") return`<span class="status-red">🔴 Red</span>`;
+  return`<span class="status-tbd">— TBD</span>`;
+}
+function moodBadge(m){
+  if(m==="Good") return`<span class="mood-g">🟢 Good</span>`;
+  if(m==="Okay") return`<span class="mood-y">🟡 Okay</span>`;
+  return`<span class="mood-r">🔴 Tough</span>`;
+}
+function sname(id){return SANTRI.find(s=>s.id===id)?.name||id}
+function spic(id,field){return SANTRI.find(s=>s.id===id)?.[field]||""}
+
+function renderDaily(){
+  return`
+  <div class="section-desc"><strong>Daily Log</strong> — Santri isi setiap hari: pagi (plan) + sore (recap). PIC monitor via dashboard.</div>
+  <div class="stats">
+    <div class="st"><b>${daily.length}</b>Entries</div>
+    <div class="st"><b>${daily.filter(d=>d.mood==="Good").length}</b>🟢 Good</div>
+    <div class="st"><b>${daily.filter(d=>d.mood==="Okay").length}</b>🟡 Okay</div>
+    <div class="st"><b>${daily.filter(d=>d.mood==="Tough").length}</b>🔴 Tough</div>
+    <div class="st"><b>${daily.filter(d=>d.blocker!=="Clear"&&d.blocker).length}</b>Has Blocker</div>
+  </div>
+  <div class="tw"><table>
+    <colgroup>
+      <col style="width:7%"><col style="width:13%"><col style="width:7%"><col style="width:7%">
+      <col style="width:20%"><col style="width:20%"><col style="width:15%"><col style="width:11%">
+    </colgroup>
+    <thead><tr>
+      <th>ID</th><th>Name</th><th>Date</th><th>Location</th>
+      <th>🌅 Morning Plan</th><th>🌇 Evening Done</th><th>⚠️ Blocker</th><th>Mood</th>
+    </tr></thead>
+    <tbody>${daily.map((d,i)=>`<tr>
+      <td class="sid">${d.sid}</td>
+      <td><div class="sname">${sname(d.sid)}</div></td>
+      <td><input type="text" value="${d.date}" placeholder="DD/MM" onchange="daily[${i}].date=this.value"></td>
+      <td><select class="sel" onchange="daily[${i}].loc=this.value">
+        ${["Sukabumi","Bekasi","Purworejo","Bantul","Solo","Pandeglang","Remote"].map(l=>`<option${l===d.loc?" selected":""}>${l}</option>`).join("")}
+      </select></td>
+      <td><textarea onchange="daily[${i}].plan=this.value" placeholder="Hari ini mau ngapain...">${d.plan}</textarea></td>
+      <td><textarea onchange="daily[${i}].done=this.value" placeholder="Yang sudah selesai...">${d.done}</textarea></td>
+      <td><input type="text" value="${d.blocker}" onchange="daily[${i}].blocker=this.value" placeholder="Clear / describe..."></td>
+      <td><select class="sel" onchange="daily[${i}].mood=this.value;render()">
+        ${["Good","Okay","Tough"].map(m=>`<option${m===d.mood?" selected":""}>${m}</option>`).join("")}
+      </select></td>
+    </tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function renderWeekly(){
+  return`
+  <div class="section-desc"><strong>Weekly Review</strong> — Santri isi tiap Jumat/Sabtu. PIC Div validasi sebelum akhir pekan.</div>
+  <div class="stats">
+    <div class="st"><b>${weekly.length}</b>Entries</div>
+    <div class="st"><b>${weekly.filter(w=>w.validated).length}</b>Validated</div>
+    <div class="st"><b>${weekly.filter(w=>!w.validated).length}</b>Pending</div>
+    <div class="st"><b>${weekly.filter(w=>w.sowProgress==="On Track").length}</b>On Track</div>
+    <div class="st"><b>${weekly.filter(w=>w.sowProgress==="Behind").length}</b>Behind</div>
+  </div>
+  <div class="tw"><table>
+    <colgroup>
+      <col style="width:7%"><col style="width:12%"><col style="width:6%"><col style="width:9%">
+      <col style="width:17%"><col style="width:17%"><col style="width:15%"><col style="width:9%"><col style="width:8%">
+    </colgroup>
+    <thead><tr>
+      <th>ID</th><th>Name</th><th>Week</th><th>SoW Progress</th>
+      <th>✅ Highlight</th><th>⚠️ Lowlight</th><th>PIC Div Notes</th><th>PIC Div</th><th>Validated</th>
+    </tr></thead>
+    <tbody>${weekly.map((w,i)=>`<tr>
+      <td class="sid">${w.sid}</td>
+      <td><div class="sname">${sname(w.sid)}</div><div class="sloc">${spic(w.sid,"picDiv")}</div></td>
+      <td><select class="sel" onchange="weekly[${i}].week=this.value">
+        ${Array.from({length:52},(_,k)=>`W${String(k+1).padStart(2,"0")}`).map(wk=>`<option${wk===w.week?" selected":""}>${wk}</option>`).join("")}
+      </select></td>
+      <td><select class="sel" onchange="weekly[${i}].sowProgress=this.value;render()">
+        ${["On Track","Behind","Ahead"].map(p=>`<option${p===w.sowProgress?" selected":""}>${p}</option>`).join("")}
+      </select></td>
+      <td><textarea onchange="weekly[${i}].highlight=this.value" placeholder="Pencapaian terbaik...">${w.highlight}</textarea></td>
+      <td><textarea onchange="weekly[${i}].lowlight=this.value" placeholder="Perlu diperbaiki...">${w.lowlight}</textarea></td>
+      <td><textarea onchange="weekly[${i}].picNote=this.value" placeholder="Catatan PIC Div...">${w.picNote}</textarea></td>
+      <td style="font-size:10px;color:var(--color-text-secondary)">${spic(w.sid,"picDiv")}</td>
+      <td style="text-align:center">
+        <input type="checkbox" ${w.validated?"checked":""} onchange="weekly[${i}].validated=this.checked;render()" style="accent-color:#1565C0;width:14px;height:14px">
+        <div style="margin-top:2px">${w.validated?'<span class="validated">✓</span>':'<span class="pending-v">Pending</span>'}</div>
+      </td>
+    </tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function renderMonthly(){
+  return`
+  <div class="section-desc"><strong>Monthly Evaluation</strong> — PIC Div + PIC Reg isi bersama di akhir bulan. Status: 🟢 Green = On Track · 🟡 Yellow = Perlu Perhatian · 🔴 Red = Butuh Intervensi</div>
+  <div class="stats">
+    <div class="st"><b>${monthly.length}</b>Entries</div>
+    <div class="st"><b>${monthly.filter(m=>m.status==="Green").length}</b>🟢 Green</div>
+    <div class="st"><b>${monthly.filter(m=>m.status==="Yellow").length}</b>🟡 Yellow</div>
+    <div class="st"><b>${monthly.filter(m=>m.status==="Red").length}</b>🔴 Red</div>
+    <div class="st"><b>${monthly.filter(m=>m.status==="TBD").length}</b>TBD</div>
+  </div>
+  <div class="tw"><table>
+    <colgroup>
+      <col style="width:6%"><col style="width:11%"><col style="width:7%"><col style="width:6%">
+      <col style="width:6%"><col style="width:6%"><col style="width:5%"><col style="width:12%">
+      <col style="width:12%"><col style="width:11%"><col style="width:11%"><col style="width:7%">
+    </colgroup>
+    <thead><tr>
+      <th>ID</th><th>Name</th><th>Month</th><th>Learn</th>
+      <th>Projects</th><th>SoW %</th><th>Adab</th><th>Issues</th>
+      <th>Follow-up</th><th>PIC Div</th><th>PIC Reg</th><th>Status</th>
+    </tr></thead>
+    <tbody>${monthly.map((m,i)=>`<tr>
+      <td class="sid">${m.sid}</td>
+      <td><div class="sname">${sname(m.sid)}</div><div class="sloc">${spic(m.sid,"loc")}</div></td>
+      <td><select class="sel" onchange="monthly[${i}].month=this.value">
+        ${MONTHS.map(mo=>`<option${mo===m.month?" selected":""}>${mo}</option>`).join("")}
+      </select></td>
+      <td><select class="sel" onchange="monthly[${i}].learnAtt=+this.value">
+        ${[0,1].map(n=>`<option${n===m.learnAtt?" selected":""}>${n}/1</option>`).join("")}
+      </select></td>
+      <td><select class="sel" onchange="monthly[${i}].projApproved=+this.value">
+        ${[0,1,2,3,4,5,6].map(n=>`<option${n===m.projApproved?" selected":""}>${n}/6</option>`).join("")}
+      </select></td>
+      <td><select class="sel" onchange="monthly[${i}].sowPct=+this.value">
+        ${[0,25,50,75,100].map(n=>`<option${n===m.sowPct?" selected":""}>${n}%</option>`).join("")}
+      </select></td>
+      <td><select class="sel" onchange="monthly[${i}].adab=+this.value">
+        ${[1,2,3,4,5].map(n=>`<option${n===m.adab?" selected":""}>${n}</option>`).join("")}
+      </select></td>
+      <td><textarea onchange="monthly[${i}].issues=this.value" placeholder="Issues...">${m.issues}</textarea></td>
+      <td><textarea onchange="monthly[${i}].followUp=this.value" placeholder="Follow-up...">${m.followUp}</textarea></td>
+      <td><textarea onchange="monthly[${i}].picDivNote=this.value" placeholder="${spic(m.sid,"picDiv")}...">${m.picDivNote}</textarea></td>
+      <td><textarea onchange="monthly[${i}].picRegNote=this.value" placeholder="${spic(m.sid,"picReg")}...">${m.picRegNote}</textarea></td>
+      <td><select class="sel" onchange="monthly[${i}].status=this.value;render()">
+        ${["TBD","Green","Yellow","Red"].map(s=>`<option${s===m.status?" selected":""}>${s}</option>`).join("")}
+      </select></td>
+    </tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function render(){
+  const c=document.getElementById("tab-content");
+  const n=document.getElementById("tab-note");
+  if(currentTab==="daily"){
+    c.innerHTML=renderDaily();
+    n.textContent="Daily Log diisi santri sendiri. Kolom Mood & Blocker jadi early warning system untuk PIC.";
+  } else if(currentTab==="weekly"){
+    c.innerHTML=renderWeekly();
+    n.textContent="Weekly Review diisi santri tiap akhir pekan. PIC Div centang Validated setelah membaca & merespons.";
+  } else {
+    c.innerHTML=renderMonthly();
+    n.textContent="Monthly Evaluation diisi PIC Div + PIC Reg bersama. Status Green/Yellow/Red jadi dasar keputusan intervensi.";
+  }
+}
+
+function getActiveData(){
+  if(currentTab==="daily") return daily;
+  if(currentTab==="weekly") return weekly;
+  return monthly;
+}
+
+function toCSV(){
+  if(currentTab==="daily"){
+    const h="ID,Name,Date,Location,Morning Plan,Evening Done,Blocker,Mood";
+    return[h,...daily.map(d=>[d.sid,sname(d.sid),d.date,d.loc,d.plan,d.done,d.blocker,d.mood].map(v=>`"${v}"`).join(","))].join("\n");
+  } else if(currentTab==="weekly"){
+    const h="ID,Name,Week,SoW Progress,Highlight,Lowlight,PIC Div Notes,PIC Div,Validated";
+    return[h,...weekly.map(w=>[w.sid,sname(w.sid),w.week,w.sowProgress,w.highlight,w.lowlight,w.picNote,spic(w.sid,"picDiv"),w.validated?"Yes":"No"].map(v=>`"${v}"`).join(","))].join("\n");
+  } else {
+    const h="ID,Name,Month,Learn Att,Projects,SoW %,Adab,Issues,Follow-up,PIC Div Note,PIC Reg Note,Status";
+    return[h,...monthly.map(m=>[m.sid,sname(m.sid),m.month,m.learnAtt,m.projApproved,m.sowPct+"%",m.adab,m.issues,m.followUp,m.picDivNote,m.picRegNote,m.status].map(v=>`"${v}"`).join(","))].join("\n");
+  }
+}
+function exportCSV(){
+  const a=document.createElement("a");
+  const names={daily:"Daily",weekly:"Weekly",monthly:"Monthly"};
+  a.href=URL.createObjectURL(new Blob([toCSV()],{type:"text/csv"}));
+  a.download=`IN_HSIBS_DB_Report_${names[currentTab]}.csv`;a.click();
+}
+function copyCSV(){
+  navigator.clipboard.writeText(toCSV()).then(()=>{
+    const b=event.target.closest(".btn"),o=b.innerHTML;
+    b.innerHTML='<i class="ti ti-check"></i> Copied!';
+    setTimeout(()=>b.innerHTML=o,2000);
+  });
+}
+render();
+</script>

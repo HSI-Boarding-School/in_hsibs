@@ -1,0 +1,34 @@
+@import 'simplebar-react/dist/simplebar.min.css';
+
+.simplebar-scrollbar:before {
+  background-color: var(--color-border, #dde4d8);
+  border-radius: 999px;
+  opacity: 1;
+  transition: background-color 0.2s ease;
+}
+.simplebar-scrollbar.simplebar-visible:before {
+  opacity: 0.8;
+}
+.simplebar-scrollbar:hover:before {
+  background-color: var(--color-primary, #2563eb);
+}
+
+.simplebar-track {
+  background: transparent;
+  border-radius: 999px;
+}
+.simplebar-track.simplebar-horizontal {
+  height: 6px;
+  margin: 0 4px;
+}
+.simplebar-track.simplebar-vertical {
+  width: 6px;
+  margin: 4px 0;
+}
+
+.scrollbar__root .simplebar-content {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 100%;
+  flex-direction: column;
+}

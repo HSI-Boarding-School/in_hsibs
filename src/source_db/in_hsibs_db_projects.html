@@ -1,0 +1,268 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{padding:.75rem 0}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.top h2{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.top small{font-size:10px;color:var(--color-text-secondary)}
+.btns{display:flex;gap:6px}
+.btn{font-size:11px;padding:5px 10px;border:0.5px solid var(--color-border-secondary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn:hover{background:var(--color-background-secondary)}
+.btn.p{background:#1565C0;color:#fff;border-color:#1565C0}
+.btn.p:hover{background:#0D47A1}
+.btn.add{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+.btn.add:hover{background:#dcfce7}
+.stats{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.st{background:var(--color-background-secondary);border-radius:6px;padding:4px 10px;font-size:10px;color:var(--color-text-secondary);text-align:center}
+.st b{display:block;font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.mandatory-note{background:var(--color-background-secondary);border-radius:8px;padding:8px 12px;margin-bottom:10px;border-left:3px solid #1565C0;font-size:11px;color:var(--color-text-primary)}
+.mandatory-note strong{color:#1565C0}
+.filters{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
+.fil{font-size:11px;padding:4px 10px;border:0.5px solid var(--color-border-secondary);border-radius:20px;cursor:pointer;color:var(--color-text-secondary);background:var(--color-background-primary)}
+.fil:hover{background:var(--color-background-secondary)}
+.fil.active{background:#1565C0;color:#fff;border-color:#1565C0}
+.tw{border:0.5px solid var(--color-border-tertiary);border-radius:10px;overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{background:var(--color-background-secondary);padding:6px 6px;text-align:left;font-weight:500;font-size:9px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+td{padding:4px 5px;border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:var(--color-background-secondary)}
+.chip{border-radius:3px;padding:1px 5px;font-size:9px;white-space:nowrap;display:inline-block;font-weight:500}
+.c-ac{background:#dbeafe;color:#1e40af}
+.c-deen{background:#dcfce7;color:#166534}
+.c-dkv{background:#f3e5f5;color:#6b21a8}
+.c-it{background:#fef3c7;color:#92400e}
+.c-ops{background:#fce7f3;color:#9d174d}
+.c-pkbm{background:#ecfdf5;color:#065f46}
+.c-dakwah{background:#fff7ed;color:#9a3412}
+.c-story{background:#fdf4ff;color:#7e22ce}
+.pname{font-weight:500;font-size:12px;color:var(--color-text-primary)}
+.pdesc{font-size:10px;color:var(--color-text-secondary);margin-top:1px}
+.sid{font-size:9px;font-family:var(--font-mono);border-radius:3px;padding:1px 4px;background:#dbeafe;color:#1e40af;white-space:nowrap}
+.link-cell a{font-size:10px;color:#1565C0;text-decoration:none}
+.link-cell a:hover{text-decoration:underline}
+.link-cell .nolink{font-size:10px;color:var(--color-text-secondary);font-style:italic}
+.sel{font-size:11px;padding:2px 4px;border:0.5px solid var(--color-border-secondary);border-radius:4px;background:var(--color-background-primary);color:var(--color-text-primary);width:100%}
+.sel:focus{outline:none;border-color:#1565C0}
+input[type=text],input[type=url]{font-size:11px;padding:2px 5px;border:0.5px solid var(--color-border-secondary);border-radius:4px;background:var(--color-background-primary);color:var(--color-text-primary);width:100%}
+input[type=text]:focus,input[type=url]:focus{outline:none;border-color:#1565C0}
+.s-idea{background:#f1f5f9;color:#475569;padding:2px 6px;border-radius:20px;font-size:9px;font-weight:500}
+.s-inprogress{background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:20px;font-size:9px;font-weight:500}
+.s-submitted{background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:20px;font-size:9px;font-weight:500}
+.s-approved{background:#dcfce7;color:#166534;padding:2px 6px;border-radius:20px;font-size:9px;font-weight:500}
+.s-archived{background:#f3f4f6;color:#9ca3af;padding:2px 6px;border-radius:20px;font-size:9px;font-weight:500}
+.wajib-tag{display:inline-block;background:#fff7ed;color:#9a3412;border:0.5px solid #fed7aa;border-radius:3px;font-size:9px;padding:1px 4px;margin-left:3px}
+.note{font-size:10px;color:var(--color-text-secondary);margin-top:8px;padding:6px 10px;border-left:3px solid #1565C0;background:var(--color-background-secondary);border-radius:0 6px 6px 0}
+.progress-wrap{margin-bottom:10px}
+.progress-title{font-size:11px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px}
+.prog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
+.prog-card{background:var(--color-background-secondary);border-radius:8px;padding:8px 10px;border:0.5px solid var(--color-border-tertiary)}
+.prog-name{font-size:10px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog-bar-bg{background:var(--color-border-tertiary);border-radius:20px;height:5px;margin:4px 0}
+.prog-bar{background:#1565C0;border-radius:20px;height:5px;transition:width .3s}
+.prog-count{font-size:9px;color:var(--color-text-secondary)}
+</style>
+
+<div class="w">
+  <div class="top">
+    <div>
+      <h2><i class="ti ti-briefcase" aria-hidden="true"></i> DB Projects — IN_HSIBS</h2>
+      <small>Min. 6 projects / santri / tahun · Wajib: 1 sesuai Div + 1 Dakwah</small>
+    </div>
+    <div class="btns">
+      <button class="btn add" onclick="addProject()"><i class="ti ti-plus" aria-hidden="true"></i> Add Project</button>
+      <button class="btn" onclick="copyCSV()"><i class="ti ti-copy" aria-hidden="true"></i> Copy</button>
+      <button class="btn p" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Download CSV</button>
+    </div>
+  </div>
+
+  <div class="mandatory-note">
+    📌 <strong>Mandatory rule:</strong> Min. 1 project sesuai Division utama · Min. 1 project Dakwah/Public Speaking (semua santri) · Sisa 4 bebas dari track manapun · Reviewer: PIC Div (quality) + PIC Reg (final approval)
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-title">Progress per Santri (approved projects)</div>
+    <div class="prog-grid" id="prog-grid"></div>
+  </div>
+
+  <div class="stats">
+    <div class="st"><b id="s-total">0</b>Total</div>
+    <div class="st"><b id="s-idea">0</b>Idea</div>
+    <div class="st"><b id="s-inprog">0</b>In Progress</div>
+    <div class="st"><b id="s-submitted">0</b>Submitted</div>
+    <div class="st"><b id="s-approved">0</b>Approved</div>
+  </div>
+
+  <div class="filters">
+    <button class="fil active" onclick="setFil('all',this)">All</button>
+    <button class="fil" onclick="setFil('AC',this)">AC</button>
+    <button class="fil" onclick="setFil('DEEN',this)">DEEN</button>
+    <button class="fil" onclick="setFil('DKV',this)">DKV</button>
+    <button class="fil" onclick="setFil('IT',this)">IT</button>
+    <button class="fil" onclick="setFil('OPS',this)">OPS</button>
+    <button class="fil" onclick="setFil('PKBM',this)">PKBM</button>
+    <button class="fil" onclick="setFil('Dakwah',this)">Dakwah</button>
+    <button class="fil" onclick="setFil('wajib',this)">Wajib Only</button>
+  </div>
+
+  <div class="tw">
+    <table>
+      <colgroup>
+        <col style="width:4%"><col style="width:18%"><col style="width:8%"><col style="width:8%">
+        <col style="width:10%"><col style="width:10%"><col style="width:14%"><col style="width:14%"><col style="width:8%"><col style="width:6%">
+      </colgroup>
+      <thead><tr>
+        <th>#</th><th>Project Name</th><th>Track</th><th>Division</th>
+        <th>Owner (Santri)</th><th>Platform</th><th>Output Link</th><th>Reviewer</th><th>Status</th><th>Wajib</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <p class="note">Klik + Add Project untuk tambah project baru. Status bisa diubah langsung. Output link disimpan sebagai URL.</p>
+</div>
+
+<script>
+const SANTRI_LIST=[
+  {id:"S01",name:"Abdullah Al Farros",divs:["DKV","OPS"],picDiv:["Kak Abdur","Ust. Alan"],picReg:"Ust. Raakin"},
+  {id:"S02",name:"Abdulloh",divs:["DEEN","OPS"],picDiv:["Ust. Haidar","Ust. Alan"],picReg:"Ust. Raakin"},
+  {id:"S03",name:"Abdurrahman Hammaam Bariq",divs:["AC","IT"],picDiv:["Ust. Zicko","Mr. Fadil","Kak Andy"],picReg:"Kak Ari"},
+  {id:"S04",name:"Abu Musa Al Asyary",divs:["DKV","OPS"],picDiv:["Kak Abdur","Pak Amirul","Pak Angga"],picReg:"Kak Ari"},
+  {id:"S05",name:"Ahmad Faiz",divs:["OPS","PKBM"],picDiv:["Pak Gusti","Pak Aryo"],picReg:"Ust. Raakin"},
+  {id:"S06",name:"Ahmad Haidar Hutasuhut",divs:["DEEN","OPS"],picDiv:["Ust. Haidar","Pak Amirul","Pak Angga"],picReg:"Kak Ari"},
+  {id:"S07",name:"Ahmad Harits",divs:["OPS"],picDiv:["Mr. Azis"],picReg:"Kak Ari"},
+  {id:"S08",name:"Ayyub El Kaisi",divs:["AC","IT"],picDiv:["Ust. Zicko","Mr. Fadil","Kak Andy"],picReg:"Ust. Raakin"},
+  {id:"S09",name:"Bagus Surya Dimeja",divs:["AC","DEEN"],picDiv:["Ust. Zicko","Mr. Fadil","Ust. Haidar"],picReg:"Kak Ari"},
+  {id:"S10",name:"Maulana Aqila Umar Abdul Aziz",divs:["DKV","OPS"],picDiv:["Kak Abdur","Ust. Alan"],picReg:"Ust. Raakin"},
+  {id:"S11",name:"Mu'adz Jundyurrahman",divs:["AC","IT"],picDiv:["Ust. Zicko","Mr. Fadil","Kak Andy"],picReg:"Kak Ari"},
+  {id:"S12",name:"Muhammad Afif Hikam",divs:["DKV","OPS"],picDiv:["Kak Abdur","Pak Gusti"],picReg:"Ust. Raakin"},
+  {id:"S13",name:"Muhammad Atsaal Hakim",divs:["IT","OPS"],picDiv:["Kak Andy","Ust. Alan"],picReg:"Ust. Raakin"},
+  {id:"S14",name:"Muhammad Dafa Al Fatih",divs:["IT","OPS"],picDiv:["Kak Andy","Ust. Alan"],picReg:"Ust. Raakin"},
+  {id:"S15",name:"Muhammad Daffa Al Hafizh",divs:["DEEN","IT"],picDiv:["Ust. Haidar","Kak Andy"],picReg:"Ust. Raakin"},
+  {id:"S16",name:"Muhammad Firdaus Abdurrohim",divs:["OPS","PKBM"],picDiv:["Ust. Zicko","Pak Aryo"],picReg:"Ust. Raakin"},
+  {id:"S17",name:"Muhammad Rabbani Ibnu Ridwan",divs:["AC","IT"],picDiv:["Ust. Zicko","Mr. Fadil","Kak Andy"],picReg:"Ust. Raakin"},
+  {id:"S18",name:"Muhammad Sultan Al Faisal",divs:["AC","OPS"],picDiv:["Ust. Zicko","Mr. Fadil","Pak Gigih","Pak Wahyu"],picReg:"Kak Ari"},
+  {id:"S19",name:"Muhammad Zaki NIF",divs:["AC","IT"],picDiv:["Ust. Zicko","Mr. Fadil","Kak Andy"],picReg:"Kak Ari"},
+  {id:"S20",name:"Mujahiddin Khoirusysyifa",divs:["AC","OPS"],picDiv:["Ust. Zicko","Mr. Fadil","Mr. Azis"],picReg:"Kak Ari"},
+  {id:"S21",name:"Tsabit Az Zaqi",divs:["AC","DEEN","OPS"],picDiv:["Ust. Zicko","Ust. Haidar","Pak Gigih","Pak Wahyu"],picReg:"Kak Ari"},
+];
+
+const TRACKS=[
+  {code:"Storyteller",cls:"c-story",div:"DKV",platform:"LinkedIn / Medium"},
+  {code:"Design Showcase",cls:"c-dkv",div:"DKV",platform:"Behance / Dribbble"},
+  {code:"Technical Builder",cls:"c-it",div:"IT",platform:"GitHub / IN_HSIBS"},
+  {code:"Teaching & Knowledge",cls:"c-ac",div:"AC",platform:"Notion / YouTube"},
+  {code:"Operational Service",cls:"c-ops",div:"OPS",platform:"Notion / Google Docs"},
+  {code:"Dakwah & Public Speaking",cls:"c-dakwah",div:"All",platform:"YouTube / Instagram"},
+  {code:"PKBM Output",cls:"c-pkbm",div:"PKBM",platform:"Sistem PKBM / Google Drive"},
+];
+const TRACK_CLS={};TRACKS.forEach(t=>TRACK_CLS[t.code]=t.cls);
+const STATUSES=["Idea","In Progress","Submitted","Approved","Archived"];
+const DIV_CLS={AC:"c-ac",DEEN:"c-deen",DKV:"c-dkv",IT:"c-it",OPS:"c-ops",PKBM:"c-pkbm",Dakwah:"c-dakwah",All:"c-all"};
+
+let projects=[
+  // Pre-seeded template projects per santri
+  {id:"P001",name:"30 Days Design Challenge",track:"Design Showcase",div:"DKV",owners:["S01","S10","S12"],platform:"Behance",link:"",reviewer:"Kak Abdur · Ust. Raakin",status:"Idea",wajib:true},
+  {id:"P002",name:"Kultum Series — Santri Speaks",track:"Dakwah & Public Speaking",div:"All",owners:["S02","S06","S21"],platform:"YouTube / Instagram",link:"",reviewer:"Ust. Haidar · Ust. Raakin",status:"Idea",wajib:true},
+  {id:"P003",name:"IN_HSIBS Web App Feature",track:"Technical Builder",div:"IT",owners:["S03","S08","S11","S17","S19"],platform:"GitHub / IN_HSIBS",link:"",reviewer:"Kak Andy · Kak Ari",status:"Idea",wajib:true},
+  {id:"P004",name:"Modul Ajar Tahfidz Digital",track:"Teaching & Knowledge",div:"AC",owners:["S09","S15","S21"],platform:"Notion / YouTube",link:"",reviewer:"Ust. Zicko · Kak Ari",status:"Idea",wajib:true},
+  {id:"P005",name:"SOP Operasional Unit HSI BS",track:"Operational Service",div:"OPS",owners:["S05","S07","S16"],platform:"Notion / Google Docs",link:"",reviewer:"Mr. Azis · Ust. Raakin",status:"Idea",wajib:true},
+  {id:"P006",name:"Laporan BOS & ARKAS Q1",track:"PKBM Output",div:"PKBM",owners:["S05","S16"],platform:"Sistem PKBM",link:"",reviewer:"Pak Aryo · Ust. Raakin",status:"Idea",wajib:true},
+  {id:"P007",name:"LinkedIn Storyteller — 30 Days",track:"Storyteller",div:"DKV",owners:["S04","S12"],platform:"LinkedIn",link:"",reviewer:"Kak Abdur · Kak Ari",status:"Idea",wajib:false},
+  {id:"P008",name:"IT Helpdesk Internal Tool",track:"Technical Builder",div:"IT",owners:["S13","S14"],platform:"GitHub",link:"",reviewer:"Kak Andy · Ust. Raakin",status:"Idea",wajib:false},
+];
+
+let currentFil="all";
+let projCounter=9;
+
+function setFil(f,el){
+  currentFil=f;
+  document.querySelectorAll(".fil").forEach(x=>x.classList.remove("active"));
+  el.classList.add("active");
+  render();
+}
+
+function addProject(){
+  const id=`P${String(projCounter).padStart(3,"0")}`;
+  projCounter++;
+  projects.push({id,name:"New Project",track:"Technical Builder",div:"IT",owners:[],platform:"",link:"",reviewer:"",status:"Idea",wajib:false});
+  render();
+}
+
+function statusCls(s){return`s-${s.toLowerCase().replace(" ","")}`;} 
+
+function ownerChips(owners){
+  return owners.map(id=>`<span class="sid" title="${SANTRI_LIST.find(s=>s.id===id)?.name||id}">${id}</span>`).join(" ");
+}
+
+function filtered(){
+  if(currentFil==="all") return projects;
+  if(currentFil==="wajib") return projects.filter(p=>p.wajib);
+  return projects.filter(p=>p.div===currentFil||p.track.includes(currentFil));
+}
+
+function render(){
+  const list=filtered();
+  document.getElementById("tb").innerHTML=list.map((p,i)=>`<tr>
+    <td style="font-size:10px;color:var(--color-text-secondary);text-align:center">${p.id}</td>
+    <td>
+      <input type="text" value="${p.name}" onchange="projects.find(x=>x.id==='${p.id}').name=this.value;updateStats()">
+      ${p.wajib?'<span class="wajib-tag">wajib</span>':''}
+    </td>
+    <td><span class="chip ${TRACK_CLS[p.track]||'c-all'}" style="font-size:9px">${p.track}</span></td>
+    <td><span class="chip ${DIV_CLS[p.div]||'c-all'}">${p.div}</span></td>
+    <td>${ownerChips(p.owners)}</td>
+    <td style="font-size:10px;color:var(--color-text-secondary)">${p.platform}</td>
+    <td class="link-cell">${p.link?`<a href="${p.link}" target="_blank">🔗 Open</a>`:`<span class="nolink">No link yet</span>`}<br>
+      <input type="url" value="${p.link}" placeholder="https://..." onchange="projects.find(x=>x.id==='${p.id}').link=this.value;render()" style="margin-top:2px">
+    </td>
+    <td style="font-size:10px;color:var(--color-text-secondary)">${p.reviewer}</td>
+    <td><select class="sel" onchange="projects.find(x=>x.id==='${p.id}').status=this.value;updateStats()">
+      ${STATUSES.map(s=>`<option value="${s}"${s===p.status?" selected":""}>${s}</option>`).join("")}
+    </select></td>
+    <td style="text-align:center"><input type="checkbox" ${p.wajib?"checked":""} onchange="projects.find(x=>x.id==='${p.id}').wajib=this.checked;render()" style="accent-color:#1565C0;width:14px;height:14px"></td>
+  </tr>`).join("");
+  updateStats();
+  renderProgress();
+}
+
+function updateStats(){
+  document.getElementById("s-total").textContent=projects.length;
+  document.getElementById("s-idea").textContent=projects.filter(p=>p.status==="Idea").length;
+  document.getElementById("s-inprog").textContent=projects.filter(p=>p.status==="In Progress").length;
+  document.getElementById("s-submitted").textContent=projects.filter(p=>p.status==="Submitted").length;
+  document.getElementById("s-approved").textContent=projects.filter(p=>p.status==="Approved").length;
+}
+
+function renderProgress(){
+  const grid=document.getElementById("prog-grid");
+  grid.innerHTML=SANTRI_LIST.map(s=>{
+    const mine=projects.filter(p=>p.owners.includes(s.id));
+    const approved=mine.filter(p=>p.status==="Approved").length;
+    const total=mine.length;
+    const pct=Math.min(Math.round((approved/6)*100),100);
+    return`<div class="prog-card">
+      <div class="prog-name" title="${s.name}">${s.id} · ${s.name.split(" ")[0]}</div>
+      <div class="prog-bar-bg"><div class="prog-bar" style="width:${pct}%"></div></div>
+      <div class="prog-count">${approved} approved · ${total} total · target 6</div>
+    </div>`;
+  }).join("");
+}
+
+function toCSV(){
+  const h="ID,Project Name,Track,Division,Owners,Platform,Output Link,Reviewer,Status,Wajib";
+  return[h,...projects.map(p=>[p.id,p.name,p.track,p.div,p.owners.join("; "),p.platform,p.link,p.reviewer,p.status,p.wajib?"Yes":"No"].map(v=>`"${v}"`).join(","))].join("\n");
+}
+function exportCSV(){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([toCSV()],{type:"text/csv"}));
+  a.download="IN_HSIBS_DB_Projects.csv";a.click();
+}
+function copyCSV(){
+  navigator.clipboard.writeText(toCSV()).then(()=>{
+    const b=event.target.closest(".btn"),o=b.innerHTML;
+    b.innerHTML='<i class="ti ti-check"></i> Copied!';
+    setTimeout(()=>b.innerHTML=o,2000);
+  });
+}
+render();
+</script>

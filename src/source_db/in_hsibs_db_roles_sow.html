@@ -1,0 +1,213 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{padding:.75rem 0}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.top h2{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.top small{font-size:10px;color:var(--color-text-secondary)}
+.btns{display:flex;gap:6px}
+.btn{font-size:11px;padding:5px 10px;border:0.5px solid var(--color-border-secondary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn:hover{background:var(--color-background-secondary)}
+.btn.p{background:#1565C0;color:#fff;border-color:#1565C0}
+.btn.p:hover{background:#0D47A1}
+.stats{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.st{background:var(--color-background-secondary);border-radius:6px;padding:4px 10px;font-size:10px;color:var(--color-text-secondary);text-align:center}
+.st b{display:block;font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.mandatory{background:var(--color-background-secondary);border-radius:8px;padding:10px 14px;margin-bottom:10px;border-left:3px solid #1565C0}
+.mandatory h3{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.mandatory p{font-size:12px;color:var(--color-text-primary)}
+.tw{border:0.5px solid var(--color-border-tertiary);border-radius:10px;overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{background:var(--color-background-secondary);padding:6px 6px;text-align:left;font-weight:500;font-size:9px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+td{padding:4px 5px;border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:var(--color-background-secondary)}
+.chip{border-radius:3px;padding:1px 5px;font-size:9px;white-space:nowrap;display:inline-block;font-weight:500}
+.c-ac{background:#dbeafe;color:#1e40af}
+.c-deen{background:#dcfce7;color:#166534}
+.c-dkv{background:#f3e5f5;color:#6b21a8}
+.c-it{background:#fef3c7;color:#92400e}
+.c-ops{background:#fce7f3;color:#9d174d}
+.c-pkbm{background:#ecfdf5;color:#065f46}
+.role-name{font-weight:500;font-size:12px;color:var(--color-text-primary)}
+.task{font-size:11px;color:var(--color-text-primary);line-height:1.5}
+.study{font-size:11px;color:var(--color-text-secondary);line-height:1.5;font-style:italic}
+.ids{display:flex;flex-wrap:wrap;gap:2px;margin-top:2px}
+.sid{font-size:9px;font-family:var(--font-mono);color:#1565C0;background:#dbeafe;border-radius:3px;padding:1px 4px;white-space:nowrap}
+.sid.none{color:var(--color-text-secondary);background:var(--color-background-secondary);font-style:italic}
+.note{font-size:10px;color:var(--color-text-secondary);margin-top:8px;padding:6px 10px;border-left:3px solid #1565C0;background:var(--color-background-secondary);border-radius:0 6px 6px 0}
+</style>
+
+<div class="w">
+  <div class="top">
+    <div>
+      <h2><i class="ti ti-clipboard-list" aria-hidden="true"></i> DB Roles & SoW — IN_HSIBS</h2>
+      <small>Division · Role · Primary Task · Self-Study · Santri (ID)</small>
+    </div>
+    <div class="btns">
+      <button class="btn" onclick="copyCSV()"><i class="ti ti-copy" aria-hidden="true"></i> Copy</button>
+      <button class="btn p" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Download CSV</button>
+    </div>
+  </div>
+
+  <div class="mandatory">
+    <h3>📌 Mandatory — Universal Semua Santri Internship</h3>
+    <p>Hadir <strong>12× Learn session</strong> &nbsp;·&nbsp; Selesaikan min. <strong>6 Projects</strong> &nbsp;·&nbsp; Submit <strong>laporan mingguan</strong> &nbsp;·&nbsp; Jaga <strong>adab & disiplin</strong> selama internship</p>
+  </div>
+
+  <div class="stats">
+    <div class="st"><b id="s-total">0</b>Total Role</div>
+    <div class="st"><b id="s-ac">0</b>AC</div>
+    <div class="st"><b id="s-deen">0</b>DEEN</div>
+    <div class="st"><b id="s-dkv">0</b>DKV</div>
+    <div class="st"><b id="s-it">0</b>IT</div>
+    <div class="st"><b id="s-ops">0</b>OPS</div>
+    <div class="st"><b id="s-pkbm">0</b>PKBM</div>
+    <div class="st"><b id="s-assigned">0</b>Roles assigned</div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <colgroup>
+        <col style="width:7%">
+        <col style="width:13%">
+        <col style="width:30%">
+        <col style="width:25%">
+        <col style="width:25%">
+      </colgroup>
+      <thead><tr>
+        <th>Div</th>
+        <th>Role</th>
+        <th>Primary Task</th>
+        <th>Self-Study</th>
+        <th>Santri (ID)</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <p class="note">Data Santri ditarik otomatis dari DB Santri. ID diklik akan expand nama lengkapnya.</p>
+</div>
+
+<script>
+// ── DB Santri (dari v8) ──────────────────────────────────────
+const SANTRI=[
+  {id:"S01",name:"Abdullah Al Farros",roles:["Designer","Video Editor","OBS Operator","Photographer","Social Media","Copywriter","Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+  {id:"S02",name:"Abdulloh",roles:["Tahfidz","Arabic","Musyrif","Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+  {id:"S03",name:"Abdurrahman Hammaam Bariq",roles:["Asmen IT","Asmen B. English","Pengajar SDIT","Pengajar TPQ","Developer","QA","IT Helpdesk","System Admin"]},
+  {id:"S04",name:"Abu Musa Al Asyary",roles:["Designer","Video Editor","OBS Operator","Photographer","Social Media","Copywriter","Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+  {id:"S05",name:"Ahmad Faiz",roles:["Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office","BOS Operator","ARKAS Operator","SIMBOS Operator"]},
+  {id:"S06",name:"Ahmad Haidar Hutasuhut",roles:["Tahfidz","Arabic","Musyrif","Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+  {id:"S07",name:"Ahmad Harits",roles:["Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+  {id:"S08",name:"Ayyub El Kaisi",roles:["Asmen IT","Asmen B. English","Pengajar SDIT","Pengajar TPQ","Developer","QA","IT Helpdesk","System Admin"]},
+  {id:"S09",name:"Bagus Surya Dimeja",roles:["Asmen IT","Asmen B. English","Pengajar SDIT","Pengajar TPQ","Tahfidz","Arabic","Musyrif"]},
+  {id:"S10",name:"Maulana Aqila Umar Abdul Aziz",roles:["Designer","Video Editor","OBS Operator","Photographer","Social Media","Copywriter","Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+  {id:"S11",name:"Mu'adz Jundyurrahman",roles:["Asmen IT","Asmen B. English","Pengajar SDIT","Pengajar TPQ","Developer","QA","IT Helpdesk","System Admin"]},
+  {id:"S12",name:"Muhammad Afif Hikam",roles:["Designer","Video Editor","OBS Operator","Photographer","Social Media","Copywriter","Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+  {id:"S13",name:"Muhammad Atsaal Hakim",roles:["Developer","QA","IT Helpdesk","System Admin","Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+  {id:"S14",name:"Muhammad Dafa Al Fatih",roles:["Developer","QA","IT Helpdesk","System Admin","Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+  {id:"S15",name:"Muhammad Daffa Al Hafizh",roles:["Tahfidz","Arabic","Musyrif","Developer","QA","IT Helpdesk","System Admin"]},
+  {id:"S16",name:"Muhammad Firdaus Abdurrohim",roles:["Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office","BOS Operator","ARKAS Operator","SIMBOS Operator"]},
+  {id:"S17",name:"Muhammad Rabbani Ibnu Ridwan",roles:["Asmen IT","Asmen B. English","Pengajar SDIT","Pengajar TPQ","Developer","QA","IT Helpdesk","System Admin"]},
+  {id:"S18",name:"Muhammad Sultan Al Faisal",roles:["Asmen IT","Asmen B. English","Pengajar SDIT","Pengajar TPQ","Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+  {id:"S19",name:"Muhammad Zaki NIF",roles:["Asmen IT","Asmen B. English","Pengajar SDIT","Pengajar TPQ","Developer","QA","IT Helpdesk","System Admin"]},
+  {id:"S20",name:"Mujahiddin Khoirusysyifa",roles:["Asmen IT","Asmen B. English","Pengajar SDIT","Pengajar TPQ","Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+  {id:"S21",name:"Tsabit Az Zaqi",roles:["Asmen IT","Asmen B. English","Pengajar SDIT","Pengajar TPQ","Tahfidz","Arabic","Musyrif","Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+];
+
+const ROLES=[
+  {div:"AC", cls:"c-ac", role:"Asmen IT",        task:"Asistensi pengajaran IT, kelola lab komputer, bantu persiapan materi", study:"Belajar pemrograman / jaringan dasar"},
+  {div:"AC", cls:"c-ac", role:"Asmen B. English", task:"Asistensi kelas B. Inggris, bantu drill speaking & listening siswa",    study:"Tingkatkan fluency, vocabulary, & grammar"},
+  {div:"AC", cls:"c-ac", role:"Pengajar SDIT",    task:"Mengajar kelas SD Islam Terpadu sesuai jadwal & kurikulum",             study:"Pedagogi & manajemen kelas dasar"},
+  {div:"AC", cls:"c-ac", role:"Pengajar TPQ",     task:"Mengajar Al-Qur'an (tilawah & tajwid) di TPQ",                          study:"Tahsin & metode pengajaran Al-Qur'an"},
+  {div:"DEEN",cls:"c-deen",role:"Tahfidz",        task:"Asistensi program hafalan, simak & musafahah santri",                   study:"Ziyadah hafalan mandiri min. 1 halaman/hari"},
+  {div:"DEEN",cls:"c-deen",role:"Arabic",         task:"Asistensi kelas Bahasa Arab, drill mufradat & percakapan",              study:"Belajar nahwu-shorof & kamus aktif"},
+  {div:"DEEN",cls:"c-deen",role:"Musyrif",        task:"Pembinaan akhlak & kehidupan asrama santri",                            study:"Baca sirah, fikih ibadah, & kepemimpinan islami"},
+  {div:"DKV", cls:"c-dkv", role:"Designer",       task:"Produksi konten visual (poster, infografis, banner, thumbnail)",        study:"Kuasai tools: Figma / Canva / Illustrator"},
+  {div:"DKV", cls:"c-dkv", role:"Video Editor",   task:"Edit video konten dakwah, dokumentasi, & publikasi",                    study:"Kuasai tools: Premiere / CapCut / DaVinci"},
+  {div:"DKV", cls:"c-dkv", role:"OBS Operator",   task:"Operasikan live streaming sesi hybrid & event",                        study:"Pelajari OBS, scene setup, & audio mixing"},
+  {div:"DKV", cls:"c-dkv", role:"Photographer",   task:"Dokumentasi kegiatan, produksi foto publikasi",                        study:"Komposisi, lighting dasar, & editing Lightroom"},
+  {div:"DKV", cls:"c-dkv", role:"Social Media",   task:"Kelola akun medsos, jadwal posting, caption, & engagement",            study:"Copywriting, strategi konten, & analytics"},
+  {div:"DKV", cls:"c-dkv", role:"Copywriter",     task:"Tulis caption, artikel, narasi konten dakwah & program",               study:"Jurnalistik dasar, storytelling, & SEO"},
+  {div:"IT",  cls:"c-it",  role:"Developer",      task:"Bangun & maintain web/app internal HSI BS",                            study:"Pelajari framework aktif (React / Laravel / dll)"},
+  {div:"IT",  cls:"c-it",  role:"QA",             task:"Testing fitur, laporan bug, pastikan kualitas produk",                 study:"Metodologi testing & dokumentasi teknis"},
+  {div:"IT",  cls:"c-it",  role:"IT Helpdesk",    task:"Support teknis perangkat, jaringan, & troubleshooting",                study:"Sertifikasi dasar IT (CompTIA / Google IT)"},
+  {div:"IT",  cls:"c-it",  role:"System Admin",   task:"Kelola server, jaringan, & keamanan sistem",                           study:"Linux, networking, & cloud dasar"},
+  {div:"OPS", cls:"c-ops", role:"Administration", task:"Kelola surat, arsip, data, & koordinasi administrasi unit",            study:"Manajemen dokumen & SOP perkantoran"},
+  {div:"OPS", cls:"c-ops", role:"Customer Service",task:"Layani tamu, wali santri, & stakeholder unit",                        study:"Komunikasi efektif & conflict resolution"},
+  {div:"OPS", cls:"c-ops", role:"Sarpras",        task:"Kelola sarana & prasarana, inventaris, & logistik unit",               study:"Manajemen aset & K3 dasar"},
+  {div:"OPS", cls:"c-ops", role:"Imam",           task:"Pimpin shalat berjamaah & kegiatan ibadah masjid",                     study:"Fiqih shalat, tajwid, & adab imam"},
+  {div:"OPS", cls:"c-ops", role:"Muadzin",        task:"Kumandangkan adzan, iqamah, & bantu operasional masjid",               study:"Tahsin suara & makhraj huruf"},
+  {div:"OPS", cls:"c-ops", role:"Front Office",   task:"Jadi wajah pertama unit — sambut tamu & kelola informasi",             study:"Public speaking & customer experience"},
+  {div:"PKBM",cls:"c-pkbm",role:"BOS Operator",  task:"Input & kelola dana BOS sesuai regulasi Kemendikbud",                  study:"Regulasi BOS terbaru & aplikasi ARKAS"},
+  {div:"PKBM",cls:"c-pkbm",role:"ARKAS Operator",task:"Operasikan sistem ARKAS untuk perencanaan & pelaporan anggaran",        study:"Akuntansi dasar & sistem keuangan pendidikan"},
+  {div:"PKBM",cls:"c-pkbm",role:"SIMBOS Operator",task:"Input data & laporan via SIMBOS",                                      study:"Administrasi data pendidikan & kepatuhan laporan"},
+];
+
+function getSantriForRole(role){
+  return SANTRI.filter(s=>s.roles.includes(role)).map(s=>s.id);
+}
+
+function renderIDs(ids){
+  if(!ids.length) return`<span class="sid none">—</span>`;
+  return ids.map(id=>`<span class="sid" title="${SANTRI.find(s=>s.id===id)?.name||""}">${id}</span>`).join(" ");
+}
+
+function render(){
+  const tb=document.getElementById("tb");
+  let html="";
+  let lastDiv="";
+  ROLES.forEach(r=>{
+    const ids=getSantriForRole(r.role);
+    const divChanged=r.div!==lastDiv;
+    lastDiv=r.div;
+    html+=`<tr${divChanged?' style="border-top:2px solid var(--color-border-secondary)"':''}>
+      <td style="text-align:center;vertical-align:middle"><span class="chip ${r.cls}">${r.div}</span></td>
+      <td><span class="role-name">${r.role}</span></td>
+      <td><span class="task">${r.task}</span></td>
+      <td><span class="study">${r.study}</span></td>
+      <td><div class="ids">${renderIDs(ids)}</div></td>
+    </tr>`;
+  });
+  tb.innerHTML=html;
+  updateStats();
+}
+
+function updateStats(){
+  const counts={AC:0,DEEN:0,DKV:0,IT:0,OPS:0,PKBM:0};
+  let assigned=0;
+  ROLES.forEach(r=>{
+    counts[r.div]=(counts[r.div]||0)+1;
+    if(getSantriForRole(r.role).length>0) assigned++;
+  });
+  document.getElementById("s-total").textContent=ROLES.length;
+  document.getElementById("s-ac").textContent=counts.AC;
+  document.getElementById("s-deen").textContent=counts.DEEN;
+  document.getElementById("s-dkv").textContent=counts.DKV;
+  document.getElementById("s-it").textContent=counts.IT;
+  document.getElementById("s-ops").textContent=counts.OPS;
+  document.getElementById("s-pkbm").textContent=counts.PKBM;
+  document.getElementById("s-assigned").textContent=assigned+"/"+ROLES.length;
+}
+
+function toCSV(){
+  const h="Division,Role,Primary Task,Self-Study,Santri IDs,Mandatory";
+  const mandatory="12x Learn; min. 6 Projects; Laporan mingguan; Adab & disiplin";
+  return[h,...ROLES.map(r=>{
+    const ids=getSantriForRole(r.role).join("; ");
+    return[r.div,r.role,r.task,r.study,ids,mandatory].map(v=>`"${v}"`).join(",");
+  })].join("\n");
+}
+function exportCSV(){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([toCSV()],{type:"text/csv"}));
+  a.download="IN_HSIBS_DB_Roles_SoW.csv";a.click();
+}
+function copyCSV(){
+  navigator.clipboard.writeText(toCSV()).then(()=>{
+    const b=event.target.closest(".btn"),o=b.innerHTML;
+    b.innerHTML='<i class="ti ti-check"></i> Copied!';
+    setTimeout(()=>b.innerHTML=o,2000);
+  });
+}
+render();
+</script>

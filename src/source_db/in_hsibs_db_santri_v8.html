@@ -1,0 +1,280 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{padding:.75rem 0}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.top h2{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.top small{font-size:10px;color:var(--color-text-secondary)}
+.btns{display:flex;gap:6px}
+.btn{font-size:11px;padding:5px 10px;border:0.5px solid var(--color-border-secondary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn:hover{background:var(--color-background-secondary)}
+.btn.p{background:#1565C0;color:#fff;border-color:#1565C0}
+.btn.p:hover{background:#0D47A1}
+.stats{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.st{background:var(--color-background-secondary);border-radius:6px;padding:4px 10px;font-size:10px;color:var(--color-text-secondary);text-align:center}
+.st b{display:block;font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.tw{border:0.5px solid var(--color-border-tertiary);border-radius:10px;overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{background:var(--color-background-secondary);padding:6px 5px;text-align:left;font-weight:500;font-size:9px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+td{padding:3px 4px;border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:var(--color-background-secondary)}
+.idc{font-size:9px;font-weight:500;color:#1565C0;white-space:nowrap;font-family:var(--font-mono)}
+.nc{font-weight:500;color:var(--color-text-primary);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{padding:1px 5px;border-radius:20px;font-size:9px;font-weight:500;white-space:nowrap;display:inline-block}
+.u-bs{color:#1e40af;background:#dbeafe}
+.u-bo{color:#6b21a8;background:#f3e5f5}
+.u-st{color:#166534;background:#dcfce7}
+.note{font-size:10px;color:var(--color-text-secondary);margin-top:8px;padding:6px 10px;border-left:3px solid #1565C0;background:var(--color-background-secondary);border-radius:0 6px 6px 0}
+.sel{font-size:11px;padding:2px 3px;border:0.5px solid var(--color-border-secondary);border-radius:4px;background:var(--color-background-primary);color:var(--color-text-primary);width:100%}
+.sel:focus{outline:none;border-color:#1565C0}
+.chips{display:flex;flex-wrap:wrap;gap:2px}
+.chip{border-radius:3px;padding:1px 4px;font-size:9px;white-space:nowrap;display:inline-block}
+.c-ac{background:#dbeafe;color:#1e40af}
+.c-deen{background:#dcfce7;color:#166534}
+.c-dkv{background:#f3e5f5;color:#6b21a8}
+.c-it{background:#fef3c7;color:#92400e}
+.c-ops{background:#fce7f3;color:#9d174d}
+.c-pkbm{background:#ecfdf5;color:#065f46}
+.c-role{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.c-pic{background:#f0f9ff;color:#0369a1}
+.ms{position:relative}
+.ms-box{font-size:10px;padding:2px 16px 2px 4px;border:0.5px solid var(--color-border-secondary);border-radius:4px;background:var(--color-background-primary);cursor:pointer;min-height:24px;position:relative}
+.ms-box:hover{border-color:#1565C0}
+.ms-box::after{content:"▾";position:absolute;right:3px;top:50%;transform:translateY(-50%);font-size:8px;color:var(--color-text-secondary);pointer-events:none}
+.ms-drop{display:none;position:absolute;top:calc(100% + 1px);left:0;z-index:300;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:8px;min-width:200px;max-height:220px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.ms-drop.open{display:block}
+.gl{font-size:9px;font-weight:500;color:var(--color-text-secondary);padding:5px 8px 2px;text-transform:uppercase;letter-spacing:.4px;border-top:0.5px solid var(--color-border-tertiary)}
+.gl:first-child{border-top:none}
+.mo{display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:11px;cursor:pointer;color:var(--color-text-primary)}
+.mo:hover{background:var(--color-background-secondary)}
+.mo input{width:12px;height:12px;cursor:pointer;accent-color:#1565C0;flex-shrink:0;margin:0}
+.mall{display:flex;align-items:center;gap:6px;padding:3px 8px;font-size:10px;cursor:pointer;color:var(--color-text-secondary);font-style:italic;border-bottom:0.5px solid var(--color-border-tertiary)}
+.mall:hover{background:var(--color-background-secondary)}
+.mall input{width:12px;height:12px;cursor:pointer;accent-color:#1565C0;flex-shrink:0;margin:0}
+.ph{color:var(--color-text-secondary);font-size:10px}
+</style>
+
+<div class="w">
+  <div class="top">
+    <div>
+      <h2><i class="ti ti-users" aria-hidden="true"></i> DB Santri — IN_HSIBS</h2>
+      <small>21 santri · auto-mapped · editable</small>
+    </div>
+    <div class="btns">
+      <button class="btn" onclick="copyCSV()"><i class="ti ti-copy" aria-hidden="true"></i> Copy</button>
+      <button class="btn p" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Download CSV</button>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="st"><b id="s-t">21</b>Total</div>
+    <div class="st"><b id="s-bs">0</b>HSI BS</div>
+    <div class="st"><b id="s-bo">0</b>HSI BO</div>
+    <div class="st"><b id="s-st">0</b>STIT</div>
+    <div class="st"><b id="s-l">0</b>Location</div>
+    <div class="st"><b id="s-d">0</b>Division</div>
+    <div class="st"><b id="s-r">0</b>Role</div>
+    <div class="st"><b id="s-p">0</b>PIC set</div>
+    <div class="st"><b id="s-f">0</b>Done</div>
+  </div>
+  <div class="tw">
+    <table>
+      <colgroup>
+        <col style="width:9%"><col style="width:13%"><col style="width:5%">
+        <col style="width:8%"><col style="width:11%"><col style="width:16%">
+        <col style="width:16%"><col style="width:11%"><col style="width:6%">
+      </colgroup>
+      <thead><tr>
+        <th>ID</th><th>Full Name</th><th>Unit</th>
+        <th>Location</th><th>Division</th><th>Role</th>
+        <th>PIC Div</th><th>PIC Reg</th><th>Status</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <p class="note">Semua field sudah auto-mapped. Klik dropdown untuk edit. Download CSV kalau sudah siap import ke Notion.</p>
+</div>
+
+<script>
+const DM=[
+  {code:"AC",  label:"AC — Academic",  cls:"c-ac",  roles:["Asmen IT","Asmen B. English","Pengajar SDIT","Pengajar TPQ"]},
+  {code:"DEEN",label:"DEEN — Deen",    cls:"c-deen", roles:["Tahfidz","Arabic","Musyrif"]},
+  {code:"DKV", label:"DKV — Creative", cls:"c-dkv",  roles:["Designer","Video Editor","OBS Operator","Photographer","Social Media","Copywriter"]},
+  {code:"IT",  label:"IT",             cls:"c-it",   roles:["Developer","QA","IT Helpdesk","System Admin"]},
+  {code:"OPS", label:"OPS — Operations",cls:"c-ops", roles:["Administration","Customer Service","Sarpras","Imam","Muadzin","Front Office"]},
+  {code:"PKBM",label:"PKBM",           cls:"c-pkbm", roles:["BOS Operator","ARKAS Operator","SIMBOS Operator"]},
+];
+const RC={};DM.forEach(d=>d.roles.forEach(r=>RC[r]=d.cls));
+const ALL_ROLES_BY_DIV={};DM.forEach(d=>ALL_ROLES_BY_DIV[d.code]=d.roles);
+
+const LOCS=["","Sukabumi","Bekasi","Purworejo","Bantul","Solo","Pandeglang","Remote"];
+const PIC_DIV_LIST=["Ust. Zicko","Ust. Haidar","Ust. Alan","Kak Abdur","Kak Andy","Mr. Fadil","Mr. Azis","Pak Aryo","Pak Amirul","Pak Angga","Pak Gigih","Pak Wahyu","Pak Gusti","Ust. STITR","Ust. SDIT IQ"];
+const PIC_REG=["","Kak Ari (Central Java)","Ust. Raakin (West Java)"];
+const STATS=["Active","On Hold","Inactive","Alumni"];
+
+// ── Auto-mapping logic ──────────────────────────────────────
+function autoRoles(divs){
+  const roles=[];
+  divs.forEach(d=>{(ALL_ROLES_BY_DIV[d]||[]).forEach(r=>{if(!roles.includes(r))roles.push(r)})});
+  return roles;
+}
+
+function autoPicDiv(divs, loc){
+  const pics=new Set();
+  divs.forEach(d=>{
+    if(d==="AC"){pics.add("Ust. Zicko");}
+    if(d==="AC") pics.add("Mr. Fadil"); // Mr. Fadil for English always with AC
+    if(d==="DEEN") pics.add("Ust. Haidar");
+    if(d==="DKV") pics.add("Kak Abdur");
+    if(d==="IT") pics.add("Kak Andy");
+    if(d==="PKBM") pics.add("Pak Aryo");
+    if(d==="OPS"){
+      if(loc==="Solo"){pics.add("Pak Amirul");pics.add("Pak Angga");}
+      else if(loc==="Bantul"){pics.add("Pak Gigih");pics.add("Pak Wahyu");}
+      else if(loc==="Bekasi") pics.add("Pak Gusti");
+      else if(loc==="Sukabumi") pics.add("Ust. Alan");
+      else if(loc==="Purworejo") pics.add("Mr. Azis");
+      else if(loc==="Pandeglang") pics.add("Ust. STITR");
+      else if(loc==="Remote") pics.add("Ust. Zicko");
+    }
+  });
+  return [...pics];
+}
+
+function autoPicReg(loc){
+  if(["Sukabumi","Bekasi","Pandeglang","Remote"].includes(loc)) return "Ust. Raakin (West Java)";
+  if(["Purworejo","Bantul","Solo"].includes(loc)) return "Kak Ari (Central Java)";
+  return "";
+}
+
+// ── Raw data ────────────────────────────────────────────────
+const raw=[
+  ["IN_HSIBS_S01","Abdullah Al Farros","STIT Riyadh","Pandeglang",["DKV","OPS"]],
+  ["IN_HSIBS_S02","Abdulloh","HSI BS","Sukabumi",["DEEN","OPS"]],
+  ["IN_HSIBS_S03","Abdurrahman Hammaam Bariq","HSI BS","Purworejo",["AC","IT"]],
+  ["IN_HSIBS_S04","Abu Musa Al Asyary","HSI BO","Solo",["DKV","OPS"]],
+  ["IN_HSIBS_S05","Ahmad Faiz","HSI BO","Bekasi",["OPS","PKBM"]],
+  ["IN_HSIBS_S06","Ahmad Haidar Hutasuhut","HSI BO","Solo",["DEEN","OPS"]],
+  ["IN_HSIBS_S07","Ahmad Harits","HSI BS","Purworejo",["OPS"]],
+  ["IN_HSIBS_S08","Ayyub El Kaisi","HSI BS","Sukabumi",["AC","IT"]],
+  ["IN_HSIBS_S09","Bagus Surya Dimeja","HSI BO","Solo",["AC","DEEN"]],
+  ["IN_HSIBS_S10","Maulana Aqila Umar Abdul Aziz","HSI BS","Sukabumi",["DKV","OPS"]],
+  ["IN_HSIBS_S11","Mu'adz Jundyurrahman","HSI BS","Purworejo",["AC","IT"]],
+  ["IN_HSIBS_S12","Muhammad Afif Hikam","HSI BO","Bekasi",["DKV","OPS"]],
+  ["IN_HSIBS_S13","Muhammad Atsaal Hakim","HSI BS","Sukabumi",["IT","OPS"]],
+  ["IN_HSIBS_S14","Muhammad Dafa Al Fatih","HSI BS","Sukabumi",["IT","OPS"]],
+  ["IN_HSIBS_S15","Muhammad Daffa Al Hafizh","STIT Riyadh","Pandeglang",["DEEN","IT"]],
+  ["IN_HSIBS_S16","Muhammad Firdaus Abdurrohim","HSI BS","Remote",["OPS","PKBM"]],
+  ["IN_HSIBS_S17","Muhammad Rabbani Ibnu Ridwan","HSI BS","Sukabumi",["AC","IT"]],
+  ["IN_HSIBS_S18","Muhammad Sultan Al Faisal","HSI BO","Bantul",["AC","OPS"]],
+  ["IN_HSIBS_S19","Muhammad Zaki NIF","HSI BS","Purworejo",["AC","IT"]],
+  ["IN_HSIBS_S20","Mujahiddin Khoirusysyifa","HSI BS","Purworejo",["AC","OPS"]],
+  ["IN_HSIBS_S21","Tsabit Az Zaqi","HSI BO","Bantul",["AC","DEEN","OPS"]],
+];
+
+const D=raw.map(([id,name,unit,loc,divs])=>({
+  id, name, unit, loc,
+  divs,
+  roles: autoRoles(divs),
+  picDivs: autoPicDiv(divs, loc),
+  picReg: autoPicReg(loc),
+  status: "Active"
+}));
+
+// ── UI helpers ───────────────────────────────────────────────
+function ub(u){
+  if(u==="HSI BS")return'<span class="badge u-bs">BS</span>';
+  if(u==="HSI BO")return'<span class="badge u-bo">BO</span>';
+  return'<span class="badge u-st">STIT</span>';
+}
+function chips(arr,type){
+  if(!arr.length)return`<span class="ph">${{divs:"Div",roles:"Role",picDivs:"PIC"}[type]||"—"}</span>`;
+  return'<div class="chips">'+arr.map(v=>{
+    if(type==="divs"){const d=DM.find(x=>x.code===v);return`<span class="chip ${d?.cls||"c-role"}">${v}</span>`}
+    if(type==="roles")return`<span class="chip ${RC[v]||"c-role"}">${v}</span>`;
+    return`<span class="chip c-pic">${v}</span>`;
+  }).join("")+"</div>";
+}
+
+function ms(i,field){
+  const uid=`ms_${i}_${field}`;
+  const arr=D[i][field];
+  let inner="";
+  if(field==="divs"){
+    inner=DM.map(d=>`<label class="mo"><input type="checkbox" value="${d.code}" ${arr.includes(d.code)?"checked":""} onchange="tv(${i},'${field}','${d.code}','${uid}')"><span class="chip ${d.cls}">${d.label}</span></label>`).join("");
+  } else if(field==="roles"){
+    inner=DM.map(d=>`<div class="gl">${d.label}</div>
+      <label class="mall"><input type="checkbox" ${d.roles.every(r=>arr.includes(r))?"checked":""} onchange="tAll(${i},'${d.code}','${uid}',this.checked)">All in ${d.code}</label>
+      ${d.roles.map(r=>`<label class="mo"><input type="checkbox" value="${r}" ${arr.includes(r)?"checked":""} onchange="tv(${i},'${field}','${r}','${uid}')">${r}</label>`).join("")}`).join("");
+  } else {
+    inner=PIC_DIV_LIST.map(p=>`<label class="mo"><input type="checkbox" value="${p}" ${arr.includes(p)?"checked":""} onchange="tv(${i},'${field}','${p}','${uid}')">${p}</label>`).join("");
+  }
+  return`<div class="ms"><div class="ms-box" id="b_${uid}" onclick="tog('${uid}')">${chips(arr,field)}</div><div class="ms-drop" id="d_${uid}">${inner}</div></div>`;
+}
+
+function tog(uid){
+  document.querySelectorAll(".ms-drop.open").forEach(d=>{if(d.id!==`d_${uid}`)d.classList.remove("open")});
+  document.getElementById(`d_${uid}`).classList.toggle("open");
+}
+document.addEventListener("click",e=>{if(!e.target.closest(".ms"))document.querySelectorAll(".ms-drop.open").forEach(d=>d.classList.remove("open"))});
+
+function tv(i,field,val,uid){
+  const a=D[i][field],x=a.indexOf(val);
+  x===-1?a.push(val):a.splice(x,1);
+  document.getElementById(`b_${uid}`).innerHTML=chips(D[i][field],field);
+  updateStats();
+}
+function tAll(i,dc,uid,chk){
+  const roles=DM.find(d=>d.code===dc).roles;
+  roles.forEach(r=>{const a=D[i].roles,x=a.indexOf(r);chk&&x===-1?a.push(r):!chk&&x!==-1?a.splice(x,1):0});
+  document.getElementById(`d_${uid}`).querySelectorAll("input[type=checkbox]").forEach(cb=>{if(roles.includes(cb.value))cb.checked=chk});
+  document.getElementById(`b_${uid}`).innerHTML=chips(D[i].roles,"roles");
+  updateStats();
+}
+function sel(opts,val,i,field){
+  return`<select class="sel" onchange="D[${i}]['${field}']=this.value;updateStats()">${opts.map(o=>`<option value="${o}"${o===val?" selected":""}>${o||"—"}</option>`).join("")}</select>`;
+}
+
+function render(){
+  document.getElementById("tb").innerHTML=D.map((d,i)=>`<tr>
+    <td class="idc">${d.id.replace("IN_HSIBS_","")}</td>
+    <td class="nc" title="${d.name}">${d.name}</td>
+    <td style="text-align:center">${ub(d.unit)}</td>
+    <td>${sel(LOCS,d.loc,i,"loc")}</td>
+    <td>${ms(i,"divs")}</td>
+    <td>${ms(i,"roles")}</td>
+    <td>${ms(i,"picDivs")}</td>
+    <td>${sel(PIC_REG,d.picReg,i,"picReg")}</td>
+    <td>${sel(STATS,d.status,i,"status")}</td>
+  </tr>`).join("");
+  updateStats();
+}
+function updateStats(){
+  document.getElementById("s-bs").textContent=D.filter(d=>d.unit==="HSI BS").length;
+  document.getElementById("s-bo").textContent=D.filter(d=>d.unit==="HSI BO").length;
+  document.getElementById("s-st").textContent=D.filter(d=>d.unit==="STIT Riyadh").length;
+  document.getElementById("s-l").textContent=D.filter(d=>d.loc).length;
+  document.getElementById("s-d").textContent=D.filter(d=>d.divs.length).length;
+  document.getElementById("s-r").textContent=D.filter(d=>d.roles.length).length;
+  document.getElementById("s-p").textContent=D.filter(d=>d.picDivs.length&&d.picReg).length;
+  document.getElementById("s-f").textContent=D.filter(d=>d.loc&&d.divs.length&&d.roles.length&&d.picDivs.length&&d.picReg).length;
+}
+function toCSV(){
+  return["ID,Full Name,Unit,Location,Division,Role,PIC Div,PIC Reg,Status",
+    ...D.map(d=>[d.id,d.name,d.unit,d.loc,d.divs.join("; "),d.roles.join("; "),d.picDivs.join("; "),d.picReg,d.status].map(v=>`"${v}"`).join(","))
+  ].join("\n");
+}
+function exportCSV(){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([toCSV()],{type:"text/csv"}));
+  a.download="IN_HSIBS_DB_Santri.csv";a.click();
+}
+function copyCSV(){
+  navigator.clipboard.writeText(toCSV()).then(()=>{
+    const b=event.target.closest(".btn"),o=b.innerHTML;
+    b.innerHTML='<i class="ti ti-check"></i> Copied!';
+    setTimeout(()=>b.innerHTML=o,2000);
+  });
+}
+render();
+</script>

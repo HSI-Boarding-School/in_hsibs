@@ -1,0 +1,332 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{padding:.75rem 0}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.top h2{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.top small{font-size:10px;color:var(--color-text-secondary)}
+.btns{display:flex;gap:6px}
+.btn{font-size:11px;padding:5px 10px;border:0.5px solid var(--color-border-secondary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn:hover{background:var(--color-background-secondary)}
+.btn.p{background:#1565C0;color:#fff;border-color:#1565C0}
+.btn.p:hover{background:#0D47A1}
+.phases{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.phase-pill{display:flex;flex-direction:column;align-items:center;padding:5px 10px;border-radius:8px;font-size:10px;font-weight:500;min-width:80px;cursor:pointer;border:1px solid transparent;transition:all .15s}
+.phase-pill small{font-size:9px;font-weight:400;opacity:.8}
+.ph-1{background:#fdf2f8;color:#9d174d;border-color:#fbcfe8}
+.ph-2{background:#eff6ff;color:#1e40af;border-color:#bfdbfe}
+.ph-3{background:#fefce8;color:#92400e;border-color:#fde68a}
+.ph-4{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+.ph-5{background:#faf5ff;color:#6b21a8;border-color:#e9d5ff}
+.ph-rs{background:#f8fafc;color:#475569;border-color:#e2e8f0}
+.phase-pill.active{box-shadow:0 0 0 2px currentColor}
+.tabs{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
+.tab{font-size:11px;padding:4px 10px;border:0.5px solid var(--color-border-secondary);border-radius:20px;cursor:pointer;color:var(--color-text-secondary);background:var(--color-background-primary)}
+.tab:hover{background:var(--color-background-secondary)}
+.tab.active{background:#1565C0;color:#fff;border-color:#1565C0}
+.stats{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.st{background:var(--color-background-secondary);border-radius:6px;padding:4px 10px;font-size:10px;color:var(--color-text-secondary);text-align:center}
+.st b{display:block;font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.tw{border:0.5px solid var(--color-border-tertiary);border-radius:10px;overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{background:var(--color-background-secondary);padding:6px 6px;text-align:left;font-weight:500;font-size:9px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+td{padding:5px 6px;border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:var(--color-background-secondary)}
+.phase-row-1 td:first-child{border-left:3px solid #f472b6}
+.phase-row-2 td:first-child{border-left:3px solid #60a5fa}
+.phase-row-3 td:first-child{border-left:3px solid #fbbf24}
+.phase-row-4 td:first-child{border-left:3px solid #4ade80}
+.phase-row-5 td:first-child{border-left:3px solid #c084fc}
+.phase-row-rs td:first-child{border-left:3px solid #94a3b8}
+.month-cell{font-size:10px;font-weight:500;color:var(--color-text-primary);text-align:center}
+.phase-tag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:500;margin-top:2px}
+.theme-badge{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:500;margin-top:2px}
+.title{font-weight:500;font-size:12px;color:var(--color-text-primary);line-height:1.4}
+.subtitle{font-size:10px;color:var(--color-text-secondary);margin-top:1px}
+.fivew{font-size:10px;color:var(--color-text-primary);line-height:1.65}
+.fivew span{color:var(--color-text-secondary);font-weight:500}
+.speaker{font-size:11px;color:var(--color-text-primary)}
+.tbd{font-size:9px;color:var(--color-text-secondary);font-style:italic}
+.c-all{background:#f1f5f9;color:#475569}
+.c-ac{background:#dbeafe;color:#1e40af}
+.c-deen{background:#dcfce7;color:#166534}
+.c-dkv{background:#f3e5f5;color:#6b21a8}
+.c-it{background:#fef3c7;color:#92400e}
+.c-ops{background:#fce7f3;color:#9d174d}
+.c-pkbm{background:#ecfdf5;color:#065f46}
+.status-planned{color:#92400e;background:#fef3c7;padding:2px 6px;border-radius:20px;font-size:9px;font-weight:500}
+.status-done{color:#166534;background:#dcfce7;padding:2px 6px;border-radius:20px;font-size:9px;font-weight:500}
+.att-wrap{display:flex;flex-wrap:wrap;gap:2px}
+.sid{font-size:9px;font-family:var(--font-mono);border-radius:3px;padding:1px 4px;cursor:pointer;border:0.5px solid transparent;user-select:none}
+.sid.present{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+.sid.absent{background:var(--color-background-secondary);color:var(--color-text-secondary);border-color:var(--color-border-tertiary)}
+.att-note{font-size:9px;color:var(--color-text-secondary);margin-top:3px;font-style:italic}
+.note{font-size:10px;color:var(--color-text-secondary);margin-top:8px;padding:6px 10px;border-left:3px solid #1565C0;background:var(--color-background-secondary);border-radius:0 6px 6px 0}
+.rs-badge{display:inline-block;background:#f1f5f9;color:#475569;border:0.5px solid #e2e8f0;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:500}
+</style>
+
+<div class="w">
+  <div class="top">
+    <div>
+      <h2><i class="ti ti-school" aria-hidden="true"></i> DB Learn — IN_HSIBS</h2>
+      <small>"From knowing who you are, to leaving something worth remembering."</small>
+    </div>
+    <div class="btns">
+      <button class="btn" onclick="copyCSV()"><i class="ti ti-copy" aria-hidden="true"></i> Copy</button>
+      <button class="btn p" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Download CSV</button>
+    </div>
+  </div>
+
+  <!-- Phase pills -->
+  <div class="phases">
+    <div class="phase-pill ph-1" onclick="filterPhase(1,this)">Niyah<small>Being · M1–2</small></div>
+    <div class="phase-pill ph-2" onclick="filterPhase(2,this)">Fikrah<small>Thinking · M3–5</small></div>
+    <div class="phase-pill ph-3" onclick="filterPhase(3,this)">Amaliyah<small>Doing · M6–8</small></div>
+    <div class="phase-pill ph-4" onclick="filterPhase(4,this)">Khidmah<small>Contributing · M9–11</small></div>
+    <div class="phase-pill ph-5" onclick="filterPhase(5,this)">Jariyah<small>Legacy · M12</small></div>
+    <div class="phase-pill ph-rs" onclick="filterPhase('rs',this)">Role-Specific<small>Q1–Q3</small></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setTab('all',this)">All (16)</button>
+    <button class="tab" onclick="setTab('mandatory',this)">Mandatory (12)</button>
+    <button class="tab" onclick="setTab('rolespec',this)">Role-Specific (4)</button>
+  </div>
+
+  <div class="stats">
+    <div class="st"><b id="s-total">0</b>Showing</div>
+    <div class="st"><b id="s-planned">0</b>Planned</div>
+    <div class="st"><b id="s-done">0</b>Done</div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <colgroup>
+        <col style="width:9%"><col style="width:11%"><col style="width:21%">
+        <col style="width:22%"><col style="width:12%"><col style="width:7%"><col style="width:18%">
+      </colgroup>
+      <thead><tr>
+        <th>#</th><th>Month</th><th>Title</th>
+        <th>5W+1H</th><th>Speaker (Ideal)</th><th>Status</th><th>Attendance</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <p class="note">Phase pills = filter per fase. Klik ID santri untuk toggle hadir. RS sessions wajib selesai sebelum Q4 (Apr 2026).</p>
+</div>
+
+<script>
+const SANTRI_IDS=["S01","S02","S03","S04","S05","S06","S07","S08","S09","S10","S11","S12","S13","S14","S15","S16","S17","S18","S19","S20","S21"];
+const SANTRI_NAMES={S01:"Abdullah Al Farros",S02:"Abdulloh",S03:"Abdurrahman Hammaam Bariq",S04:"Abu Musa Al Asyary",S05:"Ahmad Faiz",S06:"Ahmad Haidar Hutasuhut",S07:"Ahmad Harits",S08:"Ayyub El Kaisi",S09:"Bagus Surya Dimeja",S10:"Maulana Aqila Umar Abdul Aziz",S11:"Mu'adz Jundyurrahman",S12:"Muhammad Afif Hikam",S13:"Muhammad Atsaal Hakim",S14:"Muhammad Dafa Al Fatih",S15:"Muhammad Daffa Al Hafizh",S16:"Muhammad Firdaus Abdurrohim",S17:"Muhammad Rabbani Ibnu Ridwan",S18:"Muhammad Sultan Al Faisal",S19:"Muhammad Zaki NIF",S20:"Mujahiddin Khoirusysyifa",S21:"Tsabit Az Zaqi"};
+const MONTHS=["Jul 2025","Aug 2025","Sep 2025","Oct 2025","Nov 2025","Dec 2025","Jan 2026","Feb 2026","Mar 2026","Apr 2026","May 2026","Jun 2026"];
+
+const PHASES={
+  1:{name:"Niyah",en:"Being",cls:"ph-1",color:"#f472b6",months:[1,2]},
+  2:{name:"Fikrah",en:"Thinking",cls:"ph-2",color:"#60a5fa",months:[3,4,5]},
+  3:{name:"Amaliyah",en:"Doing",cls:"ph-3",color:"#fbbf24",months:[6,7,8]},
+  4:{name:"Khidmah",en:"Contributing",cls:"ph-4",color:"#4ade80",months:[9,10,11]},
+  5:{name:"Jariyah",en:"Legacy",cls:"ph-5",color:"#c084fc",months:[12]},
+};
+
+const SESSIONS=[
+  {id:"L01",type:"mandatory",phase:1,month:1,theme:"Fondasi Diri",themeCls:"c-deen",
+   title:"Who Am I Before I Work?",subtitle:"Identitas Muslim di Dunia Kerja",
+   what:"Mengenal identitas diri sebagai Muslim sebelum masuk dunia kerja & internship",
+   who:"Semua santri",why:"Fondasi niat & orientasi yang benar sebelum program dimulai",
+   when:MONTHS[0],where:"Online / On-site",how:"Sesi refleksi + tanya jawab interaktif",
+   speaker:"Psikolog Islam / Ustadz / Mentor Karakter",status:"Planned",attendance:{}},
+  {id:"L02",type:"mandatory",phase:1,month:2,theme:"Agile Mindset",themeCls:"c-it",
+   title:"Sprint Your Life",subtitle:"Agile & Growth Mindset untuk Santri",
+   what:"Penerapan metode Agile & growth mindset dalam kehidupan dan kerja santri",
+   who:"Semua santri",why:"Santri perlu mindset iteratif & adaptif di era perubahan cepat",
+   when:MONTHS[1],where:"Online",how:"Workshop sprint planning mini + diskusi kelompok",
+   speaker:"Agile Coach / People Development Coach",status:"Planned",attendance:{}},
+  {id:"L03",type:"mandatory",phase:2,month:3,theme:"Komunikasi",themeCls:"c-ops",
+   title:"Say It Right",subtitle:"Public Speaking & Komunikasi Efektif",
+   what:"Teknik berbicara di depan umum, presentasi, & komunikasi interpersonal",
+   who:"Semua santri",why:"Komunikasi adalah skill inti semua role",
+   when:MONTHS[2],where:"Online / On-site",how:"Latihan langsung + feedback peer",
+   speaker:"Communication Trainer / Public Speaking Coach",status:"Planned",attendance:{}},
+  {id:"L04",type:"mandatory",phase:2,month:4,theme:"Digital Literacy",themeCls:"c-it",
+   title:"Navigate the Internet",subtitle:"AI Tools, Literasi Digital & Etika Online",
+   what:"Penggunaan AI tools, etika digital, keamanan data, & navigasi internet produktif",
+   who:"Semua santri",why:"Literasi digital wajib di era AI — semua role butuh ini",
+   when:MONTHS[3],where:"Online",how:"Demo tools + hands-on practice",
+   speaker:"Tech Educator / AI Practitioner",status:"Planned",attendance:{}},
+  {id:"L05",type:"mandatory",phase:2,month:5,theme:"Kreativitas",themeCls:"c-dkv",
+   title:"Design Thinking for Real Life",subtitle:"Memecahkan Masalah dengan Kreatif",
+   what:"Framework design thinking untuk problem solving di kehidupan nyata & kerja",
+   who:"Semua santri",why:"Kreativitas & problem solving dibutuhkan semua divisi",
+   when:MONTHS[4],where:"Online / On-site",how:"Workshop studi kasus nyata dari unit HSI BS",
+   speaker:"UX Practitioner / Product Designer",status:"Planned",attendance:{}},
+  {id:"L06",type:"mandatory",phase:3,month:6,theme:"Keuangan Islam",themeCls:"c-deen",
+   title:"Halal Wealth",subtitle:"Perencanaan Keuangan & Bisnis Syar'i",
+   what:"Prinsip keuangan Islam, mengelola penghasilan halal, & dasar bisnis syariah",
+   who:"Semua santri",why:"Santri perlu bekal keuangan islami sebelum mandiri",
+   when:MONTHS[5],where:"Online",how:"Sesi materi + studi kasus bisnis syariah",
+   speaker:"Financial Planner Syariah",status:"Planned",attendance:{}},
+  {id:"L07",type:"mandatory",phase:3,month:7,theme:"Freelance & Remote",themeCls:"c-it",
+   title:"Work From Anywhere",subtitle:"Freelance, Remote Work, Platform & Kontrak",
+   what:"Cara kerja remote, platform freelance, negosiasi kontrak, & manajemen klien",
+   who:"Semua santri",why:"Membuka peluang penghasilan halal pasca internship",
+   when:MONTHS[6],where:"Online",how:"Panel diskusi + sesi tanya jawab freelancer aktif",
+   speaker:"Remote Worker / Muslim Freelancer",status:"Planned",attendance:{}},
+  {id:"L08",type:"mandatory",phase:3,month:8,theme:"Study Abroad",themeCls:"c-ac",
+   title:"Go Global, Stay Muslim",subtitle:"Beasiswa, IELTS, & Campus Life di Luar Negeri",
+   what:"Panduan beasiswa luar negeri, persiapan IELTS, & menjaga identitas Islam di LN",
+   who:"Semua santri",why:"Membuka wawasan global & mendorong aspirasi pendidikan tinggi",
+   when:MONTHS[7],where:"Online",how:"Sharing alumni + sesi Q&A beasiswa",
+   speaker:"Alumni Beasiswa / Scholarship Mentor",status:"Planned",attendance:{}},
+  {id:"L09",type:"mandatory",phase:4,month:9,theme:"Personal Branding",themeCls:"c-dkv",
+   title:"You Are Your Portfolio",subtitle:"LinkedIn, GitHub, & Digital Presence",
+   what:"Membangun personal brand digital: LinkedIn, GitHub, Behance, atau platform relevan",
+   who:"Semua santri",why:"Portfolio digital adalah CV abad 21 — wajib dimiliki semua santri",
+   when:MONTHS[8],where:"Online",how:"Workshop langsung bikin/update profil + review peer",
+   speaker:"Career Mentor / Portfolio Reviewer",status:"Planned",attendance:{}},
+  {id:"L10",type:"mandatory",phase:4,month:10,theme:"Leadership",themeCls:"c-deen",
+   title:"Lead Without Title",subtitle:"Kepemimpinan Berbasis Sunnah",
+   what:"Prinsip kepemimpinan Islam: amanah, syura, & memimpin tanpa jabatan formal",
+   who:"Semua santri",why:"Setiap santri adalah pemimpin — minimal untuk dirinya sendiri",
+   when:MONTHS[9],where:"Online / On-site",how:"Studi kasus kepemimpinan + refleksi sirah nabawi",
+   speaker:"Leader Pesantren / NGO / Community Builder",status:"Planned",attendance:{}},
+  {id:"L11",type:"mandatory",phase:4,month:11,theme:"Entrepreneurship",themeCls:"c-ops",
+   title:"Start Before You're Ready",subtitle:"Ideasi Bisnis & Validasi Pasar",
+   what:"Cara memulai bisnis dari nol: ideasi, validasi, MVP, & mindset entrepreneur",
+   who:"Semua santri",why:"Mendorong jiwa wirausaha halal pasca program",
+   when:MONTHS[10],where:"Online",how:"Workshop business model canvas + pitch mini",
+   speaker:"Founder Muslim / Digital Entrepreneur",status:"Planned",attendance:{}},
+  {id:"L12",type:"mandatory",phase:5,month:12,theme:"Visi & Legacy",themeCls:"c-deen",
+   title:"What Will You Leave?",subtitle:"Ikhtiar Panjang & Kontribusi Umat",
+   what:"Refleksi akhir program: warisan, visi jangka panjang, & kontribusi untuk umat",
+   who:"Semua santri",why:"Menutup program dengan visi besar & komitmen kontribusi",
+   when:MONTHS[11],where:"Online / On-site",how:"Sesi refleksi + presentasi legacy statement tiap santri",
+   speaker:"Mentor Senior / Tokoh Pendidikan / Founder",status:"Planned",attendance:{}},
+  // RS — Q1–Q3
+  {id:"RS01",type:"rolespec",phase:"rs",quarter:"Q1",month:null,theme:"DEEN",themeCls:"c-deen",
+   title:"Tarbiyah & Pedagogi Islami",subtitle:"Metode Mengajar & Pembinaan Santri",
+   what:"Teknik pengajaran Al-Qur'an, Bahasa Arab, & pembinaan karakter santri",
+   who:"Santri DEEN (Tahfidz, Arabic, Musyrif)",why:"Meningkatkan kapasitas pembinaan & pengajaran diniyah",
+   when:"Q1 — Jul–Sep 2025",where:"On-site",how:"Workshop metode talaqqi + simulasi mengajar",
+   speaker:"Ustadz / Pakar Tarbiyah",status:"Planned",attendance:{}},
+  {id:"RS02",type:"rolespec",phase:"rs",quarter:"Q2",month:null,theme:"IT",themeCls:"c-it",
+   title:"Build & Ship: Web Dev Internship Bootcamp",subtitle:"Hands-on untuk Developer & IT",
+   what:"Praktik langsung membangun web app sederhana & deploy ke server",
+   who:"Santri IT (Developer, QA, System Admin, IT Helpdesk)",why:"Mempercepat kesiapan teknis santri IT untuk kontribusi nyata",
+   when:"Q2 — Oct–Dec 2025",where:"Online / Lab",how:"Coding session + code review + deploy workshop",
+   speaker:"Senior Developer / Tech Lead",status:"Planned",attendance:{}},
+  {id:"RS03",type:"rolespec",phase:"rs",quarter:"Q2",month:null,theme:"DKV",themeCls:"c-dkv",
+   title:"Content Creation Masterclass",subtitle:"Produksi Konten Visual & Video untuk Dakwah",
+   what:"Workshop intensif desain grafis, editing video, & strategi konten dakwah digital",
+   who:"Santri DKV (Designer, Editor, Social Media, Photographer)",why:"Meningkatkan kualitas output konten HSI BS",
+   when:"Q2 — Oct–Dec 2025",where:"Online / Studio",how:"Portfolio review + live editing session",
+   speaker:"Kreator Konten Muslim Profesional",status:"Planned",attendance:{}},
+  {id:"RS04",type:"rolespec",phase:"rs",quarter:"Q3",month:null,theme:"OPS & PKBM",themeCls:"c-ops",
+   title:"Operational Excellence",subtitle:"Administrasi, Layanan, & Sistem PKBM",
+   what:"SOP administrasi, customer service excellence, & operasional sistem PKBM (BOS/ARKAS)",
+   who:"Santri OPS & PKBM",why:"Meningkatkan standar layanan & kepatuhan administrasi unit",
+   when:"Q3 — Jan–Mar 2026",where:"On-site",how:"Workshop SOP + simulasi layanan + demo ARKAS",
+   speaker:"Praktisi Manajemen Pendidikan",status:"Planned",attendance:{}},
+];
+SESSIONS.forEach(s=>SANTRI_IDS.forEach(id=>s.attendance[id]=false));
+
+let currentTab="all";
+let currentPhase=null;
+
+function setTab(tab,el){
+  currentTab=tab;currentPhase=null;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  document.querySelectorAll(".phase-pill").forEach(p=>p.classList.remove("active"));
+  render();
+}
+function filterPhase(p,el){
+  currentPhase=p;currentTab="all";
+  document.querySelectorAll(".phase-pill").forEach(x=>x.classList.remove("active"));
+  el.classList.add("active");
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  render();
+}
+
+function phaseInfo(s){
+  if(s.type==="rolespec") return{name:`RS · ${s.quarter}`,cls:"ph-rs",color:"#94a3b8"};
+  const p=PHASES[s.phase];
+  return{name:`${p.name} · ${p.en}`,cls:p.cls,color:p.color};
+}
+
+function toggleAtt(sid,sid2){
+  const s=SESSIONS.find(x=>x.id===sid2);
+  if(s)s.attendance[sid]=!s.attendance[sid];
+  render();
+}
+function attCount(s){return Object.values(s.attendance).filter(Boolean).length}
+function renderAtt(s){
+  return`<div class="att-wrap">${SANTRI_IDS.map(id=>`<span class="sid ${s.attendance[id]?'present':'absent'}" title="${SANTRI_NAMES[id]}" onclick="toggleAtt('${id}','${s.id}')">${id}</span>`).join("")}</div>
+  <div class="att-note">${attCount(s)} / ${SANTRI_IDS.length} hadir</div>`;
+}
+
+function render(){
+  let filtered=SESSIONS;
+  if(currentTab==="mandatory") filtered=SESSIONS.filter(s=>s.type==="mandatory");
+  else if(currentTab==="rolespec") filtered=SESSIONS.filter(s=>s.type==="rolespec");
+  if(currentPhase!==null){
+    filtered=SESSIONS.filter(s=>s.phase===currentPhase);
+  }
+
+  document.getElementById("tb").innerHTML=filtered.map(s=>{
+    const pi=phaseInfo(s);
+    const rowCls=s.type==="rolespec"?`phase-row-rs`:`phase-row-${s.phase}`;
+    return`<tr class="${rowCls}">
+      <td>
+        <div style="font-size:10px;font-weight:500;color:#1565C0;font-family:var(--font-mono)">${s.id}</div>
+        <div class="phase-tag ${pi.cls}" style="margin-top:2px">${pi.name}</div>
+      </td>
+      <td class="month-cell">
+        <div>${s.month?MONTHS[s.month-1]:s.when}</div>
+        <span class="theme-badge ${s.themeCls}">${s.theme}</span>
+      </td>
+      <td>
+        <div class="title">${s.title}</div>
+        <div class="subtitle">${s.subtitle}</div>
+      </td>
+      <td class="fivew">
+        <span>What:</span> ${s.what}<br>
+        <span>Who:</span> ${s.who}<br>
+        <span>Why:</span> ${s.why}<br>
+        <span>Where:</span> ${s.where}<br>
+        <span>How:</span> ${s.how}
+      </td>
+      <td><div class="speaker">${s.speaker}</div><div class="tbd">TBD</div></td>
+      <td><span class="status-${s.status.toLowerCase()}">${s.status}</span></td>
+      <td>${renderAtt(s)}</td>
+    </tr>`;
+  }).join("");
+
+  document.getElementById("s-total").textContent=filtered.length;
+  document.getElementById("s-planned").textContent=filtered.filter(s=>s.status==="Planned").length;
+  document.getElementById("s-done").textContent=filtered.filter(s=>s.status==="Done").length;
+}
+
+function toCSV(){
+  const h="ID,Type,Phase (Islamic),Phase (English),Month,Quarter,Theme,Title,Subtitle,What,Who,Why,When,Where,How,Speaker,Status,Attendance";
+  return[h,...SESSIONS.map(s=>{
+    const p=s.type==="rolespec"?{name:"Role-Specific",en:"RS"}:PHASES[s.phase];
+    return[s.id,s.type,p.name,p.en,s.month||"",s.quarter||"",s.theme,s.title,s.subtitle,
+      s.what,s.who,s.why,s.when,s.where,s.how,s.speaker,s.status,
+      `${attCount(s)}/${SANTRI_IDS.length}`].map(v=>`"${v}"`).join(",");
+  })].join("\n");
+}
+function exportCSV(){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([toCSV()],{type:"text/csv"}));
+  a.download="IN_HSIBS_DB_Learn.csv";a.click();
+}
+function copyCSV(){
+  navigator.clipboard.writeText(toCSV()).then(()=>{
+    const b=event.target.closest(".btn"),o=b.innerHTML;
+    b.innerHTML='<i class="ti ti-check"></i> Copied!';
+    setTimeout(()=>b.innerHTML=o,2000);
+  });
+}
+render();
+</script>
