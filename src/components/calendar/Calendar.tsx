@@ -166,7 +166,7 @@ function DayCell({
         </div>
       )}
 
-      {/* Quick-add — visible on hover/focus, hidden on outside-month */}
+      {/* Quick-add — visible on hover/focus (desktop only) */}
       {onQuickAdd && !isOutside && !compact && (
         <button
           type="button"
@@ -175,7 +175,7 @@ function DayCell({
             e.stopPropagation();
             onQuickAdd();
           }}
-          className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary/90 text-white opacity-0 shadow-[0_2px_6px_rgba(37,99,235,0.35)] transition-all duration-150 group-hover:opacity-100 group-focus-within:opacity-100 hover:scale-110 hover:bg-primary max-sm:h-[18px] max-sm:w-[18px] max-sm:opacity-100"
+          className="absolute right-1 top-1 hidden h-5 w-5 items-center justify-center rounded-full bg-primary/90 text-white opacity-0 shadow-[0_2px_6px_rgba(37,99,235,0.35)] transition-all duration-150 group-hover:opacity-100 group-focus-within:opacity-100 hover:scale-110 hover:bg-primary sm:flex"
         >
           <Iconify icon="mingcute:add-line" width={12} />
         </button>

@@ -9,7 +9,7 @@ interface SidebarProps {
 
 export function Sidebar({ onLogout, stats, user }: SidebarProps) {
   return (
-    <aside className="fixed bottom-6 left-6 top-6 z-8 flex w-[270px] flex-col gap-4 rounded-sm border border-white/80 bg-surface/85 p-5 shadow-[0_24px_70px_rgba(39,49,38,0.14)] backdrop-blur-[18px] max-lg:static max-lg:w-auto justify-between">
+    <aside className="fixed bottom-6 left-6 top-6 z-8 flex w-[270px] flex-col gap-4 rounded-sm border border-white/80 bg-surface/85 p-5 shadow-[0_24px_70px_rgba(39,49,38,0.14)] backdrop-blur-[18px] max-lg:hidden justify-between">
       <div>
         {/* Brand */}
         <div className="flex items-center gap-3 mb-9">
