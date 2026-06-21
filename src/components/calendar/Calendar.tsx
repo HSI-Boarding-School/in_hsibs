@@ -101,6 +101,7 @@ function DayCell({
   isOutside,
   compact,
   onClick,
+  onQuickAdd,
 }: {
   day: number;
   events: CalendarEvent[];
@@ -109,14 +110,24 @@ function DayCell({
   isOutside?: boolean;
   compact?: boolean;
   onClick: () => void;
+  onQuickAdd?: () => void;
 }) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
-    <motion.button
-      type="button"
+    <motion.div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      whileTap={{ scale: 0.95 }}
-      className={`group relative flex w-full flex-col items-center gap-0.5 rounded-xl text-xs transition-all duration-150 ${
-        compact ? "min-h-[48px] p-1" : "min-h-[88px] p-2"
+      onKeyDown={handleKeyDown}
+      whileTap={{ scale: 0.97 }}
+      className={`group relative flex w-full cursor-pointer flex-col items-center gap-0.5 rounded-xl text-xs transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+        compact ? "min-h-[48px] p-1" : "min-h-[72px] p-1.5 sm:min-h-[88px] sm:p-2"
       } ${
         isSelected
           ? "bg-primary/8 ring-2 ring-primary/40 shadow-[0_0_0_1px_rgba(37,99,235,0.06)]"
@@ -127,7 +138,7 @@ function DayCell({
     >
       {/* Today ring */}
       {isToday && (
-        <span className="absolute inset-0 rounded-xl ring-2 ring-primary/30 ring-offset-1 ring-offset-white" />
+        <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-primary/30 ring-offset-1 ring-offset-white" />
       )}
 
       <span
@@ -154,7 +165,22 @@ function DayCell({
           )}
         </div>
       )}
-    </motion.button>
+
+      {/* Quick-add — visible on hover/focus, hidden on outside-month */}
+      {onQuickAdd && !isOutside && !compact && (
+        <button
+          type="button"
+          aria-label={`Tambah event tanggal ${day}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onQuickAdd();
+          }}
+          className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary/90 text-white opacity-0 shadow-[0_2px_6px_rgba(37,99,235,0.35)] transition-all duration-150 group-hover:opacity-100 group-focus-within:opacity-100 hover:scale-110 hover:bg-primary max-sm:h-[18px] max-sm:w-[18px] max-sm:opacity-100"
+        >
+          <Iconify icon="mingcute:add-line" width={12} />
+        </button>
+      )}
+    </motion.div>
   );
 }
 
@@ -223,14 +249,27 @@ function DetailPanel({
   return (
     <motion.article
       layout
-      className="flex flex-col rounded-2xl border border-[#e2e8f0] bg-white/80 p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"
+      className="flex flex-col rounded-2xl border border-[#e2e8f0] bg-white/80 p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] max-sm:p-4"
     >
-      <div className="mb-4">
-        <h3 className="font-(--font-family-head) text-base font-extrabold text-[#1e293b] leading-tight">
-          {title}
-        </h3>
-        {subtitle && (
-          <p className="mt-0.5 text-[0.7rem] font-bold text-[#94a3b8] uppercase tracking-wider">{subtitle}</p>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="font-(--font-family-head) text-base font-extrabold text-[#1e293b] leading-tight">
+            {title}
+          </h3>
+          {subtitle && (
+            <p className="mt-0.5 text-[0.7rem] font-bold text-[#94a3b8] uppercase tracking-wider">{subtitle}</p>
+          )}
+        </div>
+        {onAddEvent && events.length > 0 && (
+          <button
+            type="button"
+            onClick={onAddEvent}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-white shadow-[0_2px_8px_rgba(37,99,235,0.25)] transition-all hover:bg-primary-dark active:scale-95"
+            title="Tambah event di tanggal ini"
+            aria-label="Tambah event"
+          >
+            <Iconify icon="mingcute:add-line" width={16} />
+          </button>
         )}
       </div>
 
@@ -266,7 +305,8 @@ function DetailPanel({
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f8fafc]">
                 <Iconify icon="solar:calendar-mark-bold-duotone" width={24} className="text-[#94a3b8]" />
               </div>
-              <p className="mt-3 text-sm font-medium text-[#94a3b8]">Tidak ada event</p>
+              <p className="mt-3 text-sm font-medium text-[#94a3b8]">Belum ada event</p>
+              <p className="mt-1 text-[0.7rem] text-[#cbd5e1]">Tambah event di tanggal ini</p>
               {onAddEvent && (
                 <button
                   type="button"
@@ -289,7 +329,7 @@ function DetailPanel({
 interface CalendarProps {
   events: CalendarEvent[];
   loading?: boolean;
-  onAddEvent?: () => void;
+  onAddEvent?: (dateStr?: string) => void;
   onEventClick?: (event: CalendarEvent) => void;
   renderEventBadge?: (event: CalendarEvent) => string;
   typeLabels?: Record<string, string>;
@@ -493,7 +533,7 @@ export function Calendar({
               {onAddEvent && (
                 <button
                   type="button"
-                  onClick={onAddEvent}
+                  onClick={() => onAddEvent(cal.selectedDateStr ?? undefined)}
                   className="mt-4 flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-[0.75rem] font-bold text-white transition-all hover:bg-primary-dark active:scale-95 shadow-[0_2px_8px_rgba(37,99,235,0.2)]"
                 >
                   <Iconify icon="mingcute:add-line" width={16} />
@@ -539,6 +579,11 @@ export function Calendar({
                 isSelected={dayNum === cal.selectedDay && monthNum === cal.month && yearNum === cal.year}
                 isOutside={monthNum !== cal.month}
                 onClick={() => handleWeekDayClick(dayNum, monthNum, yearNum)}
+                onQuickAdd={
+                  onAddEvent
+                    ? () => onAddEvent(formatDateKey(yearNum, monthNum, dayNum))
+                    : undefined
+                }
                 compact
               />
             );
@@ -581,6 +626,11 @@ export function Calendar({
                 }
                 isSelected={day === cal.selectedDay}
                 onClick={() => cal.selectDay(day)}
+                onQuickAdd={
+                  onAddEvent
+                    ? () => onAddEvent(formatDateKey(cal.year, cal.month, day))
+                    : undefined
+                }
               />
             );
           })}
@@ -596,7 +646,7 @@ export function Calendar({
     <div className="grid grid-cols-[1fr_340px] gap-5 max-lg:grid-cols-1">
       <motion.article
         layout
-        className="rounded-2xl border border-[#e2e8f0] bg-white/80 p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"
+        className="rounded-2xl border border-[#e2e8f0] bg-white/80 p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] max-sm:p-3"
       >
         <CalendarToolbar
           date={toolbarTitle}
@@ -609,7 +659,11 @@ export function Calendar({
           onToday={cal.goToday}
           onChangeView={(v) => cal.changeView(v as CalendarViewType)}
           onOpenFilters={filterContent ? cal.toggleFilters : undefined}
-          onAddEvent={onAddEvent}
+          onAddEvent={
+            onAddEvent
+              ? () => onAddEvent(cal.selectedDateStr ?? undefined)
+              : undefined
+          }
         />
 
         {hasFilters && (
@@ -638,7 +692,7 @@ export function Calendar({
         subtitle={detailSub}
         events={detailEvents}
         onEventClick={onEventClick}
-        onAddEvent={onAddEvent}
+        onAddEvent={onAddEvent ? () => onAddEvent(cal.selectedDateStr ?? undefined) : undefined}
         typeLabels={typeLabels}
         renderBadge={renderEventBadge}
       />

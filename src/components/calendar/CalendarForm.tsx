@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../iconify/iconify";
 import type { CalendarEvent, CalendarEventType, CalendarEventStatus } from "./types";
@@ -23,28 +23,35 @@ const STATUS_OPTIONS: { value: CalendarEventStatus; label: string }[] = [
   { value: "overdue", label: "Overdue" },
 ];
 
+function todayKey(): string {
+  return new Date().toISOString().split("T")[0];
+}
+
 export function CalendarForm({ open, defaultDate, onClose, onSubmit }: CalendarFormProps) {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [type, setType] = useState<CalendarEventType>("learn");
   const [status, setStatus] = useState<CalendarEventStatus>("scheduled");
-  const [date, setDate] = useState(defaultDate || new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(defaultDate || todayKey());
   const [allDay, setAllDay] = useState(true);
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("09:00");
   const [description, setDescription] = useState("");
 
-  function reset() {
-    setTitle("");
-    setSubtitle("");
-    setType("learn");
-    setStatus("scheduled");
-    setDate(defaultDate || new Date().toISOString().split("T")[0]);
-    setAllDay(true);
-    setStart("08:00");
-    setEnd("09:00");
-    setDescription("");
-  }
+  // Sync date with defaultDate every time the modal is opened
+  useEffect(() => {
+    if (open) {
+      setTitle("");
+      setSubtitle("");
+      setType("learn");
+      setStatus("scheduled");
+      setDate(defaultDate || todayKey());
+      setAllDay(true);
+      setStart("08:00");
+      setEnd("09:00");
+      setDescription("");
+    }
+  }, [open, defaultDate]);
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -61,7 +68,6 @@ export function CalendarForm({ open, defaultDate, onClose, onSubmit }: CalendarF
       description: description.trim() || undefined,
       color: undefined,
     });
-    reset();
     onClose();
   }
 
@@ -84,11 +90,27 @@ export function CalendarForm({ open, defaultDate, onClose, onSubmit }: CalendarF
             className="w-full max-w-md overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_16px_48px_rgba(0,0,0,0.12)]"
           >
             <div className="flex items-center justify-between border-b border-[#e2e8f0] px-6 py-4">
-              <h2 className="font-(--font-family-head) text-base font-extrabold text-[#1e293b]">Tambah Event</h2>
+              <div className="min-w-0">
+                <h2 className="font-(--font-family-head) text-base font-extrabold text-[#1e293b]">Tambah Event</h2>
+                {date && (
+                  <p className="mt-0.5 flex items-center gap-1 text-[0.7rem] font-semibold text-[#64748b]">
+                    <Iconify icon="solar:calendar-bold-duotone" width={12} className="text-primary" />
+                    {(() => {
+                      const d = new Date(date + "T00:00:00");
+                      return d.toLocaleDateString("id-ID", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      });
+                    })()}
+                  </p>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[#94a3b8] transition-colors hover:bg-[#f1f5f9] hover:text-[#475569]"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#94a3b8] transition-colors hover:bg-[#f1f5f9] hover:text-[#475569]"
               >
                 <Iconify icon="mingcute:close-line" width={18} />
               </button>

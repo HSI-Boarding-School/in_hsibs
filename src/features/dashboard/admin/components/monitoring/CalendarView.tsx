@@ -9,8 +9,10 @@ let nextId = 100;
 export function CalendarView() {
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
   const [formOpen, setFormOpen] = useState(false);
+  const [formDate, setFormDate] = useState<string | undefined>(undefined);
 
-  const handleAddEvent = useCallback(() => {
+  const handleAddEvent = useCallback((dateStr?: string) => {
+    setFormDate(dateStr);
     setFormOpen(true);
   }, []);
 
@@ -34,6 +36,7 @@ export function CalendarView() {
       />
       <CalendarForm
         open={formOpen}
+        defaultDate={formDate}
         onClose={() => setFormOpen(false)}
         onSubmit={handleFormSubmit}
       />
