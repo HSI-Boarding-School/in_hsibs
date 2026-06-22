@@ -119,6 +119,17 @@ export function LearnsView() {
     [],
   );
 
+  const handleUpdateSessionStatus = useCallback(
+    (sessionId: string, status: LearnSession["status"]) => {
+      setSessions((prev) =>
+        prev.map((session) =>
+          session.id === sessionId ? { ...session, status } : session,
+        ),
+      );
+    },
+    [],
+  );
+
   const handleAddSession = useCallback((draft: Omit<LearnSession, "id">) => {
     setSessions((prev) => {
       // Generate ID: L## for mandatory, RS## for role-specific
@@ -270,6 +281,9 @@ export function LearnsView() {
         onClose={handleCloseDrawer}
         santriList={santriList}
         attendance={activeAttendance}
+        onUpdateStatus={(status) => {
+          if (activeSession) handleUpdateSessionStatus(activeSession.id, status);
+        }}
         onSetAttendance={(sid, status) => {
           if (activeSession) handleSetAttendance(activeSession.id, sid, status);
         }}

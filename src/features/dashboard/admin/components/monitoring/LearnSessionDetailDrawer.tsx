@@ -37,6 +37,7 @@ interface LearnSessionDetailDrawerProps {
   onClose: () => void;
   santriList: Santri[];
   attendance: Record<string, "Izin" | "Alpha">;
+  onUpdateStatus: (status: LearnSession["status"]) => void;
   onSetAttendance: (santriId: string, status: AttendStatus) => void;
 }
 
@@ -46,6 +47,7 @@ export function LearnSessionDetailDrawer({
   onClose,
   santriList,
   attendance,
+  onUpdateStatus,
   onSetAttendance,
 }: LearnSessionDetailDrawerProps) {
   useEffect(() => {
@@ -89,6 +91,7 @@ export function LearnSessionDetailDrawer({
               onClose={onClose}
               santriList={santriList}
               attendance={attendance}
+              onUpdateStatus={onUpdateStatus}
               onSetAttendance={onSetAttendance}
             />
           </motion.aside>
@@ -103,12 +106,14 @@ function DrawerContent({
   onClose,
   santriList,
   attendance,
+  onUpdateStatus,
   onSetAttendance,
 }: {
   session: LearnSession;
   onClose: () => void;
   santriList: Santri[];
   attendance: Record<string, "Izin" | "Alpha">;
+  onUpdateStatus: (status: LearnSession["status"]) => void;
   onSetAttendance: (santriId: string, status: AttendStatus) => void;
 }) {
   const heroBg = themeBgCls[session.themeCls] || "from-primary/10 via-primary/5 to-transparent";
@@ -122,24 +127,31 @@ function DrawerContent({
     else if (v === "Alpha") alphaCount++;
   });
   const hadirCount = santriList.length - izinCount - alphaCount;
+  const attendPct = santriList.length > 0 ? Math.round((hadirCount / santriList.length) * 100) : 0;
 
   const getStatus = (id: string): AttendStatus =>
     attendance[id] ?? "Hadir";
 
   return (
     <>
-      {/* Top bar */}
-      <div className="flex items-center justify-between border-b border-border/60 bg-surface/95 px-5 py-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <Iconify icon="solar:book-bookmark-bold-duotone" width={18} className="text-primary shrink-0" />
-          <h3 className="font-(--font-family-head) text-sm font-extrabold text-primary-dark truncate">
-            Detail Session
-          </h3>
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/60 bg-surface/88 px-5 py-3 backdrop-blur-xl">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+            <Iconify icon="solar:book-bookmark-bold-duotone" width={18} />
+          </span>
+          <div className="min-w-0">
+            <h3 className="truncate font-(--font-family-head) text-sm font-extrabold text-text">
+              Learn Session
+            </h3>
+            <p className="truncate text-[0.65rem] font-bold text-muted">
+              {session.id} · {getPhaseName(session.phase)}
+            </p>
+          </div>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg p-2 text-muted transition-colors hover:bg-surface-strong hover:text-text"
+          className="rounded-xl p-2 text-muted transition-colors hover:bg-surface-strong hover:text-text"
           aria-label="Tutup"
         >
           <Iconify icon="mingcute:close-line" width={18} />
@@ -147,130 +159,125 @@ function DrawerContent({
       </div>
 
       <Scrollbar className="flex-1">
-        {/* Hero */}
-        <div className={`relative overflow-hidden bg-gradient-to-b ${heroBg}`}>
-          <div className="space-y-3 px-5 py-5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-[0.7rem] font-bold text-primary">
-                {session.id}
-              </span>
-              <span className={`rounded-full px-2.5 py-0.5 text-[0.6rem] font-bold ring-1 ring-inset ${themeBadge}`}>
-                {session.theme}
-              </span>
-              <span className="rounded-full bg-surface-strong px-2.5 py-0.5 text-[0.6rem] font-bold text-muted">
-                {getPhaseName(session.phase)}
-              </span>
-              <span
-                className={`rounded-full px-2.5 py-0.5 text-[0.6rem] font-bold ${
-                  session.status === "Done"
-                    ? "bg-green/10 text-green"
-                    : "bg-amber/10 text-amber-dark"
-                }`}
-              >
-                {session.status}
-              </span>
+        <div className={`relative overflow-hidden border-b border-border/60 bg-gradient-to-b ${heroBg}`}>
+          <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-primary/12 blur-3xl" />
+          <div className="relative space-y-4 px-5 py-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-surface/70 px-2.5 py-1 font-mono text-[0.68rem] font-extrabold text-primary ring-1 ring-inset ring-border/50">
+                    {session.id}
+                  </span>
+                  <span className={`rounded-full px-2.5 py-1 text-[0.62rem] font-extrabold ring-1 ring-inset ${themeBadge}`}>
+                    {session.theme}
+                  </span>
+                  <span className="rounded-full bg-surface-strong/75 px-2.5 py-1 text-[0.62rem] font-extrabold text-muted ring-1 ring-inset ring-border/50">
+                    {session.type === "mandatory" ? "Mandatory" : "Role-Specific"}
+                  </span>
+                </div>
+
+                <div>
+                  <h2 className="font-(--font-family-head) text-xl font-extrabold leading-tight tracking-tight text-primary-dark">
+                    {session.title}
+                  </h2>
+                  <p className="mt-1 text-sm font-semibold text-muted">{session.subtitle}</p>
+                </div>
+              </div>
+
+              <div className="flex shrink-0 flex-col items-end gap-1.5">
+                <span className="text-[0.6rem] font-black uppercase tracking-[0.16em] text-muted">
+                  Status
+                </span>
+                <StatusEditor value={session.status} onChange={onUpdateStatus} />
+              </div>
             </div>
 
-            <div>
-              <h2 className="font-(--font-family-head) text-lg font-extrabold leading-tight text-primary-dark">
-                {session.title}
-              </h2>
-              <p className="mt-0.5 text-sm text-muted">{session.subtitle}</p>
-            </div>
+            <p className="rounded-2xl border border-border/50 bg-surface/52 p-3 text-[0.8rem] font-medium leading-relaxed text-text/90 backdrop-blur-sm">
+              {session.what}
+            </p>
 
-            <p className="text-[0.8rem] leading-relaxed text-text/85">{session.what}</p>
+            <div className="grid grid-cols-4 gap-2 max-sm:grid-cols-2">
+              <HeroMetric icon="solar:users-group-rounded-bold-duotone" label="Hadir" value={`${hadirCount}/${santriList.length}`} tone="emerald" />
+              <HeroMetric icon="solar:chart-2-bold-duotone" label="Rate" value={`${attendPct}%`} tone="sky" />
+              <HeroMetric icon="solar:clock-circle-bold-duotone" label="Waktu" value={session.when} tone="amber" />
+              <HeroMetric icon="solar:microphone-3-bold-duotone" label="Pemateri" value={session.speaker} tone="purple" />
+            </div>
           </div>
         </div>
 
-        {/* Sections */}
         <div className="space-y-5 px-5 py-5">
-          <div className="grid gap-2 rounded-xl bg-surface-strong/50 p-3">
-            <InfoRow icon="solar:calendar-bold-duotone" label="Kapan" value={session.when} />
-            <InfoRow icon="solar:map-point-bold-duotone" label="Dimana" value={session.where} />
-            <InfoRow icon="solar:users-group-rounded-bold-duotone" label="Peserta" value={session.who} />
-            <InfoRow icon="solar:microphone-3-bold-duotone" label="Pemateri" value={session.speaker} />
-            <InfoRow icon="solar:lightbulb-bold-duotone" label="Mengapa" value={session.why} />
-            <InfoRow icon="solar:notebook-bold-duotone" label="Bagaimana" value={session.how} />
-          </div>
+          <section className="rounded-2xl border border-border/60 bg-surface/72 p-3.5 shadow-[0_8px_24px_rgba(39,49,38,0.05)]">
+            <SectionTitle icon="solar:document-text-bold-duotone" title="Session Brief" />
+            <div className="mt-3 grid gap-2">
+              <InfoRow icon="solar:calendar-bold-duotone" label="Kapan" value={session.when} />
+              <InfoRow icon="solar:map-point-bold-duotone" label="Dimana" value={session.where} />
+              <InfoRow icon="solar:users-group-rounded-bold-duotone" label="Peserta" value={session.who} />
+              <InfoRow icon="solar:lightbulb-bold-duotone" label="Mengapa" value={session.why} />
+              <InfoRow icon="solar:notebook-bold-duotone" label="Bagaimana" value={session.how} />
+            </div>
+          </section>
 
-          {/* Attendance */}
-          <section>
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h4 className="flex items-center gap-1.5 font-(--font-family-head) text-sm font-extrabold text-primary-dark">
-                <Iconify icon="solar:clipboard-check-bold-duotone" width={16} className="text-primary" />
-                Absensi Santri
-              </h4>
-              <span className="text-[0.65rem] font-semibold text-muted">
+          <section className="rounded-2xl border border-border/60 bg-surface/72 p-3.5 shadow-[0_8px_24px_rgba(39,49,38,0.05)]">
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <SectionTitle icon="solar:clipboard-check-bold-duotone" title="Attendance Editor" />
+              <span className="rounded-full bg-surface-strong px-2.5 py-1 text-[0.62rem] font-extrabold text-muted">
                 {santriList.length} santri
               </span>
             </div>
 
-            {/* Summary */}
             <div className="mb-3 grid grid-cols-3 gap-2">
               <SummaryCard label="Hadir" value={hadirCount} tone="green" />
               <SummaryCard label="Izin" value={izinCount} tone="amber" />
               <SummaryCard label="Alpha" value={alphaCount} tone="pink" />
             </div>
 
-            <p className="mb-2 flex items-center gap-1.5 text-[0.65rem] italic text-muted">
-              <Iconify icon="solar:info-circle-bold-duotone" width={11} />
-              Default semua santri Hadir. Pilih Izin atau Alpha untuk yang tidak hadir.
-            </p>
+            <div className="mb-3 rounded-xl border border-primary/15 bg-primary-soft/25 px-3 py-2 text-[0.68rem] font-semibold leading-relaxed text-primary-dark">
+              <Iconify icon="solar:info-circle-bold-duotone" width={12} className="mr-1 inline align-[-2px] text-primary" />
+              Klik status di kanan nama santri untuk edit absensi. Default semua santri adalah Hadir.
+            </div>
 
-            <ul className="grid gap-1.5">
+            <ul className="grid gap-2">
               {santriList.map((s) => {
                 const status = getStatus(s.id);
                 return (
                   <li
                     key={s.id}
-                    className={`flex items-center gap-3 rounded-xl border p-2.5 transition-all duration-150 ${
+                    className={`relative overflow-hidden rounded-2xl border p-2.5 transition-all duration-150 ${
                       status === "Hadir"
-                        ? "border-border/60 bg-surface"
+                        ? "border-emerald-300/70 bg-emerald-50/80 dark:border-emerald-400/35 dark:bg-emerald-500/12"
                         : status === "Izin"
-                          ? "border-amber-300 bg-amber-50/60"
-                          : "border-pink-300 bg-pink-50/60"
+                          ? "border-amber-300/80 bg-amber-50/85 dark:border-amber-400/40 dark:bg-amber-500/14"
+                          : "border-rose-300/80 bg-rose-50/85 dark:border-rose-400/40 dark:bg-rose-500/14"
                     }`}
                   >
-                    <div
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-dark text-[0.75rem] font-extrabold text-white"
-                      aria-hidden
-                    >
-                      {getInitials(s.name)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[0.8rem] font-bold text-text">
-                        {s.name}
-                      </p>
-                      <p className="truncate text-[0.65rem] font-mono text-muted">
-                        {s.id.replace("IN_HSIBS_", "")} · {s.unit}
-                      </p>
-                    </div>
+                    <span
+                      className={`absolute inset-y-0 left-0 w-1.5 ${
+                        status === "Hadir"
+                          ? "bg-emerald-500"
+                          : status === "Izin"
+                            ? "bg-amber-500"
+                            : "bg-rose-500"
+                      }`}
+                    />
+                    <div className="flex items-center gap-3 max-sm:flex-wrap">
+                      <div
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dark text-[0.76rem] font-extrabold tracking-wide text-white shadow-[0_6px_16px_rgba(37,99,235,0.2)]"
+                        aria-hidden
+                      >
+                        {getInitials(s.name)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[0.82rem] font-extrabold text-text">
+                          {s.name}
+                        </p>
+                        <p className="truncate text-[0.65rem] font-mono font-bold text-muted">
+                          {s.id.replace("IN_HSIBS_", "")} · {s.unit} · {s.divs.join(", ")}
+                        </p>
+                      </div>
 
-                    <div className="inline-flex items-center gap-1 rounded-lg bg-surface-strong p-0.5">
-                      <AttendBtn
-                        active={status === "Hadir"}
-                        onClick={() => onSetAttendance(s.id, "Hadir")}
-                        tone="green"
-                        label="H"
-                        title="Hadir"
-                      />
-                      <AttendBtn
-                        active={status === "Izin"}
-                        onClick={() =>
-                          onSetAttendance(s.id, status === "Izin" ? "Hadir" : "Izin")
-                        }
-                        tone="amber"
-                        label="I"
-                        title="Izin"
-                      />
-                      <AttendBtn
-                        active={status === "Alpha"}
-                        onClick={() =>
-                          onSetAttendance(s.id, status === "Alpha" ? "Hadir" : "Alpha")
-                        }
-                        tone="pink"
-                        label="A"
-                        title="Alpha"
+                      <AttendanceEditor
+                        value={status}
+                        onChange={(next) => onSetAttendance(s.id, next)}
                       />
                     </div>
                   </li>
@@ -298,6 +305,125 @@ function InfoRow({ icon, label, value }: { icon: string; label: string; value: s
   );
 }
 
+function SectionTitle({ icon, title }: { icon: string; title: string }) {
+  return (
+    <h4 className="flex items-center gap-2 font-(--font-family-head) text-sm font-extrabold text-primary-dark">
+      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-soft text-primary">
+        <Iconify icon={icon} width={15} />
+      </span>
+      {title}
+    </h4>
+  );
+}
+
+function HeroMetric({
+  icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+  tone: "emerald" | "sky" | "amber" | "purple";
+}) {
+  const toneCls = {
+    emerald: "border-emerald-300/60 bg-emerald-50/80 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/12 dark:text-emerald-200",
+    sky: "border-sky-300/60 bg-sky-50/80 text-sky-700 dark:border-sky-400/30 dark:bg-sky-500/12 dark:text-sky-200",
+    amber: "border-amber-300/60 bg-amber-50/80 text-amber-700 dark:border-amber-400/30 dark:bg-amber-500/12 dark:text-amber-200",
+    purple: "border-purple-300/60 bg-purple-50/80 text-purple-700 dark:border-purple-400/30 dark:bg-purple-500/12 dark:text-purple-200",
+  }[tone];
+
+  return (
+    <div className={`min-w-0 rounded-2xl border p-3 backdrop-blur-sm ${toneCls}`}>
+      <div className="mb-2 flex h-7 w-7 items-center justify-center rounded-lg bg-white/55 text-current dark:bg-white/10">
+        <Iconify icon={icon} width={15} />
+      </div>
+      <p className="text-[0.58rem] font-black uppercase tracking-[0.14em] opacity-75">
+        {label}
+      </p>
+      <p className="mt-0.5 truncate text-[0.75rem] font-extrabold text-current">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function StatusEditor({
+  value,
+  onChange,
+}: {
+  value: LearnSession["status"];
+  onChange: (status: LearnSession["status"]) => void;
+}) {
+  const options: { value: LearnSession["status"]; label: string; icon: string }[] = [
+    { value: "Planned", label: "Planned", icon: "solar:clock-circle-bold-duotone" },
+    { value: "Done", label: "Done", icon: "solar:check-circle-bold-duotone" },
+  ];
+
+  return (
+    <div className="inline-flex rounded-2xl border border-border bg-bg/55 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+      {options.map((opt) => {
+        const active = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            aria-pressed={active}
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-[0.7rem] font-extrabold transition-all ${
+              active
+                ? opt.value === "Done"
+                  ? "bg-emerald-500 text-white ring-1 ring-emerald-300/70 shadow-[0_8px_18px_rgba(16,185,129,0.32)]"
+                  : "bg-amber-500 text-white ring-1 ring-amber-300/70 shadow-[0_8px_18px_rgba(245,158,11,0.3)]"
+                : "text-muted hover:bg-surface hover:text-text"
+            }`}
+          >
+            <Iconify icon={opt.icon} width={13} />
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function AttendanceEditor({
+  value,
+  onChange,
+}: {
+  value: AttendStatus;
+  onChange: (status: AttendStatus) => void;
+}) {
+  const options: { value: AttendStatus; short: string; label: string; cls: string }[] = [
+    { value: "Hadir", short: "H", label: "Hadir", cls: "bg-emerald-500 text-white ring-1 ring-emerald-300/70 shadow-[0_6px_16px_rgba(16,185,129,0.32)]" },
+    { value: "Izin", short: "I", label: "Izin", cls: "bg-amber-500 text-white ring-1 ring-amber-300/70 shadow-[0_6px_16px_rgba(245,158,11,0.32)]" },
+    { value: "Alpha", short: "A", label: "Alpha", cls: "bg-rose-500 text-white ring-1 ring-rose-300/70 shadow-[0_6px_16px_rgba(244,63,94,0.32)]" },
+  ];
+
+  return (
+    <div className="inline-flex shrink-0 items-center rounded-xl border border-border bg-bg/55 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] max-sm:w-full">
+      {options.map((opt) => {
+        const active = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            aria-pressed={active}
+            className={`flex min-w-0 items-center justify-center rounded-lg px-2.5 py-1.5 text-[0.68rem] font-extrabold transition-all max-sm:flex-1 ${
+              active ? opt.cls : "text-muted hover:bg-surface hover:text-text"
+            }`}
+          >
+            <span className="sm:hidden">{opt.short}</span>
+            <span className="hidden sm:inline">{opt.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function SummaryCard({
   label,
   value,
@@ -308,13 +434,13 @@ function SummaryCard({
   tone: "green" | "amber" | "pink";
 }) {
   const toneCls = {
-    green: "bg-green-50 text-green-700 ring-green-200",
-    amber: "bg-amber-50 text-amber-700 ring-amber-200",
-    pink: "bg-pink-50 text-pink-700 ring-pink-200",
+    green: "border-emerald-300/70 bg-emerald-50 text-emerald-700 ring-emerald-200 dark:border-emerald-400/35 dark:bg-emerald-500/14 dark:text-emerald-200 dark:ring-emerald-400/25",
+    amber: "border-amber-300/70 bg-amber-50 text-amber-700 ring-amber-200 dark:border-amber-400/35 dark:bg-amber-500/16 dark:text-amber-200 dark:ring-amber-400/25",
+    pink: "border-rose-300/70 bg-rose-50 text-rose-700 ring-rose-200 dark:border-rose-400/35 dark:bg-rose-500/16 dark:text-rose-200 dark:ring-rose-400/25",
   }[tone];
 
   return (
-    <div className={`rounded-xl px-3 py-2.5 text-center ring-1 ring-inset ${toneCls}`}>
+    <div className={`rounded-xl border px-3 py-2.5 text-center ring-1 ring-inset ${toneCls}`}>
       <div className="font-(--font-family-head) text-xl font-extrabold leading-none">
         {value}
       </div>
@@ -322,40 +448,5 @@ function SummaryCard({
         {label}
       </div>
     </div>
-  );
-}
-
-function AttendBtn({
-  active,
-  onClick,
-  tone,
-  label,
-  title,
-}: {
-  active: boolean;
-  onClick: () => void;
-  tone: "green" | "amber" | "pink";
-  label: string;
-  title: string;
-}) {
-  const activeCls = {
-    green: "bg-green-500 text-white shadow-[0_2px_6px_rgba(34,197,94,0.35)]",
-    amber: "bg-amber-500 text-white shadow-[0_2px_6px_rgba(245,158,11,0.35)]",
-    pink: "bg-pink-500 text-white shadow-[0_2px_6px_rgba(236,72,153,0.35)]",
-  }[tone];
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      aria-label={title}
-      aria-pressed={active}
-      className={`flex h-7 w-7 items-center justify-center rounded-md text-[0.7rem] font-extrabold transition-all duration-150 ${
-        active ? activeCls : "text-muted hover:bg-surface hover:text-text"
-      }`}
-    >
-      {label}
-    </button>
   );
 }
