@@ -10,7 +10,7 @@ const variantClasses = {
   primary:
     "bg-primary text-white shadow-[0_14px_34px_rgba(37,99,235,0.26)] hover:shadow-[0_18px_40px_rgba(37,99,235,0.32)]",
   secondary: "bg-primary-soft text-primary-dark",
-  ghost: "bg-white/70 text-primary-dark",
+  ghost: "bg-surface/70 text-primary-dark hover:bg-surface-strong/70",
 };
 
 export function Button({

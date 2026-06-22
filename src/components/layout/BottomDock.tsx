@@ -25,7 +25,7 @@ function DesktopDock({ items }: BottomDockProps) {
     <motion.nav
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
-      className="fixed bottom-[max(2rem,calc(env(safe-area-inset-bottom)+1rem))] left-1/2 z-30 hidden -translate-x-1/2 items-end gap-3 rounded-full border border-white/80 bg-surface/75 px-4 pb-3 pt-3 shadow-[0_18px_60px_rgba(39,49,38,0.18),inset_0_1px_0_rgba(255,255,255,0.65)] backdrop-blur-[22px] md:flex"
+      className="fixed bottom-[max(2rem,calc(env(safe-area-inset-bottom)+1rem))] left-1/2 z-30 hidden -translate-x-1/2 items-end gap-3 rounded-full border border-white/80 bg-surface/75 px-4 pb-3 pt-3 shadow-[0_18px_60px_rgba(39,49,38,0.18),inset_0_1px_0_rgba(255,255,255,0.65)] backdrop-blur-[22px] md:flex dark:bg-surface/72 dark:shadow-[0_24px_70px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.06)]"
       aria-label="Navigasi halaman"
     >
       {items.map((item) => (
@@ -76,7 +76,7 @@ function DockIcon({
       className={`relative flex aspect-square items-center justify-center rounded-full transition-colors duration-200 ${
         isActive
           ? "bg-primary-dark text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_10px_28px_rgba(30,58,138,0.25)]"
-          : "bg-white/45 text-muted shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] hover:bg-white/75 hover:text-primary-dark"
+          : "bg-white/45 text-muted shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] hover:bg-white/75 hover:text-primary-dark dark:bg-surface-strong/70 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] dark:hover:bg-primary-soft/45"
       }`}
     >
       <AnimatePresence>
@@ -118,7 +118,7 @@ function MobileDock({ items }: BottomDockProps) {
 
   return (
     <nav
-      className="fixed bottom-[max(1rem,calc(env(safe-area-inset-bottom)+0.75rem))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-[440px] -translate-x-1/2 items-center justify-around rounded-full border border-white/80 bg-surface/82 px-2 py-2 shadow-[0_14px_44px_rgba(39,49,38,0.18),inset_0_1px_0_rgba(255,255,255,0.68)] backdrop-blur-[22px] md:hidden"
+      className="fixed bottom-[max(1rem,calc(env(safe-area-inset-bottom)+0.75rem))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-[440px] -translate-x-1/2 items-center justify-around rounded-full border border-white/80 bg-surface/82 px-2 py-2 shadow-[0_14px_44px_rgba(39,49,38,0.18),inset_0_1px_0_rgba(255,255,255,0.68)] backdrop-blur-[22px] md:hidden dark:bg-surface/76 dark:shadow-[0_20px_58px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.06)]"
       aria-label="Navigasi halaman"
     >
       {items.map((item) => {

@@ -165,7 +165,7 @@ export function CustomDatePicker({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
-        className={`flex w-full items-center gap-2 rounded-lg border bg-surface px-3 py-2 text-left text-[0.8rem] font-bold text-text transition-all ${
+        className={`flex w-full items-center gap-2 rounded-lg border bg-surface px-3 py-2 text-left text-[0.8rem] font-bold text-text transition-all dark:bg-surface/85 ${
           disabled
             ? "cursor-not-allowed border-border/40 opacity-50"
             : open
@@ -201,7 +201,7 @@ export function CustomDatePicker({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.12 }}
-            className={`absolute z-50 mt-1.5 w-[300px] overflow-hidden rounded-2xl border border-border/60 bg-surface p-3 shadow-[0_18px_44px_rgba(39,49,38,0.16)] backdrop-blur-md ${
+            className={`absolute z-50 mt-1.5 w-[300px] overflow-hidden rounded-2xl border border-border/60 bg-surface p-3 shadow-[0_18px_44px_rgba(39,49,38,0.16)] backdrop-blur-md dark:bg-surface/96 dark:shadow-[0_22px_60px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.04)] ${
               align === "right" ? "right-0" : "left-0"
             }`}
           >

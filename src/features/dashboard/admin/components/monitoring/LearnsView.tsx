@@ -373,7 +373,7 @@ function SessionCard({
         <div className="flex shrink-0 flex-col items-center gap-1 max-sm:flex-row max-sm:gap-2">
           <div className="relative h-12 w-12">
             <svg className="h-12 w-12 -rotate-90" viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="15" fill="none" stroke="#e5e7eb" strokeWidth="2.5" />
+              <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" className="text-border" strokeWidth="2.5" />
               <circle
                 cx="18" cy="18" r="15" fill="none"
                 stroke="currentColor"

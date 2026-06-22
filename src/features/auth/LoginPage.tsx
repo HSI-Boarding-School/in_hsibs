@@ -47,13 +47,13 @@ export function LoginPage({ onLogin, roles }: LoginPageProps) {
     >
       {/* Background orbs */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-[120px] -top-[120px] h-[420px] w-[420px] animate-[orb-float_18s_ease-in-out_infinite] rounded-full bg-[rgba(37,99,235,0.22)] blur-[80px]" />
-        <div className="absolute -bottom-[80px] -right-[60px] h-[320px] w-[320px] animate-[orb-float_22s_ease-in-out_infinite_reverse] rounded-full bg-[rgba(115,87,182,0.18)] blur-[80px]" />
-        <div className="absolute right-[30%] top-[20%] h-[260px] w-[260px] animate-[orb-float_15s_ease-in-out_infinite_3s] rounded-full bg-[rgba(47,110,165,0.14)] blur-[80px]" />
+        <div className="absolute -left-[120px] -top-[120px] h-[420px] w-[420px] animate-[orb-float_18s_ease-in-out_infinite] rounded-full bg-primary/20 blur-[80px] dark:bg-primary/16" />
+        <div className="absolute -bottom-[80px] -right-[60px] h-[320px] w-[320px] animate-[orb-float_22s_ease-in-out_infinite_reverse] rounded-full bg-purple/18 blur-[80px] dark:bg-purple/14" />
+        <div className="absolute right-[30%] top-[20%] h-[260px] w-[260px] animate-[orb-float_15s_ease-in-out_infinite_3s] rounded-full bg-blue/14 blur-[80px] dark:bg-blue/12" />
       </div>
 
       <motion.div
-        className="relative z-[2] grid w-full max-w-[460px] gap-[22px] rounded-[32px] border border-white/80 bg-[rgba(255,253,247,0.78)] p-8 shadow-[0_32px_96px_rgba(30,58,138,0.14),0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-[24px] saturate-[1.4] max-sm:rounded-3xl max-sm:p-[22px]"
+        className="relative z-[2] grid w-full max-w-[460px] gap-[22px] rounded-[32px] border border-white/80 bg-surface/78 p-8 shadow-[0_32px_96px_rgba(30,58,138,0.14),0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-[24px] saturate-[1.4] max-sm:rounded-3xl max-sm:p-[22px] dark:bg-surface/76 dark:shadow-[0_36px_110px_rgba(0,0,0,0.46),inset_0_1px_0_rgba(255,255,255,0.05)]"
         initial={{ opacity: 0, y: 30, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -150,11 +150,11 @@ export function LoginPage({ onLogin, roles }: LoginPageProps) {
             >
               ID Pengguna
             </label>
-            <div className="flex items-center gap-2.5 rounded-[14px] border-[1.5px] border-border bg-white px-3.5 text-muted transition-[border-color,box-shadow] duration-[180ms]">
+            <div className="flex items-center gap-2.5 rounded-[14px] border-[1.5px] border-border bg-surface px-3.5 text-muted transition-[border-color,box-shadow] duration-[180ms] focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]">
               <Iconify icon="solar:user-bold-duotone" width={20} />
               <input
                 id="user-id"
-                className="flex-1 border-0 bg-transparent py-3.5 font-[var(--font-family-body)] text-text outline-none placeholder:text-[#b4bcc0]"
+                className="flex-1 border-0 bg-transparent py-3.5 font-[var(--font-family-body)] text-text outline-none placeholder:text-muted/55"
                 onChange={(event) => setUserId(event.target.value)}
                 placeholder="contoh: ADM001"
                 value={userId}
@@ -171,14 +171,14 @@ export function LoginPage({ onLogin, roles }: LoginPageProps) {
             >
               Password
             </label>
-            <div className="flex items-center gap-2.5 rounded-[14px] border-[1.5px] border-border bg-white px-3.5 text-muted transition-[border-color,box-shadow] duration-[180ms]">
+            <div className="flex items-center gap-2.5 rounded-[14px] border-[1.5px] border-border bg-surface px-3.5 text-muted transition-[border-color,box-shadow] duration-[180ms] focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]">
               <Iconify
                 icon="solar:lock-keyhole-minimalistic-bold-duotone"
                 width={20}
               />
               <input
                 id="password"
-                className="flex-1 border-0 bg-transparent py-3.5 font-[var(--font-family-body)] text-text outline-none placeholder:text-[#b4bcc0]"
+                className="flex-1 border-0 bg-transparent py-3.5 font-[var(--font-family-body)] text-text outline-none placeholder:text-muted/55"
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Masukkan password"
                 type={showPassword ? "text" : "password"}

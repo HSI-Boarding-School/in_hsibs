@@ -125,7 +125,7 @@ export function MukafaahView() {
               <div className="flex shrink-0 flex-col items-center gap-1">
                 <div className="relative h-14 w-14">
                   <svg className="h-14 w-14 -rotate-90" viewBox="0 0 36 36">
-                    <circle cx="18" cy="18" r="15" fill="none" stroke="#e5e7eb" strokeWidth="2.5" />
+                    <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" className="text-border" strokeWidth="2.5" />
                     <circle
                       cx="18"
                       cy="18"

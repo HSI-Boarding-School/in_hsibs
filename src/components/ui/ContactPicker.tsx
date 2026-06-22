@@ -62,7 +62,7 @@ export function ContactPicker({
         </div>
 
         <div className="px-5 py-3">
-          <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 transition-all focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.08)]">
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 transition-all focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.08)]">
             <Iconify icon="eva:search-fill" width={16} className="text-muted" />
             <input
               value={search}

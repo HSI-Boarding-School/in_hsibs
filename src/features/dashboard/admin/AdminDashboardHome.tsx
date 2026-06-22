@@ -484,7 +484,7 @@ function CommandCenter() {
                 "flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-all",
                 todo.done
                   ? "border-primary bg-primary"
-                  : "border-border bg-white hover:border-primary",
+                  : "border-border bg-surface hover:border-primary",
               ].join(" ")}
               aria-label={todo.done ? "Tandai belum selesai" : "Tandai selesai"}
             >
@@ -547,7 +547,7 @@ function CommandCenter() {
       </Scrollbar>
 
       {/* Add todo */}
-      <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 transition-all focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.08)]">
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 transition-all focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.08)]">
         <input
           className="flex-1 border-0 bg-transparent text-sm text-text outline-none placeholder:text-muted/50"
           placeholder="Tambah tugas baru..."

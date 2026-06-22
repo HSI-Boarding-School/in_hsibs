@@ -14,7 +14,7 @@ export function SectionHeader({
   action,
 }: SectionHeaderProps) {
   return (
-    <div className="flex items-end justify-between gap-4 bg-gradient-to-br from-surface/70 to-[rgba(220,238,227,0.72)] border border-white/70 rounded-[var(--radius-xl)] p-7">
+    <div className="flex items-end justify-between gap-4 rounded-[var(--radius-xl)] border border-white/70 bg-gradient-to-br from-surface/80 to-surface-strong/72 p-7 dark:shadow-[0_18px_54px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.04)]">
       <div>
         {eyebrow ? (
           <span className="inline-flex mb-3 text-[0.78rem] font-black tracking-[0.12em] uppercase text-primary">

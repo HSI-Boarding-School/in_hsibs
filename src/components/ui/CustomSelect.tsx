@@ -88,7 +88,7 @@ export function CustomSelect({
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         onKeyDown={handleKeyDown}
-        className={`flex w-full items-center gap-2 rounded-lg border bg-surface px-3 py-2 text-left text-[0.8rem] font-bold text-text transition-all ${
+        className={`flex w-full items-center gap-2 rounded-lg border bg-surface px-3 py-2 text-left text-[0.8rem] font-bold text-text transition-all dark:bg-surface/85 ${
           disabled
             ? "cursor-not-allowed border-border/40 opacity-50"
             : open
@@ -134,7 +134,7 @@ export function CustomSelect({
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.12 }}
             role="listbox"
-            className={`absolute z-50 mt-1.5 min-w-full max-w-[280px] overflow-hidden rounded-xl border border-border/60 bg-surface shadow-[0_18px_44px_rgba(39,49,38,0.16)] backdrop-blur-md ${
+            className={`absolute z-50 mt-1.5 min-w-full max-w-[280px] overflow-hidden rounded-xl border border-border/60 bg-surface shadow-[0_18px_44px_rgba(39,49,38,0.16)] backdrop-blur-md dark:bg-surface/96 dark:shadow-[0_22px_60px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.04)] ${
               align === "right" ? "right-0" : "left-0"
             }`}
           >

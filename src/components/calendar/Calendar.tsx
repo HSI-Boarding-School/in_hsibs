@@ -18,13 +18,12 @@ const MONTHS_LONG = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-const DAYS_SHORT = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+const DAYS_SHORT = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Ahad"];
 const DAYS_LONG = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
 const VIEW_OPTIONS = [
-  { value: "month", label: "Bulan", icon: "mingcute:calendar-month-line" },
-  { value: "week", label: "Minggu", icon: "mingcute:calendar-week-line" },
-  { value: "day", label: "Hari", icon: "mingcute:calendar-day-line" },
+  { value: "month", label: "Month", icon: "mingcute:calendar-month-line" },
+  { value: "week", label: "Week", icon: "mingcute:calendar-week-line" },
 ];
 
 const COLOR_MAP: Record<string, Record<string, string>> = {
@@ -69,13 +68,112 @@ function formatDateKey(year: number, month: number, day: number): string {
 // ─── Month grid ────────────────────────────────────────────
 function useMonthGrid(year: number, month: number) {
   return useMemo(() => {
-    const firstDay = new Date(year, month, 1).getDay();
+    const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    return [
+    const cells = [
       ...Array(firstDay).fill(null),
       ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
     ] as (number | null)[];
+    const trailing = (7 - (cells.length % 7)) % 7;
+    return [...cells, ...Array(trailing).fill(null)] as (number | null)[];
   }, [year, month]);
+}
+
+function MonthDayCell({
+  day,
+  events,
+  isToday,
+  isSelected,
+  onClick,
+  onQuickAdd,
+}: {
+  day: number;
+  events: CalendarEvent[];
+  isToday: boolean;
+  isSelected: boolean;
+  onClick: () => void;
+  onQuickAdd?: () => void;
+}) {
+  const visibleEvents = events.slice(0, 2);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
+  return (
+    <motion.div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
+      whileTap={{ scale: 0.995 }}
+      className={`group relative min-h-[94px] cursor-pointer border-r border-b border-border/75 bg-bg/35 p-2 text-left transition-colors last:border-r-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 max-sm:min-h-[76px] max-sm:p-1.5 ${
+        isSelected
+          ? "bg-primary-soft/28 ring-1 ring-inset ring-primary/45"
+          : "hover:bg-surface-strong/42"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <span
+          className={`flex h-6 min-w-6 items-center justify-center rounded-full text-[0.78rem] font-bold leading-none max-sm:h-5 max-sm:min-w-5 max-sm:text-[0.68rem] ${
+            isToday
+              ? "bg-primary text-white shadow-[0_4px_12px_rgba(37,99,235,0.28)]"
+              : "text-text"
+          }`}
+        >
+          {day}
+        </span>
+        {events.length > 0 && (
+          <span className="shrink-0 whitespace-nowrap text-[0.65rem] font-extrabold text-text max-sm:hidden">
+            {events.length} event{events.length > 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+
+      {events.length > 0 && (
+        <div className="mt-2 grid gap-1.5 max-sm:mt-1 max-sm:flex max-sm:flex-wrap max-sm:gap-1">
+          {visibleEvents.map((ev) => (
+            <button
+              key={ev.id}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick();
+              }}
+              className="group/event flex min-w-0 items-start gap-1.5 rounded-md text-left transition-colors hover:bg-surface/70 max-sm:p-0"
+            >
+              <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${evDotColor(ev)} shadow-sm max-sm:mt-0 max-sm:h-1.5 max-sm:w-1.5`} />
+              <span className="line-clamp-2 text-[0.65rem] font-bold leading-snug text-muted group-hover/event:text-text max-sm:hidden">
+                {ev.title}
+              </span>
+            </button>
+          ))}
+          {events.length > visibleEvents.length && (
+            <span className="text-[0.6rem] font-bold text-primary max-sm:hidden">
+              +{events.length - visibleEvents.length} lainnya
+            </span>
+          )}
+        </div>
+      )}
+
+      {onQuickAdd && (
+        <button
+          type="button"
+          aria-label={`Tambah event tanggal ${day}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onQuickAdd();
+          }}
+          className="absolute bottom-2 right-2 hidden h-6 w-6 items-center justify-center rounded-full border border-border bg-surface text-muted opacity-0 shadow-[0_6px_16px_rgba(0,0,0,0.12)] transition-all hover:border-primary/40 hover:text-primary group-hover:flex group-hover:opacity-100 max-md:hidden"
+        >
+          <Iconify icon="mingcute:add-line" width={13} />
+        </button>
+      )}
+    </motion.div>
+  );
 }
 
 // ─── Event popover dot ─────────────────────────────────────
@@ -387,7 +485,7 @@ export function Calendar({
   // ── Toolbar ──────────────────────────────────────────────
   const toolbarTitle =
     cal.view === "month"
-      ? `${MONTHS_LONG[cal.month]} ${cal.year}`
+      ? `${MONTHS_SHORT[cal.month]} ${cal.year}`
       : cal.view === "week"
         ? (() => {
             const s = cal.weekDays[0];
@@ -601,39 +699,57 @@ export function Calendar({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
       >
-        <div className="mb-3 grid grid-cols-7 gap-1">
-          {DAYS_SHORT.map((d) => (
-            <span
-              key={d}
-              className="py-2.5 text-center text-[0.6rem] font-black uppercase tracking-widest text-muted"
-            >
-              {d}
-            </span>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          {monthCells.map((day, i) => {
-            if (day === null) return <div key={`e-${i}`} />;
-            return (
-              <DayCell
-                key={formatDateKey(cal.year, cal.month, day)}
-                day={day}
-                events={getEventsForDay(cal.year, cal.month, day)}
-                isToday={
-                  day === today.getDate() &&
-                  cal.month === today.getMonth() &&
-                  cal.year === today.getFullYear()
-                }
-                isSelected={day === cal.selectedDay}
-                onClick={() => cal.selectDay(day)}
-                onQuickAdd={
-                  onAddEvent
-                    ? () => onAddEvent(formatDateKey(cal.year, cal.month, day))
-                    : undefined
-                }
-              />
-            );
-          })}
+        <div className="overflow-hidden rounded-2xl border border-border/80 bg-surface/45 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+          <div className="grid grid-cols-7 border-b border-border/80 bg-surface-strong/46">
+            {DAYS_SHORT.map((d, i) => (
+              <span
+                key={d}
+                className={`px-2 py-3 text-left text-[0.62rem] font-black uppercase tracking-[0.14em] text-muted max-sm:px-1.5 max-sm:py-2 max-sm:text-[0.5rem] ${
+                  i < 6 ? "border-r border-border/80" : ""
+                }`}
+              >
+                {d}
+              </span>
+            ))}
+          </div>
+          <div className="grid grid-cols-7">
+            {monthCells.map((day, i) => {
+              const isEndOfRow = (i + 1) % 7 === 0;
+              if (day === null) {
+                return (
+                  <div
+                    key={`e-${i}`}
+                    className={`min-h-[94px] border-b border-border/75 bg-bg/20 max-sm:min-h-[76px] ${
+                      isEndOfRow ? "" : "border-r"
+                    }`}
+                  />
+                );
+              }
+              return (
+                <div
+                  key={formatDateKey(cal.year, cal.month, day)}
+                  className={isEndOfRow ? "[&>*]:border-r-0" : ""}
+                >
+                  <MonthDayCell
+                    day={day}
+                    events={getEventsForDay(cal.year, cal.month, day)}
+                    isToday={
+                      day === today.getDate() &&
+                      cal.month === today.getMonth() &&
+                      cal.year === today.getFullYear()
+                    }
+                    isSelected={day === cal.selectedDay}
+                    onClick={() => cal.selectDay(day)}
+                    onQuickAdd={
+                      onAddEvent
+                        ? () => onAddEvent(formatDateKey(cal.year, cal.month, day))
+                        : undefined
+                    }
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </motion.div>
     );

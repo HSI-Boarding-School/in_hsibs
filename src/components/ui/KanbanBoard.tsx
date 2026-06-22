@@ -207,7 +207,7 @@ export function KanbanBoard({
                   onKeyDown={handleKeyDown}
                   onBlur={handleAdd}
                   placeholder="Nama kolom..."
-                  className="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm font-bold text-text outline-none transition-all focus:border-primary/40 focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)]"
+                  className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm font-bold text-text outline-none transition-all focus:border-primary/40 focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)]"
                 />
                 <div className="flex gap-2">
                   <button
