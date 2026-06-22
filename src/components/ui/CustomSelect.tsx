@@ -77,7 +77,7 @@ export function CustomSelect({
   return (
     <div
       ref={wrapperRef}
-      className={`relative inline-block ${className}`}
+      className={`relative inline-block min-w-[170px] ${className}`}
       style={width ? { width } : undefined}
     >
       <button
@@ -134,7 +134,7 @@ export function CustomSelect({
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.12 }}
             role="listbox"
-            className={`absolute z-50 mt-1.5 min-w-full max-w-[280px] overflow-hidden rounded-xl border border-border/60 bg-surface shadow-[0_18px_44px_rgba(39,49,38,0.16)] backdrop-blur-md dark:bg-surface/96 dark:shadow-[0_22px_60px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.04)] ${
+            className={`absolute z-50 mt-1.5 w-full overflow-hidden rounded-xl border border-border/60 bg-surface shadow-[0_18px_44px_rgba(39,49,38,0.16)] backdrop-blur-md dark:bg-surface/96 dark:shadow-[0_22px_60px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.04)] ${
               align === "right" ? "right-0" : "left-0"
             }`}
           >
@@ -167,7 +167,7 @@ export function CustomSelect({
                         />
                       )}
                       <span className="min-w-0 flex-1">
-                        <span className="block font-bold leading-snug">{opt.label}</span>
+                        <span className="block truncate font-bold leading-snug">{opt.label}</span>
                         {opt.description && (
                           <span className="block text-[0.65rem] font-medium text-muted">
                             {opt.description}

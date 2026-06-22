@@ -134,6 +134,7 @@ function toShortSid(id: string) {
 
 type DailyStatus = "pending" | "verified" | "revision";
 type MissingStatus = "none" | "reminded" | "done";
+type ReportStatusFilter = "all" | DailyStatus | "missing" | "reminded" | "done";
 
 const dailyStatusCfg: Record<DailyStatus, { label: string; icon: string; chip: string; ring: string; bg: string }> = {
   pending: {
@@ -270,7 +271,7 @@ function ReportQueue({ onEvent }: { onEvent: RecordEventFn }) {
 
   // Filters
   const [scopeFilter, setScopeFilter] = useState<"all" | QueueScope>("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | DailyStatus>("all");
+  const [statusFilter, setStatusFilter] = useState<ReportStatusFilter>("all");
   const [search, setSearch] = useState("");
 
   // Decision per-entry: pending / verified / revision
@@ -319,6 +320,11 @@ function ReportQueue({ onEvent }: { onEvent: RecordEventFn }) {
 
   function getMissingStatus(santriId: string): MissingStatus {
     return missingMap[getMissingId(santriId)] ?? "none";
+  }
+
+  function matchesSearch(text: string) {
+    if (!search.trim()) return true;
+    return text.toLowerCase().includes(search.trim().toLowerCase());
   }
 
   function handleRevisi(id: string) {
@@ -388,16 +394,35 @@ function ReportQueue({ onEvent }: { onEvent: RecordEventFn }) {
   const filtered = useMemo(() => {
     return allEntries.filter((entry) => {
       if (scopeFilter !== "all" && entry.scope !== scopeFilter) return false;
+      if (
+        statusFilter !== "all" &&
+        statusFilter !== "pending" &&
+        statusFilter !== "verified" &&
+        statusFilter !== "revision"
+      ) return false;
       if (statusFilter !== "all" && getStatus(entry) !== statusFilter) return false;
-      if (search) {
-        const santri = santriList.find((s) => toShortSid(s.id) === entry.santriId);
-        const hay = `${entry.santriId} ${santri?.name ?? ""} ${entry.period}`.toLowerCase();
-        if (!hay.includes(search.toLowerCase())) return false;
-      }
+      const santri = santriList.find((s) => toShortSid(s.id) === entry.santriId);
+      const hay = `${entry.santriId} ${santri?.name ?? ""} ${santri?.unit ?? ""} ${santri?.loc ?? ""} ${entry.period}`;
+      if (!matchesSearch(hay)) return false;
       return true;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allEntries, scopeFilter, statusFilter, search, statusMap]);
+
+  const filteredMissingSantri = useMemo(() => {
+    return missingSantri.filter((santri) => {
+      if (scopeFilter !== "all" && scopeFilter !== "daily") return false;
+      const missingStatus = getMissingStatus(santri.id);
+      if (statusFilter === "pending" || statusFilter === "verified" || statusFilter === "revision") return false;
+      if (statusFilter === "missing" && missingStatus !== "none") return false;
+      if (statusFilter === "reminded" && missingStatus !== "reminded") return false;
+      if (statusFilter === "done" && missingStatus !== "done") return false;
+      const hay = `${toShortSid(santri.id)} ${santri.name} ${santri.loc} ${santri.unit} ${latestDailyDate}`;
+      if (!matchesSearch(hay)) return false;
+      return true;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missingSantri, scopeFilter, statusFilter, search, missingMap, latestDailyDate]);
 
   const stats = {
     total: allEntries.length,
@@ -476,6 +501,9 @@ function ReportQueue({ onEvent }: { onEvent: RecordEventFn }) {
                   { value: "pending", label: "Pending", icon: "solar:clock-circle-bold-duotone" },
                   { value: "verified", label: "Verified", icon: "solar:verified-check-bold-duotone" },
                   { value: "revision", label: "Revisi", icon: "solar:refresh-circle-bold-duotone" },
+                  { value: "missing", label: "Belum Kirim", icon: "solar:close-circle-bold-duotone" },
+                  { value: "reminded", label: "Sudah Diingatkan", icon: "solar:bell-bing-bold-duotone" },
+                  { value: "done", label: "Sudah Masuk", icon: "solar:check-circle-bold-duotone" },
                 ]}
                 icon="solar:pulse-bold-duotone"
               />
@@ -508,17 +536,17 @@ function ReportQueue({ onEvent }: { onEvent: RecordEventFn }) {
       </div>
 
       {/* Belum kirim daily (untuk tanggal terbaru) */}
-      {missingSantri.length > 0 && (
+      {filteredMissingSantri.length > 0 && (
         <section className="grid gap-3">
           <SectionHeader
             icon="solar:user-cross-bold-duotone"
             tone="pink"
             title={`Belum Kirim Daily · ${latestDailyDate}`}
-            count={missingSantri.length}
+            count={filteredMissingSantri.length}
           />
 
           <div className="grid gap-2">
-            {missingSantri.map((santri, i) => {
+            {filteredMissingSantri.map((santri, i) => {
               const status = getMissingStatus(santri.id);
               const cfg = missingStatusCfg[status];
               const initials = getInitials(santri.name);
