@@ -1,13 +1,15 @@
 import { useState, useMemo, useCallback } from "react";
 import { motion } from "motion/react";
 import { Iconify } from "../../../../../components/iconify/iconify";
-import { learnSessions, getPhaseName } from "../../../../../data/monitoring/learnData";
+import { CustomSelect } from "../../../../../components/ui/CustomSelect";
+import { learnSessions as initialLearnSessions, getPhaseName } from "../../../../../data/monitoring/learnData";
 import type { LearnSession } from "../../../../../data/monitoring/learnData";
 import { santriList } from "../../../../../data/santriData";
 import {
   LearnSessionDetailDrawer,
   type AttendStatus,
 } from "./LearnSessionDetailDrawer";
+import { LearnForm } from "./LearnForm";
 
 const phaseColors: Record<string, string> = {
   1: "border-l-[#f472b6]",
@@ -30,26 +32,26 @@ type TypeFilter = "all" | "mandatory" | "rolespec";
 type StatusFilter = "all" | "Planned" | "Done";
 type PhaseFilter = "all" | "1" | "2" | "3" | "4" | "5" | "rs";
 
-const TYPE_OPTIONS: { value: TypeFilter; label: string; icon: string }[] = [
-  { value: "all", label: "Semua", icon: "solar:layers-bold-duotone" },
-  { value: "mandatory", label: "Mandatory", icon: "solar:star-bold-duotone" },
-  { value: "rolespec", label: "Role-Specific", icon: "solar:tag-bold-duotone" },
+const TYPE_OPTIONS = [
+  { value: "all", label: "Semua Tipe", icon: "solar:layers-bold-duotone" },
+  { value: "mandatory", label: "Mandatory", description: "Wajib untuk semua santri", icon: "solar:star-bold-duotone" },
+  { value: "rolespec", label: "Role-Specific", description: "Sesuai role / divisi", icon: "solar:tag-bold-duotone" },
 ];
 
-const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: "all", label: "Semua Status" },
-  { value: "Planned", label: "Planned" },
-  { value: "Done", label: "Done" },
+const STATUS_OPTIONS = [
+  { value: "all", label: "Semua Status", icon: "solar:layers-bold-duotone" },
+  { value: "Planned", label: "Planned", icon: "solar:clock-circle-bold-duotone" },
+  { value: "Done", label: "Done", icon: "solar:check-circle-bold-duotone" },
 ];
 
-const PHASE_OPTIONS: { value: PhaseFilter; label: string }[] = [
-  { value: "all", label: "Semua Phase" },
-  { value: "1", label: "1 · Niyah" },
-  { value: "2", label: "2 · Fikrah" },
-  { value: "3", label: "3 · Amaliyah" },
-  { value: "4", label: "4 · Khidmah" },
-  { value: "5", label: "5 · Jariyah" },
-  { value: "rs", label: "Role-Specific" },
+const PHASE_OPTIONS = [
+  { value: "all", label: "Semua Phase", icon: "solar:layers-bold-duotone" },
+  { value: "1", label: "Phase 1 · Niyah", icon: "solar:square-academic-cap-bold-duotone" },
+  { value: "2", label: "Phase 2 · Fikrah", icon: "solar:square-academic-cap-bold-duotone" },
+  { value: "3", label: "Phase 3 · Amaliyah", icon: "solar:square-academic-cap-bold-duotone" },
+  { value: "4", label: "Phase 4 · Khidmah", icon: "solar:square-academic-cap-bold-duotone" },
+  { value: "5", label: "Phase 5 · Jariyah", icon: "solar:square-academic-cap-bold-duotone" },
+  { value: "rs", label: "Role-Specific", icon: "solar:tag-bold-duotone" },
 ];
 
 export function LearnsView() {
@@ -57,6 +59,9 @@ export function LearnsView() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>("all");
   const [search, setSearch] = useState("");
+
+  const [sessions, setSessions] = useState<LearnSession[]>(initialLearnSessions);
+  const [formOpen, setFormOpen] = useState(false);
 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   // attendance: { [sessionId]: { [santriId]: "Izin" | "Alpha" } }
@@ -66,7 +71,7 @@ export function LearnsView() {
   >({});
 
   const filtered = useMemo(() => {
-    return learnSessions.filter((s) => {
+    return sessions.filter((s) => {
       if (typeFilter !== "all" && s.type !== typeFilter) return false;
       if (statusFilter !== "all" && s.status !== statusFilter) return false;
       if (phaseFilter !== "all" && String(s.phase) !== phaseFilter) return false;
@@ -77,7 +82,7 @@ export function LearnsView() {
       }
       return true;
     });
-  }, [typeFilter, statusFilter, phaseFilter, search]);
+  }, [sessions, typeFilter, statusFilter, phaseFilter, search]);
 
   const stats = useMemo(() => {
     const total = filtered.length;
@@ -87,8 +92,8 @@ export function LearnsView() {
   }, [filtered]);
 
   const activeSession = useMemo(
-    () => (activeSessionId ? learnSessions.find((s) => s.id === activeSessionId) ?? null : null),
-    [activeSessionId],
+    () => (activeSessionId ? sessions.find((s) => s.id === activeSessionId) ?? null : null),
+    [activeSessionId, sessions],
   );
 
   const handleOpenSession = useCallback((s: LearnSession) => {
@@ -113,6 +118,17 @@ export function LearnsView() {
     },
     [],
   );
+
+  const handleAddSession = useCallback((draft: Omit<LearnSession, "id">) => {
+    setSessions((prev) => {
+      // Generate ID: L## for mandatory, RS## for role-specific
+      const prefix = draft.type === "mandatory" ? "L" : "RS";
+      const sameType = prev.filter((s) => s.id.startsWith(prefix));
+      const nextNum = String(sameType.length + 1).padStart(2, "0");
+      const id = `${prefix}${nextNum}`;
+      return [{ ...draft, id }, ...prev];
+    });
+  }, []);
 
   const hasActiveFilters =
     typeFilter !== "all" || statusFilter !== "all" || phaseFilter !== "all" || search !== "";
@@ -162,23 +178,26 @@ export function LearnsView() {
           )}
         </div>
 
-        <FilterSelect
-          icon="solar:filter-bold-duotone"
+        <CustomSelect
           value={typeFilter}
           onChange={(v) => setTypeFilter(v as TypeFilter)}
-          options={TYPE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+          options={TYPE_OPTIONS}
+          icon="solar:filter-bold-duotone"
+          className="min-w-[150px]"
         />
-        <FilterSelect
-          icon="solar:square-academic-cap-bold-duotone"
+        <CustomSelect
           value={phaseFilter}
           onChange={(v) => setPhaseFilter(v as PhaseFilter)}
-          options={PHASE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+          options={PHASE_OPTIONS}
+          icon="solar:square-academic-cap-bold-duotone"
+          className="min-w-[170px]"
         />
-        <FilterSelect
-          icon="solar:pulse-bold-duotone"
+        <CustomSelect
           value={statusFilter}
           onChange={(v) => setStatusFilter(v as StatusFilter)}
-          options={STATUS_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+          options={STATUS_OPTIONS}
+          icon="solar:pulse-bold-duotone"
+          className="min-w-[150px]"
         />
 
         {hasActiveFilters && (
@@ -192,6 +211,15 @@ export function LearnsView() {
             Reset
           </button>
         )}
+
+        <button
+          type="button"
+          onClick={() => setFormOpen(true)}
+          className="ml-auto flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-[0.75rem] font-bold text-white shadow-[0_4px_12px_rgba(37,99,235,0.25)] transition-all hover:bg-primary-dark active:scale-95 max-md:ml-0 max-md:w-full max-md:justify-center"
+        >
+          <Iconify icon="mingcute:add-line" width={14} />
+          Tambah Jadwal Belajar
+        </button>
       </div>
 
       {/* Summary strip */}
@@ -246,52 +274,13 @@ export function LearnsView() {
           if (activeSession) handleSetAttendance(activeSession.id, sid, status);
         }}
       />
-    </motion.div>
-  );
-}
 
-function FilterSelect({
-  icon,
-  value,
-  onChange,
-  options,
-}: {
-  icon: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-}) {
-  const isDefault = value === "all";
-  return (
-    <label
-      className={`relative inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-[0.75rem] font-bold transition-all duration-150 cursor-pointer ${
-        isDefault
-          ? "bg-surface-strong/60 text-muted hover:bg-surface-strong hover:text-text"
-          : "bg-primary text-white shadow-[0_2px_8px_rgba(37,99,235,0.2)]"
-      }`}
-    >
-      <Iconify icon={icon} width={13} className="shrink-0" />
-      <span className="max-w-[140px] truncate">
-        {options.find((o) => o.value === value)?.label ?? options[0]?.label}
-      </span>
-      <Iconify
-        icon="solar:alt-arrow-down-bold-duotone"
-        width={11}
-        className="shrink-0 opacity-70"
+      <LearnForm
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        onSubmit={handleAddSession}
       />
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="absolute inset-0 cursor-pointer opacity-0"
-        aria-label="Filter"
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    </motion.div>
   );
 }
 

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-bg: #eef3ec;
   --color-surface: #fffdf7;
@@ -21,6 +23,22 @@
   --radius-lg: 22px;
   --radius-md: 18px;
   --radius-sm: 14px;
+}
+
+/* ── Dark theme overrides ─────────────────────────────────── */
+.dark {
+  --color-bg: #0f1411;
+  --color-surface: #1a201c;
+  --color-surface-strong: #232b25;
+  --color-text: #e6ecdf;
+  --color-muted: #8c9588;
+  --color-border: #2e3830;
+  --color-primary: #60a5fa;
+  --color-primary-dark: #93c5fd;
+  --color-primary-soft: #1e3a5f;
+  --color-orange: #f0884b;
+  --color-blue: #7eb4e6;
+  --color-purple: #b59cf2;
 }
 
 @layer base {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../iconify/iconify";
+import { useTheme } from "../../lib/theme";
 import type { Session } from "../../types";
 
 interface NavbarProps {
@@ -27,6 +28,8 @@ function Avatar({ user }: { user: Session }) {
 
 export function Navbar({ onLogout, user }: NavbarProps) {
   const [showProfile, setShowProfile] = useState(false);
+  const { theme, toggle } = useTheme();
+  const isDark = theme === "dark";
 
   return (
     <header className="flex items-center justify-between gap-4 rounded-sm border border-white/80 bg-surface/80 px-5 py-3 shadow-[0_14px_40px_rgba(39,49,38,0.08)] backdrop-blur-sm">
@@ -49,6 +52,35 @@ export function Navbar({ onLogout, user }: NavbarProps) {
 
       {/* Right — search + notif + profile */}
       <div className="flex items-center gap-3">
+        {/* Theme toggle */}
+        <button
+          type="button"
+          aria-label={isDark ? "Aktifkan light mode" : "Aktifkan dark mode"}
+          aria-pressed={isDark}
+          onClick={toggle}
+          className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-strong text-muted transition-colors hover:border-primary/30 hover:text-primary-dark"
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={isDark ? "moon" : "sun"}
+              initial={{ y: -12, opacity: 0, rotate: -45 }}
+              animate={{ y: 0, opacity: 1, rotate: 0 }}
+              exit={{ y: 12, opacity: 0, rotate: 45 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <Iconify
+                icon={
+                  isDark
+                    ? "solar:moon-bold-duotone"
+                    : "solar:sun-2-bold-duotone"
+                }
+                width={20}
+              />
+            </motion.span>
+          </AnimatePresence>
+        </button>
+
         {/* Notification bell */}
         <button
           type="button"

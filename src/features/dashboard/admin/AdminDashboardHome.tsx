@@ -2,6 +2,12 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { Scrollbar } from "../../../components/scrollbar";
+import {
+  dailyEntries,
+  weeklyEntries,
+  monthlyEntries,
+} from "../../../data/monitoring/reportData";
+import { projects } from "../../../data/monitoring/projectData";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -679,6 +685,189 @@ function AtRiskCard() {
   );
 }
 
+function ReportAnalyticsCard() {
+  const dailySubmitted = dailyEntries.length;
+  const weeklyVerified = weeklyEntries.filter((w) => w.validated).length;
+  const weeklyPending = weeklyEntries.length - weeklyVerified;
+  const monthlyRisk = monthlyEntries.filter(
+    (m) => m.status === "Yellow" || m.status === "Red",
+  ).length;
+  const dailyMood = {
+    good: dailyEntries.filter((d) => d.mood === "Good").length,
+    okay: dailyEntries.filter((d) => d.mood === "Okay").length,
+    tough: dailyEntries.filter((d) => d.mood === "Tough").length,
+  };
+  const totalMood = dailyMood.good + dailyMood.okay + dailyMood.tough || 1;
+
+  return (
+    <article className="rounded-xl border border-white/80 bg-surface/85 p-5 shadow-[0_14px_40px_rgba(39,49,38,0.08)]">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-widest text-primary">
+            Report Analytics
+          </p>
+          <h3 className="mt-0.5 font-(--font-family-head) text-xl font-extrabold text-primary-dark">
+            Kesehatan Laporan
+          </h3>
+          <p className="text-sm text-muted">
+            Daily, weekly, dan monthly status
+          </p>
+        </div>
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple/10">
+          <Iconify icon="solar:file-text-bold-duotone" width={22} className="text-purple" />
+        </span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <MiniMetric label="Daily" value={dailySubmitted} tone="blue" />
+        <MiniMetric label="Verified" value={weeklyVerified} tone="green" />
+        <MiniMetric label="Pending" value={weeklyPending} tone="orange" />
+      </div>
+
+      <div className="mt-4 rounded-lg bg-surface-strong/60 p-3">
+        <div className="mb-2 flex items-center justify-between text-xs">
+          <span className="font-bold text-text">Mood daily log</span>
+          <span className="font-semibold text-muted">{dailyEntries.length} entries</span>
+        </div>
+        <div className="flex h-2 overflow-hidden rounded-full bg-border/50">
+          <span className="bg-green" style={{ width: `${(dailyMood.good / totalMood) * 100}%` }} />
+          <span className="bg-amber" style={{ width: `${(dailyMood.okay / totalMood) * 100}%` }} />
+          <span className="bg-pink" style={{ width: `${(dailyMood.tough / totalMood) * 100}%` }} />
+        </div>
+        <div className="mt-2 flex flex-wrap gap-3 text-[0.65rem] font-bold text-muted">
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green" />Good {dailyMood.good}</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber" />Okay {dailyMood.okay}</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-pink" />Tough {dailyMood.tough}</span>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+        <span className="text-xs text-muted">Monthly perlu perhatian</span>
+        <strong className="text-lg text-orange">{monthlyRisk}</strong>
+      </div>
+    </article>
+  );
+}
+
+function ProjectAnalyticsCard() {
+  const stats = {
+    total: projects.length,
+    idea: projects.filter((p) => p.status === "Idea").length,
+    progress: projects.filter((p) => p.status === "In Progress").length,
+    submitted: projects.filter((p) => p.status === "Submitted").length,
+    approved: projects.filter((p) => p.status === "Approved").length,
+    wajib: projects.filter((p) => p.wajib).length,
+  };
+  const approvedPct = stats.total ? Math.round((stats.approved / stats.total) * 100) : 0;
+
+  const divSummary = ["IT", "DKV", "AC", "OPS", "PKBM", "All"].map((div) => ({
+    div,
+    count: projects.filter((p) => p.div === div).length,
+  }));
+  const maxDiv = Math.max(...divSummary.map((d) => d.count), 1);
+
+  return (
+    <article className="rounded-xl border border-white/80 bg-surface/85 p-5 shadow-[0_14px_40px_rgba(39,49,38,0.08)]">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-widest text-primary">
+            Project Analytics
+          </p>
+          <h3 className="mt-0.5 font-(--font-family-head) text-xl font-extrabold text-primary-dark">
+            Progress Project
+          </h3>
+          <p className="text-sm text-muted">
+            {stats.wajib} project wajib dari {stats.total} total
+          </p>
+        </div>
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue/10">
+          <Iconify icon="solar:folder-with-files-bold-duotone" width={22} className="text-blue" />
+        </span>
+      </div>
+
+      <div className="grid grid-cols-[auto_1fr] items-center gap-4">
+        <div className="relative h-20 w-20">
+          <svg className="h-20 w-20 -rotate-90" viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" className="text-surface-strong" strokeWidth="3" />
+            <motion.circle
+              cx="18"
+              cy="18"
+              r="15"
+              fill="none"
+              stroke="currentColor"
+              className="text-green"
+              strokeWidth="3"
+              strokeDasharray={2 * Math.PI * 15}
+              strokeDashoffset={2 * Math.PI * 15 * (1 - approvedPct / 100)}
+              strokeLinecap="round"
+              initial={{ strokeDashoffset: 2 * Math.PI * 15 }}
+              animate={{ strokeDashoffset: 2 * Math.PI * 15 * (1 - approvedPct / 100) }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            />
+          </svg>
+          <span className="absolute inset-0 flex items-center justify-center font-(--font-family-head) text-lg font-extrabold text-primary-dark">
+            {approvedPct}%
+          </span>
+        </div>
+
+        <div className="grid gap-2">
+          <MiniStatus label="Idea" value={stats.idea} color="bg-muted/40" />
+          <MiniStatus label="In Progress" value={stats.progress} color="bg-amber" />
+          <MiniStatus label="Submitted" value={stats.submitted} color="bg-blue" />
+          <MiniStatus label="Approved" value={stats.approved} color="bg-green" />
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-2 rounded-lg bg-surface-strong/60 p-3">
+        {divSummary.map((d) => (
+          <div key={d.div} className="grid grid-cols-[42px_1fr_24px] items-center gap-2 text-[0.68rem]">
+            <span className="font-bold text-muted">{d.div}</span>
+            <div className="h-1.5 overflow-hidden rounded-full bg-border/50">
+              <span className="block h-full rounded-full bg-primary" style={{ width: `${(d.count / maxDiv) * 100}%` }} />
+            </div>
+            <span className="text-right font-black text-primary-dark">{d.count}</span>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function MiniMetric({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "blue" | "green" | "orange";
+}) {
+  const toneCls = {
+    blue: "bg-blue/10 text-blue",
+    green: "bg-green/10 text-green",
+    orange: "bg-orange/10 text-orange",
+  }[tone];
+
+  return (
+    <div className={`rounded-lg px-3 py-2 text-center ${toneCls}`}>
+      <div className="font-(--font-family-head) text-xl font-extrabold leading-none">{value}</div>
+      <div className="mt-1 text-[0.58rem] font-bold uppercase tracking-wider opacity-80">{label}</div>
+    </div>
+  );
+}
+
+function MiniStatus({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 text-[0.7rem]">
+      <span className="flex items-center gap-1.5 font-semibold text-muted">
+        <span className={`h-2 w-2 rounded-full ${color}`} />
+        {label}
+      </span>
+      <strong className="text-primary-dark">{value}</strong>
+    </div>
+  );
+}
+
 // ─── Main component ──────────────────────────────────────────────────────────
 
 export function AdminDashboardHome() {
@@ -745,10 +934,16 @@ export function AdminDashboardHome() {
         ))}
       </section>
 
-      {/* Command center + Calendar + Unit distribution */}
+      {/* Command center + analytics + side insights */}
       <section className="grid grid-cols-[1fr_320px] gap-4 max-lg:grid-cols-1">
-        {/* Left: Command center (todo) */}
-        <CommandCenter />
+        {/* Left: Command center + analytics */}
+        <div className="grid gap-4">
+          <CommandCenter />
+          <div className="grid grid-cols-2 gap-4 max-xl:grid-cols-1">
+            <ReportAnalyticsCard />
+            <ProjectAnalyticsCard />
+          </div>
+        </div>
 
         {/* Right: Calendar + Unit distribution stacked */}
         <div className="flex flex-col gap-4">

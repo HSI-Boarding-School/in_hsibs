@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { RouterProvider } from "@tanstack/react-router";
 import { router } from "./routing";
 import { AuthProvider, useAuth } from "./lib/auth";
+import { ThemeProvider } from "./lib/theme";
 
 function AppInner() {
   const { session } = useAuth();
@@ -15,9 +16,11 @@ function AppInner() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppInner />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppInner />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

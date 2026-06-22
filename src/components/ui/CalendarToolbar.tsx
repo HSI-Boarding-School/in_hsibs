@@ -40,7 +40,7 @@ export function CalendarToolbar({
       <div className="pointer-events-none absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-purple-500/5 blur-2xl" />
 
       {loading && (
-        <div className="absolute inset-x-4 top-0 h-0.5 overflow-hidden rounded-full bg-[#e2e8f0]">
+        <div className="absolute inset-x-4 top-0 h-0.5 overflow-hidden rounded-full bg-surface-strong">
           <div className="h-full w-1/3 animate-pulse rounded-full bg-primary" />
         </div>
       )}
@@ -51,18 +51,18 @@ export function CalendarToolbar({
           <button
             type="button"
             onClick={onPrev}
-            className="flex items-center justify-center rounded-lg p-1.5 text-[#94a3b8] transition-all hover:bg-[#f1f5f9] hover:text-primary active:scale-90"
+            className="flex items-center justify-center rounded-lg p-1.5 text-muted transition-all hover:bg-surface-strong hover:text-primary active:scale-90"
             aria-label="Previous"
           >
             <Iconify icon="mingcute:left-line" width={18} />
           </button>
 
           <div className="min-w-[170px] px-2 text-center max-sm:min-w-[140px]">
-            <h3 className="font-(--font-family-head) text-[1.05rem] font-extrabold text-[#1e293b] leading-tight tracking-tight">
+            <h3 className="font-(--font-family-head) text-[1.05rem] font-extrabold text-primary-dark leading-tight tracking-tight">
               {date}
             </h3>
             {subtitle && (
-              <p className="text-[0.6rem] font-bold text-[#94a3b8] tracking-wider uppercase">
+              <p className="text-[0.6rem] font-bold text-muted tracking-wider uppercase">
                 {subtitle}
               </p>
             )}
@@ -71,7 +71,7 @@ export function CalendarToolbar({
           <button
             type="button"
             onClick={onNext}
-            className="flex items-center justify-center rounded-lg p-1.5 text-[#94a3b8] transition-all hover:bg-[#f1f5f9] hover:text-primary active:scale-90"
+            className="flex items-center justify-center rounded-lg p-1.5 text-muted transition-all hover:bg-surface-strong hover:text-primary active:scale-90"
             aria-label="Next"
           >
             <Iconify icon="mingcute:right-line" width={18} />
@@ -79,7 +79,7 @@ export function CalendarToolbar({
         </div>
 
         {/* View switcher */}
-        <div className="inline-flex items-center gap-0.5 rounded-xl border border-[#e2e8f0] bg-white/90 p-1 shadow-sm max-md:order-2 md:order-1 max-sm:self-start">
+        <div className="inline-flex items-center gap-0.5 rounded-xl border border-border bg-surface/90 p-1 shadow-sm max-md:order-2 md:order-1 max-sm:self-start">
           {viewOptions.map((opt) => {
             const active = view === opt.value;
             return (
@@ -90,7 +90,7 @@ export function CalendarToolbar({
                 className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.72rem] font-bold whitespace-nowrap transition-all duration-200 max-sm:px-2.5 max-sm:py-1.5 ${
                   active
                     ? "bg-primary text-white shadow-[0_2px_8px_rgba(37,99,235,0.2)]"
-                    : "text-[#64748b] hover:text-[#1e293b] hover:bg-[#f8fafc]"
+                    : "text-muted hover:text-primary-dark hover:bg-surface-strong"
                 }`}
               >
                 <Iconify icon={opt.icon} width={15} />
@@ -105,7 +105,7 @@ export function CalendarToolbar({
           <button
             type="button"
             onClick={onToday}
-            className="rounded-lg border border-[#e2e8f0] bg-white/90 px-3.5 py-2 text-[0.72rem] font-bold text-[#475569] transition-all hover:bg-[#f1f5f9] hover:text-primary active:scale-95 shadow-sm max-sm:px-3"
+            className="rounded-lg border border-border bg-surface/90 px-3.5 py-2 text-[0.72rem] font-bold text-text transition-all hover:bg-surface-strong hover:text-primary active:scale-95 shadow-sm max-sm:px-3"
           >
             Hari Ini
           </button>
@@ -114,7 +114,7 @@ export function CalendarToolbar({
             <button
               type="button"
               onClick={onOpenFilters}
-              className="flex items-center justify-center rounded-lg border border-[#e2e8f0] bg-white/90 p-2 text-[#94a3b8] transition-all hover:bg-[#f1f5f9] hover:text-primary active:scale-95 shadow-sm"
+              className="flex items-center justify-center rounded-lg border border-border bg-surface/90 p-2 text-muted transition-all hover:bg-surface-strong hover:text-primary active:scale-95 shadow-sm"
               aria-label="Filters"
             >
               <Iconify icon="ic:round-filter-list" width={17} />

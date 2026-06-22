@@ -83,10 +83,10 @@ function EventDot({ event }: { event: CalendarEvent }) {
   return (
     <div className="group/dot relative inline-flex">
       <span className={`block h-2 w-2 rounded-full ${evDotColor(event)} shadow-sm ring-1 ring-white/50`} />
-      <div className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] px-2.5 py-1.5 text-[0.65rem] font-bold text-white opacity-0 shadow-lg transition-all duration-150 group-hover/dot:opacity-100">
+      <div className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-lg bg-primary-dark px-2.5 py-1.5 text-[0.65rem] font-bold text-white opacity-0 shadow-lg transition-all duration-150 group-hover/dot:opacity-100">
         <p className="max-w-[200px] truncate">{event.title}</p>
         <p className="text-[0.55rem] text-slate-300 font-medium">{STATUS_LABELS[event.status] || event.status}</p>
-        <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-[#1e293b]" />
+        <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-primary-dark" />
       </div>
     </div>
   );
@@ -147,7 +147,7 @@ function DayCell({
             ? "bg-primary text-white shadow-[0_2px_8px_rgba(37,99,235,0.35)]"
             : isSelected
               ? "bg-primary/15 text-primary"
-              : "text-[#334155] group-hover:text-primary-dark"
+              : "text-text group-hover:text-primary-dark"
         }`}
       >
         {day}
@@ -159,7 +159,7 @@ function DayCell({
             <EventDot key={ev.id} event={ev} />
           ))}
           {!compact && events.length > 3 && (
-            <span className="w-full text-center text-[0.55rem] font-bold text-[#94a3b8]">
+            <span className="w-full text-center text-[0.55rem] font-bold text-muted">
               +{events.length - 3}
             </span>
           )}
@@ -203,25 +203,25 @@ function EventBadge({
       whileTap={{ scale: 0.98 }}
       className={`group flex items-start gap-3 rounded-xl border p-3.5 text-left transition-all duration-150 ${
         onClick
-          ? "border-[#e2e8f0] bg-white hover:border-primary/25 hover:bg-primary/[0.03] hover:shadow-[0_2px_12px_rgba(37,99,235,0.06)] cursor-pointer active:scale-[0.98]"
-          : "border-[#e2e8f0] bg-white cursor-default"
+          ? "border-border bg-surface hover:border-primary/25 hover:bg-primary/[0.03] hover:shadow-[0_2px_12px_rgba(37,99,235,0.06)] cursor-pointer active:scale-[0.98]"
+          : "border-border bg-surface cursor-default"
       }`}
     >
       <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ${evDotColor(event)} shadow-[0_0_0_2px_rgba(255,255,255,0.8)]`} />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold text-[#1e293b]">{event.title}</p>
-        {event.subtitle && <p className="mt-0.5 text-xs text-[#64748b]">{event.subtitle}</p>}
+        <p className="text-sm font-bold text-primary-dark">{event.title}</p>
+        {event.subtitle && <p className="mt-0.5 text-xs text-muted">{event.subtitle}</p>}
         <div className="mt-2 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#f1f5f9] px-2.5 py-0.5 text-[0.6rem] font-bold text-[#475569]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-surface-strong px-2.5 py-0.5 text-[0.6rem] font-bold text-text">
             <span className={`h-1.5 w-1.5 rounded-full ${evDotColor(event)}`} />
             {typeLabels?.[event.type] || event.type}
           </span>
-          <span className="text-[0.6rem] font-semibold text-[#94a3b8]">
+          <span className="text-[0.6rem] font-semibold text-muted">
             {STATUS_LABELS[event.status] || event.status}
           </span>
         </div>
         {renderBadge && (
-          <span className="mt-1.5 block text-[0.6rem] text-[#94a3b8]">{renderBadge(event)}</span>
+          <span className="mt-1.5 block text-[0.6rem] text-muted">{renderBadge(event)}</span>
         )}
       </div>
     </motion.button>
@@ -249,15 +249,15 @@ function DetailPanel({
   return (
     <motion.article
       layout
-      className="flex flex-col rounded-2xl border border-[#e2e8f0] bg-white/80 p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] max-sm:p-4"
+      className="flex flex-col rounded-2xl border border-border bg-surface/85 p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] max-sm:p-4"
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="font-(--font-family-head) text-base font-extrabold text-[#1e293b] leading-tight">
+          <h3 className="font-(--font-family-head) text-base font-extrabold text-primary-dark leading-tight">
             {title}
           </h3>
           {subtitle && (
-            <p className="mt-0.5 text-[0.7rem] font-bold text-[#94a3b8] uppercase tracking-wider">{subtitle}</p>
+            <p className="mt-0.5 text-[0.7rem] font-bold text-muted uppercase tracking-wider">{subtitle}</p>
           )}
         </div>
         {onAddEvent && events.length > 0 && (
@@ -300,13 +300,13 @@ function DetailPanel({
               key="empty"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e2e8f0] py-14"
+              className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-14"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f8fafc]">
-                <Iconify icon="solar:calendar-mark-bold-duotone" width={24} className="text-[#94a3b8]" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-strong">
+                <Iconify icon="solar:calendar-mark-bold-duotone" width={24} className="text-muted" />
               </div>
-              <p className="mt-3 text-sm font-medium text-[#94a3b8]">Belum ada event</p>
-              <p className="mt-1 text-[0.7rem] text-[#cbd5e1]">Tambah event di tanggal ini</p>
+              <p className="mt-3 text-sm font-medium text-muted">Belum ada event</p>
+              <p className="mt-1 text-[0.7rem] text-muted/60">Tambah event di tanggal ini</p>
               {onAddEvent && (
                 <button
                   type="button"
@@ -452,10 +452,10 @@ export function Calendar({
     if (cal.selectedDay === null) {
       return (
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#f8fafc]">
-            <Iconify icon="solar:calendar-mark-bold-duotone" width={32} className="text-[#cbd5e1]" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-strong">
+            <Iconify icon="solar:calendar-mark-bold-duotone" width={32} className="text-muted/60" />
           </div>
-          <p className="mt-4 text-sm font-medium text-[#94a3b8]">Pilih tanggal untuk melihat event</p>
+          <p className="mt-4 text-sm font-medium text-muted">Pilih tanggal untuk melihat event</p>
         </div>
       );
     }
@@ -525,11 +525,11 @@ export function Calendar({
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e2e8f0] py-14">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f8fafc]">
-                <Iconify icon="solar:calendar-mark-bold-duotone" width={24} className="text-[#94a3b8]" />
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-14">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-strong">
+                <Iconify icon="solar:calendar-mark-bold-duotone" width={24} className="text-muted" />
               </div>
-              <p className="mt-3 text-sm font-medium text-[#94a3b8]">Tidak ada event di tanggal ini</p>
+              <p className="mt-3 text-sm font-medium text-muted">Tidak ada event di tanggal ini</p>
               {onAddEvent && (
                 <button
                   type="button"
@@ -559,7 +559,7 @@ export function Calendar({
           {DAYS_SHORT.map((d) => (
             <span
               key={d}
-              className="py-2 text-center text-[0.6rem] font-black uppercase tracking-widest text-[#94a3b8]"
+              className="py-2 text-center text-[0.6rem] font-black uppercase tracking-widest text-muted"
             >
               {d}
             </span>
@@ -605,7 +605,7 @@ export function Calendar({
           {DAYS_SHORT.map((d) => (
             <span
               key={d}
-              className="py-2.5 text-center text-[0.6rem] font-black uppercase tracking-widest text-[#94a3b8]"
+              className="py-2.5 text-center text-[0.6rem] font-black uppercase tracking-widest text-muted"
             >
               {d}
             </span>
@@ -646,7 +646,7 @@ export function Calendar({
     <div className="grid grid-cols-[1fr_340px] gap-5 max-lg:grid-cols-1">
       <motion.article
         layout
-        className="rounded-2xl border border-[#e2e8f0] bg-white/80 p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] max-sm:p-3"
+        className="rounded-2xl border border-border bg-surface/85 p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] max-sm:p-3"
       >
         <CalendarToolbar
           date={toolbarTitle}
