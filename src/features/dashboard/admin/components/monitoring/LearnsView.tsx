@@ -153,7 +153,7 @@ export function LearnsView() {
     >
       {/* Filter toolbar — single row */}
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-surface/85 p-2 shadow-[0_4px_14px_rgba(39,49,38,0.05)]">
-        <div className="group flex min-w-[180px] flex-1 items-center gap-2 rounded-lg bg-surface-strong/60 px-3 py-2 ring-1 ring-inset ring-transparent transition-all duration-150 focus-within:bg-surface focus-within:ring-primary/40">
+        <div className="group flex min-w-0 flex-1 items-center gap-2 rounded-lg bg-surface-strong/60 px-3 py-2 ring-1 ring-inset ring-transparent transition-all duration-150 focus-within:bg-surface focus-within:ring-primary/40 max-md:basis-full md:min-w-[180px]">
           <Iconify
             icon="solar:magnifer-bold-duotone"
             width={14}
@@ -183,28 +183,28 @@ export function LearnsView() {
           onChange={(v) => setTypeFilter(v as TypeFilter)}
           options={TYPE_OPTIONS}
           icon="solar:filter-bold-duotone"
-          className="min-w-[150px]"
+          className="flex-1 max-sm:basis-[calc(50%-0.25rem)] md:flex-none md:min-w-[150px]"
         />
         <CustomSelect
           value={phaseFilter}
           onChange={(v) => setPhaseFilter(v as PhaseFilter)}
           options={PHASE_OPTIONS}
           icon="solar:square-academic-cap-bold-duotone"
-          className="min-w-[170px]"
+          className="flex-1 max-sm:basis-[calc(50%-0.25rem)] md:flex-none md:min-w-[170px]"
         />
         <CustomSelect
           value={statusFilter}
           onChange={(v) => setStatusFilter(v as StatusFilter)}
           options={STATUS_OPTIONS}
           icon="solar:pulse-bold-duotone"
-          className="min-w-[150px]"
+          className="flex-1 max-sm:basis-[calc(50%-0.25rem)] md:flex-none md:min-w-[150px]"
         />
 
         {hasActiveFilters && (
           <button
             type="button"
             onClick={resetFilters}
-            className="flex items-center gap-1 rounded-lg px-2.5 py-2 text-[0.7rem] font-bold text-muted transition-colors hover:bg-surface-strong hover:text-primary"
+            className="flex items-center gap-1 rounded-lg px-2.5 py-2 text-[0.7rem] font-bold text-muted transition-colors hover:bg-surface-strong hover:text-primary max-md:basis-full max-md:justify-center"
             title="Reset filter"
           >
             <Iconify icon="solar:restart-bold" width={13} />

@@ -26,14 +26,14 @@ export function MukafaahView() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18 }}
     >
-      <div className="flex items-center justify-between max-sm:flex-col max-sm:items-start max-sm:gap-3">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 scrollbar-x pb-1 max-md:w-full">
           {(["all", "eligible", "ineligible"] as const).map((f) => (
             <button
               key={f}
               type="button"
               onClick={() => setFilter(f)}
-              className={`rounded-full px-4 py-1.5 text-[0.75rem] font-bold transition-all ${
+              className={`rounded-full px-4 py-1.5 text-[0.75rem] font-bold whitespace-nowrap transition-all ${
                 filter === f
                   ? "bg-primary text-white shadow-[0_4px_12px_rgba(37,99,235,0.25)]"
                   : "bg-surface text-text hover:bg-primary-soft hover:text-primary-dark border border-border/50"
@@ -43,7 +43,7 @@ export function MukafaahView() {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-3 text-xs text-muted">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
           <span className="flex items-center gap-1">
             <span className="h-2 w-2 rounded-full bg-green" />
             Eligible {eligibleCount}

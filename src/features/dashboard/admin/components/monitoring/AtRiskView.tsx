@@ -84,7 +84,7 @@ export function AtRiskView() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18 }}
     >
-      <div className="flex items-center gap-4 text-xs text-muted">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted">
         <span className="font-bold text-text">{atRisk.length} santri at-risk</span>
         <span className="flex items-center gap-1">
           <span className="h-2 w-2 rounded-full bg-orange" />
@@ -114,7 +114,7 @@ export function AtRiskView() {
             return (
               <motion.div
                 key={santri.id}
-                className="flex items-start gap-4 rounded-xl border border-border/60 bg-surface/85 p-[18px] shadow-[0_8px_30px_rgba(39,49,38,0.06)]"
+                className="flex items-start gap-4 rounded-xl border border-border/60 bg-surface/85 p-[18px] shadow-[0_8px_30px_rgba(39,49,38,0.06)] max-sm:flex-wrap max-sm:gap-3 max-sm:p-4"
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04, duration: 0.18 }}
@@ -150,7 +150,7 @@ export function AtRiskView() {
 
                 <button
                   type="button"
-                  className="shrink-0 rounded-lg bg-primary-dark px-3 py-2 text-[0.65rem] font-bold text-white transition-opacity hover:opacity-80"
+                  className="shrink-0 rounded-lg bg-primary-dark px-3 py-2 text-[0.65rem] font-bold text-white transition-opacity hover:opacity-80 max-sm:w-full"
                 >
                   Tindak Lanjut
                 </button>
