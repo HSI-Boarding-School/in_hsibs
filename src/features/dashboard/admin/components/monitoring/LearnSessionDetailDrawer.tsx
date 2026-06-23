@@ -242,23 +242,8 @@ function DrawerContent({
                 return (
                   <li
                     key={s.id}
-                    className={`relative overflow-hidden rounded-2xl border p-2.5 transition-all duration-150 ${
-                      status === "Hadir"
-                        ? "border-emerald-300/70 bg-emerald-50/80 dark:border-emerald-400/35 dark:bg-emerald-500/12"
-                        : status === "Izin"
-                          ? "border-amber-300/80 bg-amber-50/85 dark:border-amber-400/40 dark:bg-amber-500/14"
-                          : "border-rose-300/80 bg-rose-50/85 dark:border-rose-400/40 dark:bg-rose-500/14"
-                    }`}
+                    className="rounded-2xl border border-border/60 bg-surface/86 p-2.5 transition-colors duration-150 hover:border-primary/20 hover:bg-surface-strong/35"
                   >
-                    <span
-                      className={`absolute inset-y-0 left-0 w-1.5 ${
-                        status === "Hadir"
-                          ? "bg-emerald-500"
-                          : status === "Izin"
-                            ? "bg-amber-500"
-                            : "bg-rose-500"
-                      }`}
-                    />
                     <div className="flex items-center gap-3 max-sm:flex-wrap">
                       <div
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dark text-[0.76rem] font-extrabold tracking-wide text-white shadow-[0_6px_16px_rgba(37,99,235,0.2)]"
@@ -396,13 +381,13 @@ function AttendanceEditor({
   onChange: (status: AttendStatus) => void;
 }) {
   const options: { value: AttendStatus; short: string; label: string; cls: string }[] = [
-    { value: "Hadir", short: "H", label: "Hadir", cls: "bg-emerald-500 text-white ring-1 ring-emerald-300/70 shadow-[0_6px_16px_rgba(16,185,129,0.32)]" },
-    { value: "Izin", short: "I", label: "Izin", cls: "bg-amber-500 text-white ring-1 ring-amber-300/70 shadow-[0_6px_16px_rgba(245,158,11,0.32)]" },
-    { value: "Alpha", short: "A", label: "Alpha", cls: "bg-rose-500 text-white ring-1 ring-rose-300/70 shadow-[0_6px_16px_rgba(244,63,94,0.32)]" },
+    { value: "Hadir", short: "H", label: "Hadir", cls: "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-400/35 dark:bg-emerald-500/14 dark:text-emerald-200" },
+    { value: "Izin", short: "I", label: "Izin", cls: "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-400/35 dark:bg-amber-500/14 dark:text-amber-200" },
+    { value: "Alpha", short: "A", label: "Alpha", cls: "border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-400/35 dark:bg-rose-500/14 dark:text-rose-200" },
   ];
 
   return (
-    <div className="inline-flex shrink-0 items-center rounded-xl border border-border bg-bg/55 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] max-sm:w-full">
+    <div className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-border bg-surface-strong/45 p-1 max-sm:w-full">
       {options.map((opt) => {
         const active = value === opt.value;
         return (
@@ -411,8 +396,8 @@ function AttendanceEditor({
             type="button"
             onClick={() => onChange(opt.value)}
             aria-pressed={active}
-            className={`flex min-w-0 items-center justify-center rounded-lg px-2.5 py-1.5 text-[0.68rem] font-extrabold transition-all max-sm:flex-1 ${
-              active ? opt.cls : "text-muted hover:bg-surface hover:text-text"
+            className={`flex min-w-0 items-center justify-center rounded-lg border px-2.5 py-1.5 text-[0.68rem] font-extrabold transition-all max-sm:flex-1 ${
+              active ? opt.cls : "border-transparent text-muted hover:bg-surface hover:text-text"
             }`}
           >
             <span className="sm:hidden">{opt.short}</span>
@@ -434,17 +419,17 @@ function SummaryCard({
   tone: "green" | "amber" | "pink";
 }) {
   const toneCls = {
-    green: "border-emerald-300/70 bg-emerald-50 text-emerald-700 ring-emerald-200 dark:border-emerald-400/35 dark:bg-emerald-500/14 dark:text-emerald-200 dark:ring-emerald-400/25",
-    amber: "border-amber-300/70 bg-amber-50 text-amber-700 ring-amber-200 dark:border-amber-400/35 dark:bg-amber-500/16 dark:text-amber-200 dark:ring-amber-400/25",
-    pink: "border-rose-300/70 bg-rose-50 text-rose-700 ring-rose-200 dark:border-rose-400/35 dark:bg-rose-500/16 dark:text-rose-200 dark:ring-rose-400/25",
+    green: "text-emerald-600 dark:text-emerald-300",
+    amber: "text-amber-600 dark:text-amber-300",
+    pink: "text-rose-600 dark:text-rose-300",
   }[tone];
 
   return (
-    <div className={`rounded-xl border px-3 py-2.5 text-center ring-1 ring-inset ${toneCls}`}>
-      <div className="font-(--font-family-head) text-xl font-extrabold leading-none">
+    <div className="rounded-xl border border-border/60 bg-surface-strong/38 px-3 py-2.5 text-center">
+      <div className={`font-(--font-family-head) text-xl font-extrabold leading-none ${toneCls}`}>
         {value}
       </div>
-      <div className="mt-1 text-[0.6rem] font-bold uppercase tracking-wider opacity-80">
+      <div className="mt-1 text-[0.6rem] font-bold uppercase tracking-wider text-muted">
         {label}
       </div>
     </div>

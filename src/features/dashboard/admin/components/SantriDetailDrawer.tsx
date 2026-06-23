@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../../../../components/iconify/iconify";
 import { Scrollbar } from "../../../../components/scrollbar";
@@ -53,6 +53,79 @@ function getInitials(name: string): string {
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
+
+const sowTemplates: Record<string, string[]> = {
+  Developer: [
+    "Implementasi fitur sesuai prioritas sprint",
+    "Fix bug dan refactor komponen yang menjadi tanggung jawab",
+    "Update progres harian dan dokumentasi teknis singkat",
+  ],
+  QA: [
+    "Membuat test scenario untuk fitur baru",
+    "Melakukan regression test sebelum release",
+    "Mencatat bug lengkap dengan langkah reproduksi",
+  ],
+  Designer: [
+    "Membuat asset visual sesuai brief program",
+    "Menjaga konsistensi style desain publikasi",
+    "Menyiapkan file final dan source terstruktur",
+  ],
+  "Video Editor": [
+    "Editing video pembelajaran atau publikasi",
+    "Menyiapkan subtitle, thumbnail, dan export final",
+    "Arsipkan project file sesuai folder standar",
+  ],
+  "Social Media": [
+    "Menjadwalkan konten sesuai kalender publikasi",
+    "Monitoring insight dan engagement konten",
+    "Koordinasi materi dengan tim desain/copywriter",
+  ],
+  Copywriter: [
+    "Menyusun caption dan copy publikasi",
+    "Review tone komunikasi agar sesuai brand",
+    "Menyiapkan draft konten sebelum desain final",
+  ],
+  Tahfidz: [
+    "Mendampingi setoran dan murajaah santri",
+    "Mencatat progres hafalan harian/pekanan",
+    "Follow up santri yang tertinggal target",
+  ],
+  Arabic: [
+    "Mendampingi latihan bahasa Arab dasar",
+    "Menyiapkan materi latihan sesuai level",
+    "Mencatat kehadiran dan progres peserta",
+  ],
+  Musyrif: [
+    "Monitoring adab, ibadah, dan kedisiplinan santri",
+    "Memberi pendampingan dan catatan pembinaan",
+    "Koordinasi dengan PIC jika ada case khusus",
+  ],
+  Administration: [
+    "Mengelola data administrasi harian",
+    "Merapikan dokumen dan arsip operasional",
+    "Membantu rekap kebutuhan laporan PIC",
+  ],
+  "Customer Service": [
+    "Menjawab pertanyaan sesuai SOP layanan",
+    "Mencatat tiket/keluhan dan status follow up",
+    "Eskalasi case penting ke PIC terkait",
+  ],
+  "Asmen IT": [
+    "Membantu monitoring perangkat dan sistem belajar",
+    "Mencatat kendala teknis dan solusi awal",
+    "Koordinasi support dengan tim IT",
+  ],
+};
+
+function buildInitialSow(roles: string[]) {
+  return roles.reduce<Record<string, string[]>>((acc, role) => {
+    acc[role] = sowTemplates[role] ? [...sowTemplates[role]] : [];
+    return acc;
+  }, {});
+}
+
+const profileBannerUrl =
+  "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80";
 
 interface SantriDetailDrawerProps {
   santri: Santri | null;
@@ -110,6 +183,27 @@ function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => voi
   const unit = unitTheme[santri.unit];
   const status = statusTheme[santri.status];
   const initials = getInitials(santri.name);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [sowMap, setSowMap] = useState<Record<string, string[]>>(() => buildInitialSow(santri.roles));
+  const [newSow, setNewSow] = useState("");
+
+  useEffect(() => {
+    setSelectedRole(null);
+    setSowMap(buildInitialSow(santri.roles));
+    setNewSow("");
+  }, [santri.id, santri.roles]);
+
+  const selectedSow = selectedRole ? sowMap[selectedRole] ?? [] : [];
+
+  function addSowItem() {
+    const text = newSow.trim();
+    if (!text || !selectedRole) return;
+    setSowMap((prev) => ({
+      ...prev,
+      [selectedRole]: [...(prev[selectedRole] ?? []), text],
+    }));
+    setNewSow("");
+  }
 
   return (
     <>
@@ -137,39 +231,48 @@ function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => voi
 
       <Scrollbar className="flex-1">
         {/* Hero */}
-        <div className={`relative overflow-hidden bg-gradient-to-b ${unit.hero}`}>
-          <div className="flex flex-col items-center gap-3 px-6 pb-6 pt-8 text-center">
+        <div className="relative overflow-hidden border-b border-border/60">
+          <div className="relative h-44 overflow-hidden">
+            <img
+              src={profileBannerUrl}
+              alt="Santri activity banner"
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/38 to-black/10" />
+            <div className={`absolute inset-0 bg-gradient-to-br ${unit.hero}`} />
+            <div className="absolute left-5 right-5 top-4 flex items-start justify-between gap-3">
+              <span className={`rounded-full px-3 py-1 text-[0.65rem] font-extrabold ring-1 ring-inset backdrop-blur-md ${unit.pill}`}>
+                {unit.label}
+              </span>
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.65rem] font-extrabold ring-1 ring-inset backdrop-blur-md ${status.bg} ${status.text}`}
+              >
+                <span className={`inline-block h-1.5 w-1.5 rounded-full ${status.dot}`} aria-hidden />
+                {status.label}
+              </span>
+            </div>
+          </div>
+
+          <div className="relative z-[1] -mt-10 flex items-end gap-4 px-5 pb-5 pt-0">
             <div
-              className={`flex h-20 w-20 items-center justify-center rounded-2xl font-(--font-family-head) text-2xl font-extrabold tracking-wide text-white shadow-[0_10px_28px_rgba(39,49,38,0.18)] ${unit.avatar}`}
+              className={`flex h-22 w-22 shrink-0 items-center justify-center rounded-3xl font-(--font-family-head) text-2xl font-extrabold tracking-wide text-white shadow-[0_16px_36px_rgba(39,49,38,0.24)] ring-4 ring-surface ${unit.avatar}`}
               aria-hidden
             >
               {initials}
             </div>
-            <div>
-              <h2 className="font-(--font-family-head) text-lg font-extrabold leading-tight text-primary-dark">
+            <div className="min-w-0 flex-1 pb-1">
+              <h2 className="font-(--font-family-head) text-xl font-extrabold leading-tight text-primary-dark">
                 {santri.name}
               </h2>
-              <div className="mt-1.5 flex items-center justify-center gap-2 text-[0.7rem]">
-                <span className="font-mono font-bold text-primary">{shortId}</span>
-                <span className="text-border" aria-hidden>
-                  •
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.7rem]">
+                <span className="rounded-full bg-primary-soft px-2.5 py-1 font-mono font-extrabold text-primary">
+                  {shortId}
                 </span>
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-bold ring-1 ring-inset ${status.bg} ${status.text}`}
-                >
-                  <span
-                    className={`inline-block h-1.5 w-1.5 rounded-full ${status.dot}`}
-                    aria-hidden
-                  />
-                  {status.label}
+                <span className="rounded-full bg-surface-strong px-2.5 py-1 font-bold text-muted">
+                  {santri.loc}
                 </span>
               </div>
             </div>
-            <span
-              className={`rounded-full px-3 py-1 text-[0.65rem] font-bold ring-1 ring-inset ${unit.pill}`}
-            >
-              {unit.label}
-            </span>
           </div>
         </div>
 
@@ -239,15 +342,123 @@ function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => voi
           {/* Roles */}
           <Section title="Role" icon="solar:tag-horizontal-bold-duotone">
             {santri.roles.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {santri.roles.map((r) => (
-                  <span
-                    key={r}
-                    className="rounded-md bg-surface-strong px-2 py-1 text-[0.7rem] font-semibold text-text"
+              <div className="grid gap-3">
+                <div className="flex flex-wrap gap-1.5">
+                  {santri.roles.map((r) => {
+                    const active = selectedRole === r;
+                    const count = sowMap[r]?.length ?? 0;
+                    return (
+                      <motion.button
+                        key={r}
+                        type="button"
+                        onClick={() => {
+                          setSelectedRole((current) => (current === r ? null : r));
+                          setNewSow("");
+                        }}
+                        whileTap={{ scale: 0.96 }}
+                        layout
+                        className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[0.7rem] font-extrabold transition-all ${
+                          active
+                            ? "border-primary/50 bg-primary-soft text-primary-dark shadow-[0_8px_18px_rgba(37,99,235,0.16)]"
+                            : "border-border/60 bg-surface-strong/65 text-text hover:border-primary/30 hover:text-primary-dark"
+                        }`}
+                      >
+                        <Iconify
+                          icon={active ? "solar:folder-open-bold-duotone" : "solar:folder-with-files-bold-duotone"}
+                          width={13}
+                          className={active ? "text-primary" : "text-muted"}
+                        />
+                        {r}
+                        <span className={`rounded-full px-1.5 py-0.5 text-[0.55rem] font-black ${active ? "bg-primary text-white" : "bg-surface text-muted"}`}>
+                          {count}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                {!selectedRole && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border border-dashed border-border/70 bg-surface-strong/22 px-3 py-3 text-[0.72rem] font-semibold text-muted"
                   >
-                    {r}
-                  </span>
-                ))}
+                    <Iconify icon="solar:cursor-bold-duotone" width={13} className="mr-1.5 inline align-[-2px] text-primary/70" />
+                    Klik salah satu role untuk melihat atau menambahkan Scope of Work.
+                  </motion.div>
+                )}
+
+                <AnimatePresence mode="wait">
+                  {selectedRole && (
+                    <motion.div
+                      key={selectedRole}
+                      initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden rounded-2xl border border-border/60 bg-surface/72 p-3.5 shadow-[0_12px_32px_rgba(39,49,38,0.07)]"
+                    >
+                    <div className="mb-3 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[0.6rem] font-black uppercase tracking-[0.14em] text-muted">
+                          Scope of Work
+                        </p>
+                        <h5 className="truncate font-(--font-family-head) text-sm font-extrabold text-primary-dark">
+                          {selectedRole}
+                        </h5>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-surface-strong px-2.5 py-1 text-[0.62rem] font-extrabold text-muted">
+                        {selectedSow.length} item
+                      </span>
+                    </div>
+
+                    {selectedSow.length > 0 ? (
+                      <ul className="grid gap-2">
+                        {selectedSow.map((item, idx) => (
+                          <li
+                            key={`${selectedRole}-${idx}-${item}`}
+                            className="flex items-start gap-2 rounded-xl border border-border/50 bg-surface-strong/38 px-3 py-2 text-[0.75rem] font-semibold leading-relaxed text-text"
+                          >
+                            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[0.6rem] font-black text-primary">
+                              {idx + 1}
+                            </span>
+                            <span className="min-w-0 flex-1">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-border/70 bg-surface-strong/25 px-3 py-4 text-center">
+                        <Iconify icon="solar:clipboard-remove-bold-duotone" width={22} className="mx-auto text-muted/50" />
+                        <p className="mt-2 text-[0.75rem] font-bold text-muted">
+                          Belum ada SoW untuk role ini
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="mt-3 flex items-center gap-2 rounded-xl border border-border/60 bg-surface px-2.5 py-2 focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.08)]">
+                      <Iconify icon="solar:add-circle-bold-duotone" width={15} className="shrink-0 text-primary/70" />
+                      <input
+                        type="text"
+                        value={newSow}
+                        onChange={(e) => setNewSow(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") addSowItem();
+                        }}
+                        placeholder="Tambah SoW baru..."
+                        className="min-w-0 flex-1 border-0 bg-transparent text-[0.75rem] font-semibold text-text outline-none placeholder:text-muted/50"
+                      />
+                      <button
+                        type="button"
+                        onClick={addSowItem}
+                        disabled={!newSow.trim()}
+                        className="rounded-lg bg-primary px-3 py-1.5 text-[0.68rem] font-extrabold text-white transition-all hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <EmptyText>Belum ada role</EmptyText>
