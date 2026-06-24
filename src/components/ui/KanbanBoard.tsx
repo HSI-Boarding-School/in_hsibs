@@ -110,6 +110,7 @@ export function KanbanBoard({
 
       const activeId = active.id as string;
       const overId = over.id as string;
+      if (activeId === overId) return;
       const activeCol = getColumnId(activeId);
 
       const colEntry = columns.find((c) => c.id === overId);

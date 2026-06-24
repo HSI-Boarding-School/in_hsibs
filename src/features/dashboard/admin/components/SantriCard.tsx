@@ -8,7 +8,7 @@ interface UnitTheme {
   label: string;
 }
 
-const unitTheme: Record<Santri["unit"], UnitTheme> = {
+const unitTheme: Record<string, UnitTheme> = {
   "HSI BS": {
     avatar: "bg-gradient-to-br from-blue-400 to-blue-600",
     pill: "bg-blue-50 text-blue-700 ring-blue-200",
@@ -25,6 +25,14 @@ const unitTheme: Record<Santri["unit"], UnitTheme> = {
     label: "STIT",
   },
 };
+
+function getUnitTheme(unit: string): UnitTheme {
+  return unitTheme[unit] ?? {
+    avatar: "bg-gradient-to-br from-sky-400 to-slate-600",
+    pill: "bg-sky-50 text-sky-700 ring-sky-200",
+    label: unit,
+  };
+}
 
 interface StatusTheme {
   dot: string;
@@ -53,7 +61,7 @@ interface SantriCardProps {
 
 export function SantriCard({ santri, onOpen }: SantriCardProps) {
   const shortId = santri.id.replace("IN_HSIBS_", "");
-  const unit = unitTheme[santri.unit];
+  const unit = getUnitTheme(santri.unit);
   const status = statusTheme[santri.status];
   const initials = getInitials(santri.name);
 

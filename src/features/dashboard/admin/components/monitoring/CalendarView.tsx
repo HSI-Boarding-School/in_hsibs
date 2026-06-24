@@ -3,11 +3,15 @@ import { Calendar } from "../../../../../components/calendar/Calendar";
 import { CalendarForm } from "../../../../../components/calendar/CalendarForm";
 import { calendarEvents as initialEvents } from "../../../../../data/monitoring/calendarData";
 import type { CalendarEvent } from "../../../../../components/calendar/types";
+import { useLocalStorageState } from "../../../../../lib/useLocalStorageState";
 
 let nextId = 100;
 
 export function CalendarView() {
-  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
+  const [events, setEvents] = useLocalStorageState<CalendarEvent[]>(
+    "in_hsibs.monitoring.calendar.events",
+    initialEvents,
+  );
   const [formOpen, setFormOpen] = useState(false);
   const [formDate, setFormDate] = useState<string | undefined>(undefined);
 

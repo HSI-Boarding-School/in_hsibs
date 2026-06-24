@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { Scrollbar } from "../../../components/scrollbar";
+import { useLocalStorageState } from "../../../lib/useLocalStorageState";
 import {
   dailyEntries,
   weeklyEntries,
@@ -354,7 +355,10 @@ function UnitDistributionCard() {
 }
 
 function CommandCenter() {
-  const [todos, setTodos] = useState<TodoItem[]>(initialTodos);
+  const [todos, setTodos] = useLocalStorageState<TodoItem[]>(
+    "in_hsibs.home.commandCenter.todos",
+    initialTodos,
+  );
   const [newText, setNewText] = useState("");
 
   function toggle(id: number) {

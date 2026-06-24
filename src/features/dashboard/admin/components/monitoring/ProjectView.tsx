@@ -6,6 +6,7 @@ import { projects as initialProjects, trackColors, statusBadge } from "../../../
 import type { Project } from "../../../../../data/monitoring/projectData";
 import { santriList } from "../../../../../data/santriData";
 import { ProjectForm } from "./ProjectForm";
+import { useLocalStorageState } from "../../../../../lib/useLocalStorageState";
 
 const santriNameMap = new Map(santriList.map((s) => [s.id, s.name]));
 
@@ -30,7 +31,10 @@ const STATUS_FILTER_OPTIONS = [
 ];
 
 export function ProjectView() {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [projects, setProjects] = useLocalStorageState<Project[]>(
+    "in_hsibs.monitoring.projects",
+    initialProjects,
+  );
   const [filterDiv, setFilterDiv] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [search, setSearch] = useState("");

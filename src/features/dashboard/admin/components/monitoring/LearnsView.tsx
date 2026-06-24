@@ -5,6 +5,7 @@ import { CustomSelect } from "../../../../../components/ui/CustomSelect";
 import { learnSessions as initialLearnSessions, getPhaseName } from "../../../../../data/monitoring/learnData";
 import type { LearnSession } from "../../../../../data/monitoring/learnData";
 import { santriList } from "../../../../../data/santriData";
+import { useLocalStorageState } from "../../../../../lib/useLocalStorageState";
 import {
   LearnSessionDetailDrawer,
   type AttendStatus,
@@ -60,15 +61,18 @@ export function LearnsView() {
   const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>("all");
   const [search, setSearch] = useState("");
 
-  const [sessions, setSessions] = useState<LearnSession[]>(initialLearnSessions);
+  const [sessions, setSessions] = useLocalStorageState<LearnSession[]>(
+    "in_hsibs.monitoring.learn.sessions",
+    initialLearnSessions,
+  );
   const [formOpen, setFormOpen] = useState(false);
 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   // attendance: { [sessionId]: { [santriId]: "Izin" | "Alpha" } }
   // default Hadir = absence in map
-  const [attendance, setAttendance] = useState<
+  const [attendance, setAttendance] = useLocalStorageState<
     Record<string, Record<string, "Izin" | "Alpha">>
-  >({});
+  >("in_hsibs.monitoring.learn.attendance", {});
 
   const filtered = useMemo(() => {
     return sessions.filter((s) => {

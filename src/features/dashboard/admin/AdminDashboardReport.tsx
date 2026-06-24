@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { CustomSelect } from "../../../components/ui/CustomSelect";
+import { useLocalStorageState } from "../../../lib/useLocalStorageState";
 import {
   dailyEntries,
   weeklyEntries,
@@ -51,7 +52,10 @@ const actionMeta: Record<ReportAction, { label: string; icon: string; tone: stri
 
 export function AdminDashboardReport() {
   const [tab, setTab] = useState<ViewTab>("queue");
-  const [events, setEvents] = useState<ReportEvent[]>([]);
+  const [events, setEvents] = useLocalStorageState<ReportEvent[]>(
+    "in_hsibs.report.history",
+    [],
+  );
 
   const recordEvent = useCallback<RecordEventFn>((event) => {
     setEvents((prev) => [
@@ -275,9 +279,15 @@ function ReportQueue({ onEvent }: { onEvent: RecordEventFn }) {
   const [search, setSearch] = useState("");
 
   // Decision per-entry: pending / verified / revision
-  const [statusMap, setStatusMap] = useState<Record<string, DailyStatus>>({});
+  const [statusMap, setStatusMap] = useLocalStorageState<Record<string, DailyStatus>>(
+    "in_hsibs.report.queue.statusMap",
+    {},
+  );
   // Today's daily-missing reminder state, keyed by santri short id
-  const [missingMap, setMissingMap] = useState<Record<string, MissingStatus>>({});
+  const [missingMap, setMissingMap] = useLocalStorageState<Record<string, MissingStatus>>(
+    "in_hsibs.report.queue.missingMap",
+    {},
+  );
   const [revisionId, setRevisionId] = useState<string | null>(null);
   const [revisionNote, setRevisionNote] = useState("");
 

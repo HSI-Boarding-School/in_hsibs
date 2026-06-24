@@ -4,6 +4,7 @@ import { Iconify } from "../../../../components/iconify/iconify";
 import { Scrollbar } from "../../../../components/scrollbar";
 import type { Santri } from "../../../../data/santriData";
 import { getDivColor, getDivLabel } from "../../../../data/santriData";
+import { useLocalStorageState } from "../../../../lib/useLocalStorageState";
 
 interface UnitTheme {
   avatar: string;
@@ -12,7 +13,7 @@ interface UnitTheme {
   hero: string;
 }
 
-const unitTheme: Record<Santri["unit"], UnitTheme> = {
+const unitTheme: Record<string, UnitTheme> = {
   "HSI BS": {
     avatar: "bg-gradient-to-br from-blue-400 to-blue-600",
     pill: "bg-blue-50 text-blue-700 ring-blue-200",
@@ -32,6 +33,15 @@ const unitTheme: Record<Santri["unit"], UnitTheme> = {
     hero: "from-emerald-500/15 via-emerald-400/5 to-transparent",
   },
 };
+
+function getUnitTheme(unit: string): UnitTheme {
+  return unitTheme[unit] ?? {
+    avatar: "bg-gradient-to-br from-sky-400 to-slate-600",
+    pill: "bg-sky-50 text-sky-700 ring-sky-200",
+    label: unit,
+    hero: "from-sky-500/15 via-sky-400/5 to-transparent",
+  };
+}
 
 interface StatusTheme {
   dot: string;
@@ -180,16 +190,19 @@ export function SantriDetailDrawer({ santri, open, onClose }: SantriDetailDrawer
 
 function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => void }) {
   const shortId = santri.id.replace("IN_HSIBS_", "");
-  const unit = unitTheme[santri.unit];
+  const unit = getUnitTheme(santri.unit);
   const status = statusTheme[santri.status];
   const initials = getInitials(santri.name);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
-  const [sowMap, setSowMap] = useState<Record<string, string[]>>(() => buildInitialSow(santri.roles));
+  const [sowBySantri, setSowBySantri] = useLocalStorageState<Record<string, Record<string, string[]>>>(
+    "in_hsibs.mapping.sowBySantri",
+    {},
+  );
   const [newSow, setNewSow] = useState("");
+  const sowMap = sowBySantri[santri.id] ?? buildInitialSow(santri.roles);
 
   useEffect(() => {
     setSelectedRole(null);
-    setSowMap(buildInitialSow(santri.roles));
     setNewSow("");
   }, [santri.id, santri.roles]);
 
@@ -198,9 +211,12 @@ function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => voi
   function addSowItem() {
     const text = newSow.trim();
     if (!text || !selectedRole) return;
-    setSowMap((prev) => ({
+    setSowBySantri((prev) => ({
       ...prev,
-      [selectedRole]: [...(prev[selectedRole] ?? []), text],
+      [santri.id]: {
+        ...sowMap,
+        [selectedRole]: [...(sowMap[selectedRole] ?? []), text],
+      },
     }));
     setNewSow("");
   }
