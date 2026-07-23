@@ -1,0 +1,22 @@
+Santri ID,Short ID,Full Name,Batch,Program Year,Unit,Location,Region,PIC Reg,Division Mapping,Primary Division,Status,Notes
+IN_HSIBS_S01,S01,Abdullah Al Farros,Batch 2 · TA 23/24,TA 26/27,HSI STIT Riyadh,Pandeglang,West Java,Ust. Raakin,DEEN & DKV + OPS,DEEN,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S02,S02,Abdulloh,Batch 2 · TA 23/24,TA 26/27,HSI BO,Bekasi,West Java,Ust. Raakin,DEEN & OPS + DKV,DEEN,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S03,S03,Abdurrahman Hammaam Bariq,Batch 2 · TA 23/24,TA 26/27,HSI BS,Sukabumi,West Java,Ust. Raakin,IT & EN + ASR,IT,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S04,S04,Abu Musa Al Asyary,Batch 2 · TA 23/24,TA 26/27,HSI BO,Solo,Central Java,Kak Ari,OPS & DKV + IT,OPS,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S05,S05,Ahmad Faiz,Batch 2 · TA 23/24,TA 26/27,HSI BO,Bekasi,West Java,Ust. Raakin,DEEN & OPS + PKBM,DEEN,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S06,S06,Ahmad Haidar Hutasuhut,Batch 2 · TA 23/24,TA 26/27,HSI BO,Solo,Central Java,Kak Ari,DEEN & OPS + DKV,DEEN,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S07,S07,Ahmad Harits,Batch 2 · TA 23/24,TA 26/27,HSI BS,Sukabumi,West Java,Ust. Raakin,OPS & ASR,OPS,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S08,S08,Ayyub El Kaisi,Batch 2 · TA 23/24,TA 26/27,HSI BS,Sukabumi,West Java,Ust. Raakin,IT & EN,IT,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S09,S09,Bagus Surya Dimeja,Batch 2 · TA 23/24,TA 26/27,HSI BO,Solo,Central Java,Kak Ari,DEEN & OPS + IT,DEEN,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S10,S10,Maulana Aqila Umar Abdul Aziz,Batch 2 · TA 23/24,TA 26/27,HSI BS,Sukabumi,West Java,Ust. Raakin,DKV & OPS,DKV,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S11,S11,Mu'adz Jundyurrahman,Batch 2 · TA 23/24,TA 26/27,HSI BS,Purworejo,Central Java,Kak Ari,IT & EN + DKV,IT,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S12,S12,Muhammad Afif Hikam,Batch 2 · TA 23/24,TA 26/27,HSI BS,Sukabumi,West Java,Ust. Raakin,DKV & OPS,DKV,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S13,S13,Muhammad Atsaal Hakim,Batch 2 · TA 23/24,TA 26/27,HSI BS,Purworejo,Central Java,Kak Ari,IT & OPS + ASR,IT,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S14,S14,Muhammad Dafa Al Fatih,Batch 2 · TA 23/24,TA 26/27,HSI BS,Sukabumi,West Java,Ust. Raakin,IT & OPS + ASR,IT,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S15,S15,Muhammad Daffa Al Hafizh,Batch 2 · TA 23/24,TA 26/27,HSI STIT Riyadh,Pandeglang,West Java,Ust. Raakin,DEEN & IT + OPS,DEEN,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S16,S16,Muhammad Firdaus Abdurrohim,Batch 2 · TA 23/24,TA 26/27,HSI BS,Remote,West Java,Ust. Raakin,OPS,OPS,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S17,S17,Muhammad Rabbani Ibnu Ridwan,Batch 2 · TA 23/24,TA 26/27,HSI BS,Sukabumi,West Java,Ust. Raakin,IT & EN,IT,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S18,S18,Muhammad Sultan Al Faisal,Batch 2 · TA 23/24,TA 26/27,HSI BO,Bantul,Central Java,Kak Ari,DEEN & OPS + DKV,DEEN,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S19,S19,Muhammad Zaki NIF,Batch 2 · TA 23/24,TA 26/27,HSI BS,Purworejo,Central Java,Kak Ari,IT & EN + ASR,IT,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S20,S20,Mujahiddin Khoirusysyifa,Batch 2 · TA 23/24,TA 26/27,HSI BS,Purworejo,Central Java,Kak Ari,EN & DEEN + ASR,EN,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.
+IN_HSIBS_S21,S21,Tsabit Az Zaqi,Batch 2 · TA 23/24,TA 26/27,HSI BO,Bantul,Central Java,Kak Ari,DEEN & OPS + IT,DEEN,Active,Seed/default placement; customizable by PIC Div/PIC Reg/Admin with approval flow.

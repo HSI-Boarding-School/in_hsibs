@@ -1,0 +1,14 @@
+Rule ID,Division Code,Location,Default PIC Div,Rule Type,Approval Required
+RULE_IT,IT,*,Kak Andy,Division,No for seed; Yes for change
+RULE_DKV,DKV,*,Kak Abdur,Division,No for seed; Yes for change
+RULE_EN,EN,*,Mr. Fadil,Division,No for seed; Yes for change
+RULE_DEEN,DEEN,*,Ust. Haidar,Division,No for seed; Yes for change
+RULE_PKBM,PKBM,*,Pak Aryo,Division,No for seed; Yes for change
+RULE_OPS_SUKABUMI,OPS,Sukabumi,Ust. Alan,Division+Location,Yes for production changes
+RULE_OPS_PURWOREJO,OPS,Purworejo,Mr. Azis,Division+Location,Yes for production changes
+RULE_OPS_SOLO,OPS,Solo,Pak Amirul; Pak Angga,Division+Location,Yes for production changes
+RULE_OPS_BANTUL,OPS,Bantul,Pak Gigih; Pak Wahyu,Division+Location,Yes for production changes
+RULE_OPS_BEKASI,OPS,Bekasi,Pak Gusti,Division+Location,Yes for production changes
+RULE_OPS_PANDEGLANG,OPS,Pandeglang,Ust. STITR,Division+Location,Yes for production changes
+RULE_OPS_REMOTE,OPS,Remote,Ust. Zicko,Division+Location,Yes for production changes
+RULE_ASR_FLEX,ASR,*,,Manual/Flexible,PIC Reg/Admin assignment; invite new PIC supported

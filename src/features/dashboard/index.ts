@@ -9,3 +9,4 @@ export {
 } from "./admin";
 
 export { RoleDashboardContent } from "./shared";
+export { SiswaDashboard } from "./siswa";

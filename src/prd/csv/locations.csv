@@ -1,0 +1,8 @@
+Location,Region,Default PIC Reg,GPS Required,Status
+Sukabumi,West Java,Ust. Raakin,Yes except Remote physical-radius exemption,Active
+Bekasi,West Java,Ust. Raakin,Yes except Remote physical-radius exemption,Active
+Pandeglang,West Java,Ust. Raakin,Yes except Remote physical-radius exemption,Active
+Remote,West Java,Ust. Raakin,GPS recorded; radius validation exempt,Active
+Purworejo,Central Java,Kak Ari,Yes except Remote physical-radius exemption,Active
+Solo,Central Java,Kak Ari,Yes except Remote physical-radius exemption,Active
+Bantul,Central Java,Kak Ari,Yes except Remote physical-radius exemption,Active

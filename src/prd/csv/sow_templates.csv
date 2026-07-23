@@ -1,0 +1,104 @@
+SoW ID,Role ID,Division Code,Role Name,SoW Item,Evidence Type,Editable By,Santri Permission,Status
+SOW_IT_01_01,ROLE_IT_01,IT,Asmen IT,Membantu mentor dalam pelaksanaan KBM IT,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_01_02,ROLE_IT_01,IT,Asmen IT,"menyiapkan materi, tools, dan lab",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_01_03,ROLE_IT_01,IT,Asmen IT,"membantu administrasi KBM seperti absensi, progress tugas, dan rekap kendala santri.",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_02_01,ROLE_IT_02,IT,Developer,Membantu membangun atau merapikan web/app internal,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_02_02,ROLE_IT_02,IT,Developer,mengerjakan task coding sesuai arahan mentor/PIC,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_02_03,ROLE_IT_02,IT,Developer,"mendokumentasikan progress, bug, dan hasil development.",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_03_01,ROLE_IT_03,IT,QA Tester,Melakukan testing fitur web/app,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_03_02,ROLE_IT_03,IT,QA Tester,mencatat bug dengan format yang rapi,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_03_03,ROLE_IT_03,IT,QA Tester,membantu memastikan fitur berjalan sesuai kebutuhan user.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_04_01,ROLE_IT_04,IT,IT Helpdesk,"Membantu troubleshooting perangkat, akun, jaringan, printer, dan kebutuhan teknis harian",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_04_02,ROLE_IT_04,IT,IT Helpdesk,mencatat masalah yang muncul,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_04_03,ROLE_IT_04,IT,IT Helpdesk,eskalasi jika belum bisa diselesaikan.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_05_01,ROLE_IT_05,IT,Network & Computer Support,"Membantu setup jaringan, komputer, proyektor, perangkat kelas/lab",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_05_02,ROLE_IT_05,IT,Network & Computer Support,pengecekan rutin perangkat,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_05_03,ROLE_IT_05,IT,Network & Computer Support,menjaga inventaris teknis.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_06_01,ROLE_IT_06,IT,System Admin,Membantu monitoring server/tools internal,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_06_02,ROLE_IT_06,IT,System Admin,konfigurasi ringan sesuai arahan,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_IT_06_03,ROLE_IT_06,IT,System Admin,"menjaga dokumentasi akses, SOP, dan perubahan sistem.",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_07_01,ROLE_DKV_07,DKV,Designer,"Membuat desain poster, feed, thumbnail, banner, atau aset visual unit",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_07_02,ROLE_DKV_07,DKV,Designer,menjaga konsistensi style dan brand,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_07_03,ROLE_DKV_07,DKV,Designer,mengarsipkan file desain.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_08_01,ROLE_DKV_08,DKV,Video Editor,"Mengedit video dokumentasi, kajian, promosi, atau konten dakwah",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_08_02,ROLE_DKV_08,DKV,Video Editor,menyesuaikan format output,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_08_03,ROLE_DKV_08,DKV,Video Editor,"merapikan subtitle, audio, dan thumbnail.",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_09_01,ROLE_DKV_09,DKV,OBS Operator,Menyiapkan scene OBS untuk livestream/event,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_09_02,ROLE_DKV_09,DKV,OBS Operator,"memastikan audio, kamera, screen share, dan recording berjalan baik",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_09_03,ROLE_DKV_09,DKV,OBS Operator,checklist teknis sebelum acara.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_10_01,ROLE_DKV_10,DKV,Photographer,Mendokumentasikan kegiatan unit/sekolah,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_10_02,ROLE_DKV_10,DKV,Photographer,memilih dan mengedit foto terbaik,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_10_03,ROLE_DKV_10,DKV,Photographer,menyimpan dokumentasi dalam folder rapi.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_11_01,ROLE_DKV_11,DKV,Social Media,"Menyusun jadwal posting, caption, publikasi konten",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_11_02,ROLE_DKV_11,DKV,Social Media,memantau engagement dasar,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_11_03,ROLE_DKV_11,DKV,Social Media,koordinasi dengan designer/editor.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_12_01,ROLE_DKV_12,DKV,Copywriter,"Menulis caption, narasi poster, artikel pendek, atau script konten",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DKV_12_02,ROLE_DKV_12,DKV,Copywriter,"memastikan bahasa jelas, beradab, dan sesuai tone HSI BS.",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_EN_13_01,ROLE_EN_13,EN,Asisten Mr. English,Menjadi tutor kamar/asrama untuk menghidupkan area wajib bahasa Inggris,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_EN_13_02,ROLE_EN_13,EN,Asisten Mr. English,membimbing speaking harian,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_EN_13_03,ROLE_EN_13,EN,Asisten Mr. English,menjaga English area.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_EN_14_01,ROLE_EN_14,EN,English Module Assistant,Membuat/merapikan modul English dorm program,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_EN_14_02,ROLE_EN_14,EN,English Module Assistant,mengajarkan konten modul,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_EN_14_03,ROLE_EN_14,EN,English Module Assistant,"menyiapkan tugas, vocabulary, praktik speaking.",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_EN_15_01,ROLE_EN_15,EN,English Study Club Facilitator,Mengarahkan kegiatan mingguan/dua pekanan,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_EN_15_02,ROLE_EN_15,EN,English Study Club Facilitator,"memfasilitasi study club, diskusi, sharing, English challenge",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_EN_15_03,ROLE_EN_15,EN,English Study Club Facilitator,mencatat progress.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_16_01,ROLE_DEEN_16,DEEN,Imam,Membantu memimpin shalat berjamaah sesuai jadwal,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_16_02,ROLE_DEEN_16,DEEN,Imam,menjaga adab dan kesiapan sebagai imam,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_16_03,ROLE_DEEN_16,DEEN,Imam,membantu kegiatan ibadah/pembinaan ruhiyah.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_17_01,ROLE_DEEN_17,DEEN,Muadzin,Mengumandangkan adzan dan iqamah sesuai jadwal,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_17_02,ROLE_DEEN_17,DEEN,Muadzin,membantu ketertiban shalat,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_17_03,ROLE_DEEN_17,DEEN,Muadzin,menjaga kesiapan area ibadah.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_18_01,ROLE_DEEN_18,DEEN,Asisten Tahfidz,"Membantu menyimak hafalan, muroja’ah, dan setoran santri",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_18_02,ROLE_DEEN_18,DEEN,Asisten Tahfidz,mencatat progress hafalan,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_18_03,ROLE_DEEN_18,DEEN,Asisten Tahfidz,melaporkan kendala tahfidz.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_19_01,ROLE_DEEN_19,DEEN,Asisten Mutun,Membantu program hafalan/pembelajaran mutun,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_19_02,ROLE_DEEN_19,DEEN,Asisten Mutun,menyiapkan materi/jadwal setoran,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_19_03,ROLE_DEEN_19,DEEN,Asisten Mutun,mendampingi muroja’ah dan pemahaman dasar.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_20_01,ROLE_DEEN_20,DEEN,Pengajar TPQ,"Membantu pengajaran Al-Qur’an, tahsin, dan tajwid dasar",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_20_02,ROLE_DEEN_20,DEEN,Pengajar TPQ,membimbing sesuai level,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_20_03,ROLE_DEEN_20,DEEN,Pengajar TPQ,mencatat perkembangan bacaan.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_21_01,ROLE_DEEN_21,DEEN,Pengajar SDIT IQ,Membantu KBM di SDIT IQ sesuai arahan guru utama,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_21_02,ROLE_DEEN_21,DEEN,Pengajar SDIT IQ,menyiapkan perangkat ajar sederhana,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_DEEN_21_03,ROLE_DEEN_21,DEEN,Pengajar SDIT IQ,mendampingi siswa dalam pembelajaran dan adab kelas.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_ASR_22_01,ROLE_ASR_22,ASR,Co/Asisten Musyrif,Mendampingi rutinitas santri di asrama,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_ASR_22_02,ROLE_ASR_22,ASR,Co/Asisten Musyrif,"menjaga adab, kedisiplinan, dan ketertiban kamar",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_ASR_22_03,ROLE_ASR_22,ASR,Co/Asisten Musyrif,melaporkan kondisi santri.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_ASR_23_01,ROLE_ASR_23,ASR,Asisten Kamar,"Menghidupkan budaya kamar yang tertib, bersih, dan kondusif",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_ASR_23_02,ROLE_ASR_23,ASR,Asisten Kamar,"mengingatkan jadwal ibadah, belajar, istirahat, dan kebersihan.",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_ASR_24_01,ROLE_ASR_24,ASR,Asisten Kegiatan Asrama,"Membantu agenda asrama seperti halaqah, sharing, evaluasi kamar, kegiatan malam",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_ASR_24_02,ROLE_ASR_24,ASR,Asisten Kegiatan Asrama,menyiapkan kebutuhan teknis,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_ASR_24_03,ROLE_ASR_24,ASR,Asisten Kegiatan Asrama,mencatat kehadiran.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_ASR_25_01,ROLE_ASR_25,ASR,Ri’ayah Santri Assistant,Memantau santri yang membutuhkan perhatian,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_ASR_25_02,ROLE_ASR_25,ASR,Ri’ayah Santri Assistant,menyampaikan kendala kepada musyrif/PIC,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_ASR_25_03,ROLE_ASR_25,ASR,Ri’ayah Santri Assistant,"menjaga komunikasi lembut, amanah, tidak membuka aib.",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_26_01,ROLE_OPS_26,OPS,Administration,"Mengelola dokumen, surat, arsip, dan data unit",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_26_02,ROLE_OPS_26,OPS,Administration,input data sesuai arahan,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_26_03,ROLE_OPS_26,OPS,Administration,menjaga kerapian folder dan SOP administrasi.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_27_01,ROLE_OPS_27,OPS,Customer Service,Menjawab pertanyaan tamu/wali/stakeholder sesuai SOP,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_27_02,ROLE_OPS_27,OPS,Customer Service,meneruskan pertanyaan yang butuh keputusan,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_27_03,ROLE_OPS_27,OPS,Customer Service,menjaga adab komunikasi dan hospitality.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_28_01,ROLE_OPS_28,OPS,Front Office,Menjadi titik layanan awal bagi tamu/kebutuhan unit,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_28_02,ROLE_OPS_28,OPS,Front Office,mencatat kunjungan/pesan/informasi,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_28_03,ROLE_OPS_28,OPS,Front Office,menjaga area depan representatif.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_29_01,ROLE_OPS_29,OPS,Sarpras,"Mengecek inventaris, perlengkapan, dan fasilitas",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_29_02,ROLE_OPS_29,OPS,Sarpras,mencatat kebutuhan perbaikan/pengadaan,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_29_03,ROLE_OPS_29,OPS,Sarpras,mendukung kesiapan ruang dan alat.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_30_01,ROLE_OPS_30,OPS,Logistic/Event Support,"Membantu persiapan teknis kegiatan, tempat, alat, konsumsi, alur acara",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_30_02,ROLE_OPS_30,OPS,Logistic/Event Support,memastikan kebutuhan tersedia,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_30_03,ROLE_OPS_30,OPS,Logistic/Event Support,beres-beres/evaluasi pasca-acara.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_31_01,ROLE_OPS_31,OPS,Data Entry/Admin Support,Input dan validasi data operasional,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_31_02,ROLE_OPS_31,OPS,Data Entry/Admin Support,memastikan data tidak dobel/salah,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_OPS_31_03,ROLE_OPS_31,OPS,Data Entry/Admin Support,membuat rekap sederhana sesuai kebutuhan PIC/unit.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_PKBM_32_01,ROLE_PKBM_32,PKBM,BOS Operator,"Membantu input, rekap, dan pengecekan data BOS sesuai arahan PIC",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_PKBM_32_02,ROLE_PKBM_32,PKBM,BOS Operator,menjaga dokumen pendukung,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_PKBM_32_03,ROLE_PKBM_32,PKBM,BOS Operator,memastikan data siap diverifikasi.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_PKBM_33_01,ROLE_PKBM_33,PKBM,ARKAS Operator,Membantu input dan pelaporan ARKAS,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_PKBM_33_02,ROLE_PKBM_33,PKBM,ARKAS Operator,mencocokkan data anggaran dengan dokumen pendukung,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_PKBM_33_03,ROLE_PKBM_33,PKBM,ARKAS Operator,mencatat kendala sistem/data.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_PKBM_34_01,ROLE_PKBM_34,PKBM,SIMBOS Operator,Input/update data SIMBOS,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_PKBM_34_02,ROLE_PKBM_34,PKBM,SIMBOS Operator,memastikan data siswa/program tersusun rapi,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_PKBM_34_03,ROLE_PKBM_34,PKBM,SIMBOS Operator,rekap status pengisian dan follow-up.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_PKBM_35_01,ROLE_PKBM_35,PKBM,PKBM Data/Admin Support,Administrasi umum PKBM,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_PKBM_35_02,ROLE_PKBM_35,PKBM,PKBM Data/Admin Support,"mengelola folder dokumen, rekap, dan tracking tugas",Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
+SOW_PKBM_35_03,ROLE_PKBM_35,PKBM,PKBM Data/Admin Support,mendukung laporan rutin PKBM.,Text/link/file/photo as relevant,PIC Div/Admin,View + submit progress/evidence + ask clarification,Active
