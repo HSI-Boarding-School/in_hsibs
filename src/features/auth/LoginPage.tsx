@@ -25,26 +25,22 @@ const roleIcons: Record<RoleId, string> = {
   siswa: "solar:square-academic-cap-bold-duotone",
 };
 
-const roleAccent: Record<RoleId, { title: string; tone: string; sampleId: string }> = {
+const roleAccent: Record<RoleId, { title: string; tone: string }> = {
   admin: {
     title: "Admin Portal",
     tone: "from-sky-500 to-blue-700",
-    sampleId: "ADM001",
   },
   "pic-div": {
     title: "PIC Divisi",
     tone: "from-violet-500 to-purple-700",
-    sampleId: "PICDIV01",
   },
   "pic-reg": {
     title: "PIC Regional",
     tone: "from-emerald-500 to-teal-700",
-    sampleId: "PICREG01",
   },
   siswa: {
     title: "Siswa/Santri",
     tone: "from-amber-500 to-orange-700",
-    sampleId: "S01",
   },
 };
 
@@ -57,13 +53,15 @@ export function LoginPage({
   showBackToChooser = true,
   onNavigateToSiswaPortal,
 }: LoginPageProps) {
-  const [activeRole, setActiveRole] = useState<RoleId | null>(initialRole ?? null);
+  const [activeRole, setActiveRole] = useState<RoleId | null>(
+    initialRole ?? null,
+  );
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const selectedRole = activeRole
-    ? roles.find((role) => role.id === activeRole) ?? null
+    ? (roles.find((role) => role.id === activeRole) ?? null)
     : null;
   const selectedAccent = activeRole ? roleAccent[activeRole] : null;
 
@@ -159,7 +157,9 @@ export function LoginPage({
                     transition={{ delay: 0.08 + i * 0.04, duration: 0.2 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <span className={`relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${accent.tone} text-white`}>
+                    <span
+                      className={`relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${accent.tone} text-white`}
+                    >
                       <Iconify icon={roleIcons[role.id]} width={25} />
                     </span>
                     <div className="relative mt-5">
@@ -171,10 +171,11 @@ export function LoginPage({
                       </p>
                     </div>
                     <div className="relative mt-5 flex items-center justify-between gap-3">
-                      <span className="rounded-full bg-surface px-2.5 py-1 font-mono text-[0.65rem] font-extrabold text-primary">
-                        {accent.sampleId}
-                      </span>
-                      <Iconify icon="solar:arrow-right-up-bold-duotone" width={18} className="text-muted transition-colors group-hover:text-primary" />
+                      <Iconify
+                        icon="solar:arrow-right-up-bold-duotone"
+                        width={18}
+                        className="text-muted transition-colors group-hover:text-primary"
+                      />
                     </div>
                   </motion.button>
                 );
@@ -214,7 +215,9 @@ export function LoginPage({
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.22 }}
             >
-              <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${selectedAccent?.tone} p-5 text-white shadow-[0_18px_50px_rgba(37,99,235,0.22)]`}>
+              <div
+                className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${selectedAccent?.tone} p-5 text-white shadow-[0_18px_50px_rgba(37,99,235,0.22)]`}
+              >
                 <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/16 blur-3xl" />
                 {showBackToChooser ? (
                   <button
@@ -240,88 +243,90 @@ export function LoginPage({
                   <p className="mt-2 text-sm font-semibold leading-relaxed text-white/78">
                     {selectedRole.hint}
                   </p>
-                  <div className="mt-6 rounded-2xl bg-black/12 p-3 text-[0.72rem] font-bold text-white/82 ring-1 ring-inset ring-white/14">
+                  {/* <div className="mt-6 rounded-2xl bg-black/12 p-3 text-[0.72rem] font-bold text-white/82 ring-1 ring-inset ring-white/14">
                     Demo ID: {selectedAccent?.sampleId}
-                  </div>
+                  </div> */}
                 </div>
               </div>
 
               <div className="grid content-center gap-4">
-          {/* User ID field */}
-          <div className="grid gap-1.5">
-            <label
-              htmlFor="user-id"
-              className="font-[var(--font-family-body)] text-[0.82rem] font-extrabold text-text"
-            >
-              ID Pengguna
-            </label>
-            <div className="flex items-center gap-2.5 rounded-[14px] border-[1.5px] border-border bg-surface px-3.5 text-muted transition-[border-color,box-shadow] duration-[180ms] focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]">
-              <Iconify icon="solar:user-bold-duotone" width={20} />
-              <input
-                id="user-id"
-                className="flex-1 border-0 bg-transparent py-3.5 font-[var(--font-family-body)] text-text outline-none placeholder:text-muted/55"
-                onChange={(event) => setUserId(event.target.value)}
-                placeholder={`contoh: ${selectedAccent?.sampleId ?? "USER001"}`}
-                value={userId}
-                autoComplete="username"
-              />
-            </div>
-          </div>
+                {/* User ID field */}
+                <div className="grid gap-1.5">
+                  <label
+                    htmlFor="user-id"
+                    className="font-[var(--font-family-body)] text-[0.82rem] font-extrabold text-text"
+                  >
+                    ID Pengguna
+                  </label>
+                  <div className="flex items-center gap-2.5 rounded-[14px] border-[1.5px] border-border bg-surface px-3.5 text-muted transition-[border-color,box-shadow] duration-[180ms] focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]">
+                    <Iconify icon="solar:user-bold-duotone" width={20} />
+                    <input
+                      id="user-id"
+                      className="flex-1 border-0 bg-transparent py-3.5 font-[var(--font-family-body)] text-text outline-none placeholder:text-muted/55"
+                      onChange={(event) => setUserId(event.target.value)}
+                      placeholder={"contoh: USER001"}
+                      value={userId}
+                      autoComplete="username"
+                    />
+                  </div>
+                </div>
 
-          {/* Password field */}
-          <div className="grid gap-1.5">
-            <label
-              htmlFor="password"
-              className="font-[var(--font-family-body)] text-[0.82rem] font-extrabold text-text"
-            >
-              Password
-            </label>
-            <div className="flex items-center gap-2.5 rounded-[14px] border-[1.5px] border-border bg-surface px-3.5 text-muted transition-[border-color,box-shadow] duration-[180ms] focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]">
-              <Iconify
-                icon="solar:lock-keyhole-minimalistic-bold-duotone"
-                width={20}
-              />
-              <input
-                id="password"
-                className="flex-1 border-0 bg-transparent py-3.5 font-[var(--font-family-body)] text-text outline-none placeholder:text-muted/55"
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Masukkan password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                className="flex items-center rounded-lg border-0 bg-transparent p-1 text-muted transition-colors duration-150 hover:text-primary-dark"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={
-                  showPassword ? "Sembunyikan password" : "Tampilkan password"
-                }
-              >
-                <Iconify
-                  icon={
-                    showPassword
-                      ? "solar:eye-closed-line-duotone"
-                      : "solar:eye-bold-duotone"
-                  }
-                  width={20}
-                />
-              </button>
-            </div>
-          </div>
+                {/* Password field */}
+                <div className="grid gap-1.5">
+                  <label
+                    htmlFor="password"
+                    className="font-[var(--font-family-body)] text-[0.82rem] font-extrabold text-text"
+                  >
+                    Password
+                  </label>
+                  <div className="flex items-center gap-2.5 rounded-[14px] border-[1.5px] border-border bg-surface px-3.5 text-muted transition-[border-color,box-shadow] duration-[180ms] focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]">
+                    <Iconify
+                      icon="solar:lock-keyhole-minimalistic-bold-duotone"
+                      width={20}
+                    />
+                    <input
+                      id="password"
+                      className="flex-1 border-0 bg-transparent py-3.5 font-[var(--font-family-body)] text-text outline-none placeholder:text-muted/55"
+                      onChange={(event) => setPassword(event.target.value)}
+                      placeholder="Masukkan password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      className="flex items-center rounded-lg border-0 bg-transparent p-1 text-muted transition-colors duration-150 hover:text-primary-dark"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={
+                        showPassword
+                          ? "Sembunyikan password"
+                          : "Tampilkan password"
+                      }
+                    >
+                      <Iconify
+                        icon={
+                          showPassword
+                            ? "solar:eye-closed-line-duotone"
+                            : "solar:eye-bold-duotone"
+                        }
+                        width={20}
+                      />
+                    </button>
+                  </div>
+                </div>
 
-          {/* Submit */}
-          <motion.button
-            type="submit"
-            className="flex w-full items-center justify-center gap-2.5 rounded-2xl border-0 bg-gradient-to-br from-primary to-[#1d4ed8] py-4 font-[var(--font-family-body)] font-black text-white"
-            whileHover={{
-              scale: 1.02,
-              boxShadow: "0 12px 32px rgba(37, 99, 235, 0.35)",
-            }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <span>Masuk sebagai {selectedRole.label}</span>
-          </motion.button>
+                {/* Submit */}
+                <motion.button
+                  type="submit"
+                  className="flex w-full items-center justify-center gap-2.5 rounded-2xl border-0 bg-gradient-to-br from-primary to-[#1d4ed8] py-4 font-[var(--font-family-body)] font-black text-white"
+                  whileHover={{
+                    scale: 1.02,
+                    boxShadow: "0 12px 32px rgba(37, 99, 235, 0.35)",
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <span>Masuk sebagai {selectedRole.label}</span>
+                </motion.button>
               </div>
             </motion.form>
           )}

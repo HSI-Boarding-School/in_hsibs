@@ -2,14 +2,10 @@ import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { santriList } from "../../../data/santriData";
-import {
-  weeklyEntries,
-  monthlyEntries,
-} from "../../../data/monitoring/reportData";
+import { monthlyEntries } from "../../../data/monitoring/reportData";
 
 const CURRENT_REGION = "Regional Barat";
 const PIC_NAME = "Kak Hana";
-const shortId = (id: string) => id.replace("IN_HSIBS_", "");
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -518,10 +514,6 @@ export function PicRegHome() {
     () =>
       monthlyEntries.filter((m) => m.status === "Yellow" || m.status === "Red")
         .length,
-    [],
-  );
-  const pendingCount = useMemo(
-    () => weeklyEntries.filter((w) => !w.validated).length,
     [],
   );
   const mukafaahReady = mukafaahReadiness.filter(

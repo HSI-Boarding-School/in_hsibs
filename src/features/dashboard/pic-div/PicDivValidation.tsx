@@ -15,10 +15,30 @@ const shortId = (fullId: string) => fullId.replace("IN_HSIBS_", "");
 
 type ValidationTab = "weekly" | "monthly" | "special";
 
-const validationTabs: { id: ValidationTab; label: string; icon: string; description: string }[] = [
-  { id: "weekly", label: "Weekly Review", icon: "solar:clipboard-list-bold-duotone", description: "Validasi laporan mingguan santri" },
-  { id: "monthly", label: "Monthly Evaluation", icon: "solar:calendar-minimalistic-bold-duotone", description: "Review draft evaluasi bulanan" },
-  { id: "special", label: "Special Report", icon: "solar:file-text-bold-duotone", description: "Review laporan khusus tahap pertama" },
+const validationTabs: {
+  id: ValidationTab;
+  label: string;
+  icon: string;
+  description: string;
+}[] = [
+  {
+    id: "weekly",
+    label: "Weekly Review",
+    icon: "solar:clipboard-list-bold-duotone",
+    description: "Validasi laporan mingguan santri",
+  },
+  {
+    id: "monthly",
+    label: "Monthly Evaluation",
+    icon: "solar:calendar-minimalistic-bold-duotone",
+    description: "Review draft evaluasi bulanan",
+  },
+  {
+    id: "special",
+    label: "Special Report",
+    icon: "solar:file-text-bold-duotone",
+    description: "Review laporan khusus tahap pertama",
+  },
 ];
 
 interface ValidationNote {
@@ -30,7 +50,7 @@ interface ValidationNote {
 export function PicDivValidation() {
   const [activeTab, setActiveTab] = useState<ValidationTab>("weekly");
   const [validatedIds, setValidatedIds] = useState<Set<string>>(new Set());
-  const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
+  const [_rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
   const [notes, setNotes] = useState<ValidationNote[]>([]);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
@@ -48,7 +68,10 @@ export function PicDivValidation() {
   const weeklyQueue = useMemo(
     () =>
       weeklyEntries.filter(
-        (w) => santriShortIds.includes(w.sid) && !w.validated && !validatedIds.has(`w-${w.sid}`),
+        (w) =>
+          santriShortIds.includes(w.sid) &&
+          !w.validated &&
+          !validatedIds.has(`w-${w.sid}`),
       ),
     [santriShortIds, validatedIds],
   );
@@ -57,39 +80,41 @@ export function PicDivValidation() {
   const monthlyQueue = useMemo(
     () =>
       monthlyEntries.filter(
-        (m) => santriShortIds.includes(m.sid) && !validatedIds.has(`m-${m.sid}`),
+        (m) =>
+          santriShortIds.includes(m.sid) && !validatedIds.has(`m-${m.sid}`),
       ),
     [santriShortIds, validatedIds],
   );
 
   // Special reports (mock data for demo)
   const specialReports = useMemo(
-    () => [
-      {
-        id: "SR001",
-        santriId: "S03",
-        type: "Izin Tidak Hadir Learn",
-        date: "2025-06-18",
-        reason: "Kegiatan keluarga mendesak",
-        status: "pending" as const,
-      },
-      {
-        id: "SR002",
-        santriId: "S15",
-        type: "Request Perpanjangan Deadline Project",
-        date: "2025-06-20",
-        reason: "Butuh waktu tambahan untuk quality assurance",
-        status: "pending" as const,
-      },
-      {
-        id: "SR003",
-        santriId: "S08",
-        type: "Permohonan Ganti Role",
-        date: "2025-06-21",
-        reason: "Ingin fokus ke Developer role",
-        status: "pending" as const,
-      },
-    ].filter((r) => santriShortIds.includes(r.santriId)),
+    () =>
+      [
+        {
+          id: "SR001",
+          santriId: "S03",
+          type: "Izin Tidak Hadir Learn",
+          date: "2025-06-18",
+          reason: "Kegiatan keluarga mendesak",
+          status: "pending" as const,
+        },
+        {
+          id: "SR002",
+          santriId: "S15",
+          type: "Request Perpanjangan Deadline Project",
+          date: "2025-06-20",
+          reason: "Butuh waktu tambahan untuk quality assurance",
+          status: "pending" as const,
+        },
+        {
+          id: "SR003",
+          santriId: "S08",
+          type: "Permohonan Ganti Role",
+          date: "2025-06-21",
+          reason: "Ingin fokus ke Developer role",
+          status: "pending" as const,
+        },
+      ].filter((r) => santriShortIds.includes(r.santriId)),
     [santriShortIds],
   );
 
@@ -138,7 +163,9 @@ export function PicDivValidation() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-3">
-          <p className="text-xs font-black uppercase tracking-widest text-primary">PIC Divisi</p>
+          <p className="text-xs font-black uppercase tracking-widest text-primary">
+            PIC Divisi
+          </p>
           <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[0.65rem] font-black text-primary">
             {CURRENT_DIVISION_LABEL}
           </span>
@@ -147,7 +174,8 @@ export function PicDivValidation() {
           Validation & Monitoring
         </h1>
         <p className="mt-1 text-sm text-muted">
-          Validasi laporan, review evaluasi, dan kelola special report santri divisi {CURRENT_DIVISION_LABEL}.
+          Validasi laporan, review evaluasi, dan kelola special report santri
+          divisi {CURRENT_DIVISION_LABEL}.
         </p>
       </div>
 
@@ -208,14 +236,21 @@ export function PicDivValidation() {
                     Pending Weekly Validation
                   </h3>
                   <p className="text-sm text-muted">
-                    {weeklyQueue.length} laporan mingguan menunggu validasi dari {PIC_NAME}
+                    {weeklyQueue.length} laporan mingguan menunggu validasi dari{" "}
+                    {PIC_NAME}
                   </p>
                 </div>
 
                 {weeklyQueue.length === 0 ? (
                   <div className="flex flex-col items-center gap-2 py-10 text-center">
-                    <Iconify icon="solar:checkmark-circle-bold-duotone" width={40} className="text-[#16a34a]/40" />
-                    <p className="text-sm font-bold text-muted">Semua weekly review sudah divalidasi</p>
+                    <Iconify
+                      icon="solar:checkmark-circle-bold-duotone"
+                      width={40}
+                      className="text-[#16a34a]/40"
+                    />
+                    <p className="text-sm font-bold text-muted">
+                      Semua weekly review sudah divalidasi
+                    </p>
                   </div>
                 ) : (
                   <div className="grid gap-3">
@@ -248,7 +283,9 @@ export function PicDivValidation() {
                                 {entry.sowProgress}
                               </span>
                             </div>
-                            <p className="mt-0.5 text-xs text-muted">{getSantriLoc(entry.sid)}</p>
+                            <p className="mt-0.5 text-xs text-muted">
+                              {getSantriLoc(entry.sid)}
+                            </p>
                           </div>
                           <div className="flex shrink-0 gap-2">
                             <button
@@ -271,20 +308,32 @@ export function PicDivValidation() {
                         <div className="mt-3 grid gap-2">
                           {entry.highlight && (
                             <div className="rounded-lg bg-[#16a34a]/5 border border-[#16a34a]/20 p-2.5">
-                              <p className="text-[0.6rem] font-black uppercase text-[#16a34a]">Highlight</p>
-                              <p className="mt-0.5 text-xs font-semibold text-text">{entry.highlight}</p>
+                              <p className="text-[0.6rem] font-black uppercase text-[#16a34a]">
+                                Highlight
+                              </p>
+                              <p className="mt-0.5 text-xs font-semibold text-text">
+                                {entry.highlight}
+                              </p>
                             </div>
                           )}
                           {entry.lowlight && entry.lowlight !== "-" && (
                             <div className="rounded-lg bg-orange/5 border border-orange/20 p-2.5">
-                              <p className="text-[0.6rem] font-black uppercase text-orange">Lowlight</p>
-                              <p className="mt-0.5 text-xs font-semibold text-text">{entry.lowlight}</p>
+                              <p className="text-[0.6rem] font-black uppercase text-orange">
+                                Lowlight
+                              </p>
+                              <p className="mt-0.5 text-xs font-semibold text-text">
+                                {entry.lowlight}
+                              </p>
                             </div>
                           )}
                           {entry.picNote && (
                             <div className="rounded-lg bg-blue/5 border border-blue/20 p-2.5">
-                              <p className="text-[0.6rem] font-black uppercase text-blue">PIC Note</p>
-                              <p className="mt-0.5 text-xs font-semibold text-text">{entry.picNote}</p>
+                              <p className="text-[0.6rem] font-black uppercase text-blue">
+                                PIC Note
+                              </p>
+                              <p className="mt-0.5 text-xs font-semibold text-text">
+                                {entry.picNote}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -298,7 +347,9 @@ export function PicDivValidation() {
                                 placeholder="Tulis catatan untuk santri..."
                                 value={noteText}
                                 onChange={(e) => setNoteText(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && handleSaveNote()}
+                                onKeyDown={(e) =>
+                                  e.key === "Enter" && handleSaveNote()
+                                }
                               />
                               <button
                                 type="button"
@@ -309,7 +360,10 @@ export function PicDivValidation() {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => { setActiveNoteId(null); setNoteText(""); }}
+                                onClick={() => {
+                                  setActiveNoteId(null);
+                                  setNoteText("");
+                                }}
                                 className="rounded-lg border border-border bg-surface px-3 py-2 text-[0.68rem] font-bold text-muted"
                               >
                                 Cancel
@@ -318,11 +372,19 @@ export function PicDivValidation() {
                           ) : (
                             <button
                               type="button"
-                              onClick={() => { setActiveNoteId(entry.sid); setNoteText(getNote(entry.sid)); }}
+                              onClick={() => {
+                                setActiveNoteId(entry.sid);
+                                setNoteText(getNote(entry.sid));
+                              }}
                               className="flex items-center gap-1.5 text-[0.72rem] font-bold text-primary transition-colors hover:text-primary-dark"
                             >
-                              <Iconify icon="solar:pen-bold-duotone" width={14} />
-                              {getNote(entry.sid) ? "Edit Note" : "Add PIC Note"}
+                              <Iconify
+                                icon="solar:pen-bold-duotone"
+                                width={14}
+                              />
+                              {getNote(entry.sid)
+                                ? "Edit Note"
+                                : "Add PIC Note"}
                             </button>
                           )}
                           {getNote(entry.sid) && !activeNoteId && (
@@ -348,14 +410,21 @@ export function PicDivValidation() {
                     Monthly Evaluation Draft
                   </h3>
                   <p className="text-sm text-muted">
-                    {monthlyQueue.length} evaluasi bulanan menunggu review dari {PIC_NAME}
+                    {monthlyQueue.length} evaluasi bulanan menunggu review dari{" "}
+                    {PIC_NAME}
                   </p>
                 </div>
 
                 {monthlyQueue.length === 0 ? (
                   <div className="flex flex-col items-center gap-2 py-10 text-center">
-                    <Iconify icon="solar:checkmark-circle-bold-duotone" width={40} className="text-[#16a34a]/40" />
-                    <p className="text-sm font-bold text-muted">Semua evaluasi sudah direview</p>
+                    <Iconify
+                      icon="solar:checkmark-circle-bold-duotone"
+                      width={40}
+                      className="text-[#16a34a]/40"
+                    />
+                    <p className="text-sm font-bold text-muted">
+                      Semua evaluasi sudah direview
+                    </p>
                   </div>
                 ) : (
                   <div className="grid gap-3">
@@ -403,15 +472,42 @@ export function PicDivValidation() {
                         {/* Metrics grid */}
                         <div className="mt-3 grid grid-cols-5 gap-2">
                           {[
-                            { label: "SoW %", value: `${entry.sowPct}%`, warn: entry.sowPct < 50 },
-                            { label: "Adab", value: `${entry.adab}/5`, warn: entry.adab < 3 },
-                            { label: "Learn", value: String(entry.learnAtt), warn: entry.learnAtt === 0 },
-                            { label: "Projects", value: String(entry.projApproved), warn: entry.projApproved === 0 },
-                            { label: "Status", value: entry.status, warn: entry.status !== "Green" },
+                            {
+                              label: "SoW %",
+                              value: `${entry.sowPct}%`,
+                              warn: entry.sowPct < 50,
+                            },
+                            {
+                              label: "Adab",
+                              value: `${entry.adab}/5`,
+                              warn: entry.adab < 3,
+                            },
+                            {
+                              label: "Learn",
+                              value: String(entry.learnAtt),
+                              warn: entry.learnAtt === 0,
+                            },
+                            {
+                              label: "Projects",
+                              value: String(entry.projApproved),
+                              warn: entry.projApproved === 0,
+                            },
+                            {
+                              label: "Status",
+                              value: entry.status,
+                              warn: entry.status !== "Green",
+                            },
                           ].map((metric) => (
-                            <div key={metric.label} className="rounded-lg bg-surface-strong/60 p-2.5 text-center">
-                              <p className="text-[0.58rem] font-bold uppercase text-muted">{metric.label}</p>
-                              <p className={`mt-0.5 text-sm font-black ${metric.warn ? "text-orange" : "text-primary-dark"}`}>
+                            <div
+                              key={metric.label}
+                              className="rounded-lg bg-surface-strong/60 p-2.5 text-center"
+                            >
+                              <p className="text-[0.58rem] font-bold uppercase text-muted">
+                                {metric.label}
+                              </p>
+                              <p
+                                className={`mt-0.5 text-sm font-black ${metric.warn ? "text-orange" : "text-primary-dark"}`}
+                              >
                                 {metric.value}
                               </p>
                             </div>
@@ -422,20 +518,32 @@ export function PicDivValidation() {
                         <div className="mt-3 grid gap-2">
                           {entry.issues && (
                             <div className="rounded-lg bg-orange/5 border border-orange/20 p-2.5">
-                              <p className="text-[0.6rem] font-black uppercase text-orange">Issues</p>
-                              <p className="mt-0.5 text-xs font-semibold text-text">{entry.issues}</p>
+                              <p className="text-[0.6rem] font-black uppercase text-orange">
+                                Issues
+                              </p>
+                              <p className="mt-0.5 text-xs font-semibold text-text">
+                                {entry.issues}
+                              </p>
                             </div>
                           )}
                           {entry.followUp && (
                             <div className="rounded-lg bg-blue/5 border border-blue/20 p-2.5">
-                              <p className="text-[0.6rem] font-black uppercase text-blue">Follow Up</p>
-                              <p className="mt-0.5 text-xs font-semibold text-text">{entry.followUp}</p>
+                              <p className="text-[0.6rem] font-black uppercase text-blue">
+                                Follow Up
+                              </p>
+                              <p className="mt-0.5 text-xs font-semibold text-text">
+                                {entry.followUp}
+                              </p>
                             </div>
                           )}
                           {entry.picDivNote && (
                             <div className="rounded-lg bg-purple/5 border border-purple/20 p-2.5">
-                              <p className="text-[0.6rem] font-black uppercase text-purple">PIC Div Note</p>
-                              <p className="mt-0.5 text-xs font-semibold text-text">{entry.picDivNote}</p>
+                              <p className="text-[0.6rem] font-black uppercase text-purple">
+                                PIC Div Note
+                              </p>
+                              <p className="mt-0.5 text-xs font-semibold text-text">
+                                {entry.picDivNote}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -456,14 +564,21 @@ export function PicDivValidation() {
                     Special Report Review
                   </h3>
                   <p className="text-sm text-muted">
-                    {specialReports.length} special report menunggu review tahap pertama dari {PIC_NAME}
+                    {specialReports.length} special report menunggu review tahap
+                    pertama dari {PIC_NAME}
                   </p>
                 </div>
 
                 {specialReports.length === 0 ? (
                   <div className="flex flex-col items-center gap-2 py-10 text-center">
-                    <Iconify icon="solar:checkmark-circle-bold-duotone" width={40} className="text-[#16a34a]/40" />
-                    <p className="text-sm font-bold text-muted">Tidak ada special report pending</p>
+                    <Iconify
+                      icon="solar:checkmark-circle-bold-duotone"
+                      width={40}
+                      className="text-[#16a34a]/40"
+                    />
+                    <p className="text-sm font-bold text-muted">
+                      Tidak ada special report pending
+                    </p>
                   </div>
                 ) : (
                   <div className="grid gap-3">
@@ -481,12 +596,16 @@ export function PicDivValidation() {
                               <span className="rounded-full bg-purple/10 px-2.5 py-1 text-[0.65rem] font-black text-purple">
                                 {report.type}
                               </span>
-                              <span className="text-[0.65rem] text-muted">{report.date}</span>
+                              <span className="text-[0.65rem] text-muted">
+                                {report.date}
+                              </span>
                             </div>
                             <h4 className="mt-2 text-sm font-extrabold text-primary-dark">
                               {getSantriName(report.santriId)}
                             </h4>
-                            <p className="mt-1 text-xs text-muted">{report.reason}</p>
+                            <p className="mt-1 text-xs text-muted">
+                              {report.reason}
+                            </p>
                           </div>
                           <div className="flex shrink-0 gap-2">
                             <button
@@ -505,9 +624,12 @@ export function PicDivValidation() {
                         </div>
 
                         <div className="mt-3 rounded-lg bg-surface-strong/40 p-3">
-                          <p className="text-[0.6rem] font-black uppercase text-muted">Review Notes</p>
+                          <p className="text-[0.6rem] font-black uppercase text-muted">
+                            Review Notes
+                          </p>
                           <p className="mt-1 text-xs text-muted italic">
-                            Review tahap pertama oleh PIC Divisi. Final approval memerlukan Admin.
+                            Review tahap pertama oleh PIC Divisi. Final approval
+                            memerlukan Admin.
                           </p>
                         </div>
                       </motion.div>

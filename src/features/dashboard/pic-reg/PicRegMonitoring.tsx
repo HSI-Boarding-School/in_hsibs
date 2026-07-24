@@ -8,7 +8,6 @@ import {
 } from "../../../data/monitoring/reportData";
 
 const CURRENT_REGION = "Regional Barat";
-const PIC_NAME = "Kak Hana";
 const shortId = (id: string) => id.replace("IN_HSIBS_", "");
 
 type MonTab = "monthly" | "weekly" | "dispensasi";

@@ -3,21 +3,24 @@ import type { LogHarian, LaporanMingguan } from "../types";
 
 // ── Log Harian ───────────────────────────────────────────────
 
-export async function getLogHarian(pengabdianId: string, tanggal: string) {
+export async function getLogHarian(
+  pengabdianId: string,
+  tanggal: string,
+): Promise<LogHarian[]> {
   const { data, error } = await supabase
     .from("log_harian")
     .select("*")
     .eq("pengabdian_id", pengabdianId)
     .eq("tanggal_log", tanggal);
   if (error) throw error;
-  return data;
+  return (data ?? []) as LogHarian[];
 }
 
 export async function getLogHarianRange(
   pengabdianId: string,
   dari: string,
   sampai: string,
-) {
+): Promise<LogHarian[]> {
   const { data, error } = await supabase
     .from("log_harian")
     .select("*")
@@ -26,61 +29,62 @@ export async function getLogHarianRange(
     .lte("tanggal_log", sampai)
     .order("tanggal_log", { ascending: false });
   if (error) throw error;
-  return data;
+  return (data ?? []) as LogHarian[];
 }
 
 export async function upsertLogHarian(
   payload: Omit<LogHarian, "id" | "dibuat_pada">,
-) {
+): Promise<LogHarian> {
   const { data, error } = await supabase
     .from("log_harian")
-    .upsert(payload, { onConflict: "pengabdian_id,tanggal_log,sesi" })
+    .upsert(payload as never, { onConflict: "pengabdian_id,tanggal_log,sesi" })
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as LogHarian;
 }
 
 // ── Laporan Mingguan ─────────────────────────────────────────
 
-export async function getLaporanMingguan(pengabdianId: string) {
+export async function getLaporanMingguan(
+  pengabdianId: string,
+): Promise<LaporanMingguan[]> {
   const { data, error } = await supabase
     .from("laporan_mingguan")
     .select("*")
     .eq("pengabdian_id", pengabdianId)
     .order("minggu_label", { ascending: false });
   if (error) throw error;
-  return data;
+  return (data ?? []) as LaporanMingguan[];
 }
 
-// Semua laporan mingguan pending validasi (untuk PIC)
-export async function getLaporanPendingValidasi() {
+export async function getLaporanPendingValidasi(): Promise<LaporanMingguan[]> {
   const { data, error } = await supabase
     .from("laporan_mingguan")
     .select("*")
     .eq("status", "Terkirim")
     .order("tanggal_laporan", { ascending: true });
   if (error) throw error;
-  return data;
+  return (data ?? []) as LaporanMingguan[];
 }
 
 export async function upsertLaporanMingguan(
   payload: Omit<LaporanMingguan, "id" | "diperbarui_pada">,
-) {
+): Promise<LaporanMingguan> {
   const { data, error } = await supabase
     .from("laporan_mingguan")
-    .upsert(payload, { onConflict: "pengabdian_id,minggu_label" })
+    .upsert(payload as never, { onConflict: "pengabdian_id,minggu_label" })
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as LaporanMingguan;
 }
 
 export async function validasiLaporan(
   id: string,
   validatorId: string,
   catatan?: string,
-) {
+): Promise<LaporanMingguan> {
   const { data, error } = await supabase
     .from("laporan_mingguan")
     .update({
@@ -88,10 +92,10 @@ export async function validasiLaporan(
       catatan_pic: catatan ?? null,
       divalidasi_oleh: validatorId,
       divalidasi_pada: new Date().toISOString(),
-    })
+    } as never)
     .eq("id", id)
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as LaporanMingguan;
 }

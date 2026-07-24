@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { supabase } from "../client";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 type RealtimeEvent = "INSERT" | "UPDATE" | "DELETE" | "*";
 
@@ -9,27 +10,29 @@ type RealtimeEvent = "INSERT" | "UPDATE" | "DELETE" | "*";
  *
  * @example
  * useRealtime("admin_task", "*", () => refetch());
- * useRealtime("laporan_mingguan", "INSERT", (payload) => console.log(payload));
  */
 export function useRealtime(
   table: string,
   event: RealtimeEvent,
-  callback: (payload: unknown) => void,
-  filter?: string, // contoh: "status=eq.Terkirim"
+  callback: (
+    payload: RealtimePostgresChangesPayload<Record<string, unknown>>,
+  ) => void,
+  filter?: string,
 ) {
   useEffect(() => {
-    let channel = supabase.channel(`realtime:${table}:${event}`).on(
-      "postgres_changes" as Parameters<typeof channel.on>[0],
-      {
-        event,
-        schema: "public",
-        table,
-        ...(filter ? { filter } : {}),
-      },
-      callback,
-    );
-
-    channel = channel.subscribe();
+    const channel = supabase
+      .channel(`realtime:${table}:${event}:${filter ?? "all"}`)
+      .on(
+        "postgres_changes",
+        {
+          event: event as "*",
+          schema: "public",
+          table,
+          ...(filter ? { filter } : {}),
+        },
+        callback,
+      )
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);

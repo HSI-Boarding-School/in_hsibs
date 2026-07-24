@@ -1,41 +1,41 @@
 import { supabase } from "../client";
 import type { PengabdianSantri, PengabdianStatus } from "../types";
 
+// Helper — typed table access
+const table = () => supabase.from("pengabdian_santri");
+
 // ── Read ─────────────────────────────────────────────────────
 
-export async function getAllSantriAktif() {
-  const { data, error } = await supabase
-    .from("pengabdian_santri")
+export async function getAllSantriAktif(): Promise<PengabdianSantri[]> {
+  const { data, error } = await table()
     .select("*")
     .eq("status", "Aktif")
     .order("dibuat_pada", { ascending: false });
   if (error) throw error;
-  return data;
+  return (data ?? []) as PengabdianSantri[];
 }
 
-export async function getSantriByBatch(batchId: string) {
-  const { data, error } = await supabase
-    .from("pengabdian_santri")
+export async function getSantriByBatch(
+  batchId: string,
+): Promise<PengabdianSantri[]> {
+  const { data, error } = await table()
     .select("*")
     .eq("batch_id", batchId)
     .order("kode_santri");
   if (error) throw error;
-  return data;
+  return (data ?? []) as PengabdianSantri[];
 }
 
-export async function getSantriById(id: string) {
-  const { data, error } = await supabase
-    .from("pengabdian_santri")
-    .select("*")
-    .eq("id", id)
-    .single();
+export async function getSantriById(id: string): Promise<PengabdianSantri> {
+  const { data, error } = await table().select("*").eq("id", id).single();
   if (error) throw error;
-  return data;
+  return data as PengabdianSantri;
 }
 
-export async function getSantriByAuthUser(authUserId: string) {
-  const { data, error } = await supabase
-    .from("pengabdian_santri")
+export async function getSantriByAuthUser(
+  authUserId: string,
+): Promise<PengabdianSantri | null> {
+  const { data, error } = await table()
     .select("*")
     .eq("auth_user_id", authUserId)
     .single();
@@ -43,7 +43,7 @@ export async function getSantriByAuthUser(authUserId: string) {
     if (error.code === "PGRST116") return null;
     throw error;
   }
-  return data;
+  return data as PengabdianSantri;
 }
 
 // ── Stats ────────────────────────────────────────────────────
@@ -51,9 +51,7 @@ export async function getSantriByAuthUser(authUserId: string) {
 export async function countSantriByStatus(): Promise<
   Record<PengabdianStatus, number>
 > {
-  const { data, error } = await supabase
-    .from("pengabdian_santri")
-    .select("status");
+  const { data, error } = await table().select("status");
   if (error) throw error;
 
   const counts: Record<PengabdianStatus, number> = {
@@ -62,8 +60,9 @@ export async function countSantriByStatus(): Promise<
     Ditangguhkan: 0,
     Dibatalkan: 0,
   };
-  data.forEach((row) => {
-    counts[row.status as PengabdianStatus]++;
+  (data ?? []).forEach((row) => {
+    const s = (row as { status: string }).status as PengabdianStatus;
+    counts[s]++;
   });
   return counts;
 }
@@ -74,37 +73,42 @@ export async function createSantriPengabdian(
   payload: Pick<
     PengabdianSantri,
     "siswa_id" | "batch_id" | "kode_santri" | "tanggal_masuk"
-  > & { auth_user_id?: string },
-) {
-  const { data, error } = await supabase
-    .from("pengabdian_santri")
-    .insert(payload)
+  > & {
+    auth_user_id?: string;
+  },
+): Promise<PengabdianSantri> {
+  const { data, error } = await table()
+    .insert(payload as never)
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as PengabdianSantri;
 }
 
 // ── Update ───────────────────────────────────────────────────
 
-export async function updateSantriStatus(id: string, status: PengabdianStatus) {
-  const { data, error } = await supabase
-    .from("pengabdian_santri")
-    .update({ status })
+export async function updateSantriStatus(
+  id: string,
+  status: PengabdianStatus,
+): Promise<PengabdianSantri> {
+  const { data, error } = await table()
+    .update({ status } as never)
     .eq("id", id)
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as PengabdianSantri;
 }
 
-export async function linkSantriToAuthUser(id: string, authUserId: string) {
-  const { data, error } = await supabase
-    .from("pengabdian_santri")
-    .update({ auth_user_id: authUserId })
+export async function linkSantriToAuthUser(
+  id: string,
+  authUserId: string,
+): Promise<PengabdianSantri> {
+  const { data, error } = await table()
+    .update({ auth_user_id: authUserId } as never)
     .eq("id", id)
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as PengabdianSantri;
 }

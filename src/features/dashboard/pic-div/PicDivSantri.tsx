@@ -1,12 +1,19 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
-import { santriList, getDivLabel, getUnitColor, getDivColor } from "../../../data/santriData";
-import { weeklyEntries, monthlyEntries } from "../../../data/monitoring/reportData";
+import {
+  santriList,
+  getDivLabel,
+  getUnitColor,
+  getDivColor,
+} from "../../../data/santriData";
+import {
+  weeklyEntries,
+  monthlyEntries,
+} from "../../../data/monitoring/reportData";
 
 const CURRENT_DIVISION = "IT";
 const CURRENT_DIVISION_LABEL = "IT";
-const PIC_NAME = "Kak Andy";
 
 const shortId = (fullId: string) => fullId.replace("IN_HSIBS_", "");
 
@@ -34,7 +41,11 @@ export function PicDivSantri() {
     return divisionSantri.filter((s) => {
       if (search) {
         const q = search.toLowerCase();
-        if (!s.name.toLowerCase().includes(q) && !s.id.toLowerCase().includes(q)) return false;
+        if (
+          !s.name.toLowerCase().includes(q) &&
+          !s.id.toLowerCase().includes(q)
+        )
+          return false;
       }
       if (statusFilter !== "all" && s.status !== statusFilter) return false;
       return true;
@@ -42,7 +53,10 @@ export function PicDivSantri() {
   }, [divisionSantri, search, statusFilter]);
 
   const selectedSantri = useMemo(
-    () => (selectedSantriId ? divisionSantri.find((s) => s.id === selectedSantriId) ?? null : null),
+    () =>
+      selectedSantriId
+        ? (divisionSantri.find((s) => s.id === selectedSantriId) ?? null)
+        : null,
     [selectedSantriId, divisionSantri],
   );
 
@@ -63,7 +77,9 @@ export function PicDivSantri() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-3">
-          <p className="text-xs font-black uppercase tracking-widest text-primary">PIC Divisi</p>
+          <p className="text-xs font-black uppercase tracking-widest text-primary">
+            PIC Divisi
+          </p>
           <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[0.65rem] font-black text-primary">
             {CURRENT_DIVISION_LABEL}
           </span>
@@ -72,7 +88,8 @@ export function PicDivSantri() {
           Santri Binaan
         </h1>
         <p className="mt-1 text-sm text-muted">
-          {divisionSantri.length} santri dalam scope divisi {CURRENT_DIVISION_LABEL}. Kelola, assign SoW, dan monitor progress.
+          {divisionSantri.length} santri dalam scope divisi{" "}
+          {CURRENT_DIVISION_LABEL}. Kelola, assign SoW, dan monitor progress.
         </p>
       </div>
 
@@ -163,14 +180,19 @@ export function PicDivSantri() {
 
               {/* Info tags */}
               <div className="mt-4 flex flex-wrap gap-1.5">
-                <span className={`rounded-full px-2.5 py-1 text-[0.65rem] font-bold ${getUnitColor(santri.unit)}`}>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[0.65rem] font-bold ${getUnitColor(santri.unit)}`}
+                >
                   {santri.unit}
                 </span>
                 <span className="rounded-full bg-surface-strong px-2.5 py-1 text-[0.65rem] font-bold text-muted">
                   {santri.loc}
                 </span>
                 {santri.divs.map((d) => (
-                  <span key={d} className={`rounded-full px-2.5 py-1 text-[0.65rem] font-bold ${getDivColor(d)}`}>
+                  <span
+                    key={d}
+                    className={`rounded-full px-2.5 py-1 text-[0.65rem] font-bold ${getDivColor(d)}`}
+                  >
                     {getDivLabel(d)}
                   </span>
                 ))}
@@ -178,10 +200,15 @@ export function PicDivSantri() {
 
               {/* Roles */}
               <div className="mt-3">
-                <p className="text-[0.65rem] font-bold uppercase tracking-wider text-muted">Roles</p>
+                <p className="text-[0.65rem] font-bold uppercase tracking-wider text-muted">
+                  Roles
+                </p>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {santri.roles.map((role) => (
-                    <span key={role} className="rounded-md bg-primary/8 px-2 py-0.5 text-[0.62rem] font-semibold text-primary">
+                    <span
+                      key={role}
+                      className="rounded-md bg-primary/8 px-2 py-0.5 text-[0.62rem] font-semibold text-primary"
+                    >
                       {role}
                     </span>
                   ))}
@@ -191,26 +218,42 @@ export function PicDivSantri() {
               {/* Progress indicators */}
               <div className="mt-4 grid grid-cols-3 gap-2">
                 <div className="rounded-lg bg-surface-strong/60 p-2 text-center">
-                  <p className="text-[0.58rem] font-bold uppercase text-muted">SoW</p>
-                  <p className={`mt-0.5 text-sm font-black ${
-                    (monthly?.sowPct ?? 0) >= 60 ? "text-primary-dark" : "text-orange"
-                  }`}>
+                  <p className="text-[0.58rem] font-bold uppercase text-muted">
+                    SoW
+                  </p>
+                  <p
+                    className={`mt-0.5 text-sm font-black ${
+                      (monthly?.sowPct ?? 0) >= 60
+                        ? "text-primary-dark"
+                        : "text-orange"
+                    }`}
+                  >
                     {monthly?.sowPct ?? 0}%
                   </p>
                 </div>
                 <div className="rounded-lg bg-surface-strong/60 p-2 text-center">
-                  <p className="text-[0.58rem] font-bold uppercase text-muted">Adab</p>
-                  <p className={`mt-0.5 text-sm font-black ${
-                    (monthly?.adab ?? 0) >= 3 ? "text-primary-dark" : "text-orange"
-                  }`}>
+                  <p className="text-[0.58rem] font-bold uppercase text-muted">
+                    Adab
+                  </p>
+                  <p
+                    className={`mt-0.5 text-sm font-black ${
+                      (monthly?.adab ?? 0) >= 3
+                        ? "text-primary-dark"
+                        : "text-orange"
+                    }`}
+                  >
                     {monthly?.adab ?? "-"}/5
                   </p>
                 </div>
                 <div className="rounded-lg bg-surface-strong/60 p-2 text-center">
-                  <p className="text-[0.58rem] font-bold uppercase text-muted">Weekly</p>
-                  <p className={`mt-0.5 text-sm font-black ${
-                    weekly?.validated ? "text-[#16a34a]" : "text-orange"
-                  }`}>
+                  <p className="text-[0.58rem] font-bold uppercase text-muted">
+                    Weekly
+                  </p>
+                  <p
+                    className={`mt-0.5 text-sm font-black ${
+                      weekly?.validated ? "text-[#16a34a]" : "text-orange"
+                    }`}
+                  >
                     {weekly?.validated ? "OK" : "Pending"}
                   </p>
                 </div>
@@ -237,7 +280,10 @@ export function PicDivSantri() {
                   className="rounded-lg border border-border bg-surface px-3 py-2 text-[0.72rem] font-bold text-muted transition-colors hover:bg-surface-strong hover:text-text"
                   title="Request Adjustment"
                 >
-                  <Iconify icon="solar:pen-new-square-bold-duotone" width={16} />
+                  <Iconify
+                    icon="solar:pen-new-square-bold-duotone"
+                    width={16}
+                  />
                 </button>
               </div>
             </motion.article>
@@ -247,9 +293,15 @@ export function PicDivSantri() {
 
       {filtered.length === 0 && (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-surface-strong/50 p-16">
-          <Iconify icon="solar:users-group-rounded-bold-duotone" width={48} className="text-muted/30" />
+          <Iconify
+            icon="solar:users-group-rounded-bold-duotone"
+            width={48}
+            className="text-muted/30"
+          />
           <p className="font-bold text-muted">Tidak ada santri ditemukan</p>
-          <p className="text-sm text-muted/60">Coba ubah filter atau kata kunci pencarian</p>
+          <p className="text-sm text-muted/60">
+            Coba ubah filter atau kata kunci pencarian
+          </p>
         </div>
       )}
 
@@ -275,7 +327,9 @@ export function PicDivSantri() {
               <div className="sticky top-0 z-10 border-b border-border/60 bg-surface/95 backdrop-blur-sm px-6 py-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[0.65rem] font-black uppercase tracking-widest text-primary">Santri Detail</p>
+                    <p className="text-[0.65rem] font-black uppercase tracking-widest text-primary">
+                      Santri Detail
+                    </p>
                     <h2 className="mt-1 font-(--font-family-head) text-xl font-extrabold text-primary-dark">
                       {selectedSantri.name}
                     </h2>
@@ -294,7 +348,9 @@ export function PicDivSantri() {
               <div className="flex-1 px-6 py-5 grid gap-5 content-start">
                 {/* Basic info */}
                 <div className="rounded-xl border border-border/60 bg-surface-strong/40 p-4">
-                  <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted mb-3">Informasi Dasar</p>
+                  <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted mb-3">
+                    Informasi Dasar
+                  </p>
                   <div className="grid gap-2.5">
                     {[
                       ["ID", selectedSantri.id],
@@ -303,9 +359,16 @@ export function PicDivSantri() {
                       ["Status", selectedSantri.status],
                       ["PIC Regional", selectedSantri.picReg],
                     ].map(([label, value]) => (
-                      <div key={label} className="flex items-center justify-between rounded-lg bg-surface px-3 py-2">
-                        <span className="text-xs font-bold text-muted">{label}</span>
-                        <span className="text-xs font-extrabold text-text">{value}</span>
+                      <div
+                        key={label}
+                        className="flex items-center justify-between rounded-lg bg-surface px-3 py-2"
+                      >
+                        <span className="text-xs font-bold text-muted">
+                          {label}
+                        </span>
+                        <span className="text-xs font-extrabold text-text">
+                          {value}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -313,10 +376,15 @@ export function PicDivSantri() {
 
                 {/* Divisions */}
                 <div className="rounded-xl border border-border/60 bg-surface-strong/40 p-4">
-                  <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted mb-3">Divisi</p>
+                  <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted mb-3">
+                    Divisi
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedSantri.divs.map((d) => (
-                      <span key={d} className={`rounded-full px-3 py-1.5 text-xs font-bold ${getDivColor(d)}`}>
+                      <span
+                        key={d}
+                        className={`rounded-full px-3 py-1.5 text-xs font-bold ${getDivColor(d)}`}
+                      >
                         {getDivLabel(d)} ({d})
                       </span>
                     ))}
@@ -325,10 +393,15 @@ export function PicDivSantri() {
 
                 {/* Roles */}
                 <div className="rounded-xl border border-border/60 bg-surface-strong/40 p-4">
-                  <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted mb-3">Roles</p>
+                  <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted mb-3">
+                    Roles
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedSantri.roles.map((r) => (
-                      <span key={r} className="rounded-lg bg-primary/8 px-3 py-1.5 text-xs font-semibold text-primary">
+                      <span
+                        key={r}
+                        className="rounded-lg bg-primary/8 px-3 py-1.5 text-xs font-semibold text-primary"
+                      >
                         {r}
                       </span>
                     ))}
@@ -337,10 +410,15 @@ export function PicDivSantri() {
 
                 {/* PIC Divisi */}
                 <div className="rounded-xl border border-border/60 bg-surface-strong/40 p-4">
-                  <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted mb-3">PIC Divisi</p>
+                  <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted mb-3">
+                    PIC Divisi
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedSantri.picDivs.map((p) => (
-                      <span key={p} className="rounded-lg bg-orange/8 px-3 py-1.5 text-xs font-semibold text-orange">
+                      <span
+                        key={p}
+                        className="rounded-lg bg-orange/8 px-3 py-1.5 text-xs font-semibold text-orange"
+                      >
                         {p}
                       </span>
                     ))}
@@ -354,43 +432,63 @@ export function PicDivSantri() {
                   const monthly = monthlyEntries.find((m) => m.sid === sid);
                   return (
                     <div className="rounded-xl border border-border/60 bg-surface-strong/40 p-4">
-                      <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted mb-3">Report Summary</p>
+                      <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted mb-3">
+                        Report Summary
+                      </p>
                       <div className="grid grid-cols-2 gap-2">
                         <div className="rounded-lg bg-surface p-3">
-                          <p className="text-[0.58rem] font-bold uppercase text-muted">SoW Progress</p>
+                          <p className="text-[0.58rem] font-bold uppercase text-muted">
+                            SoW Progress
+                          </p>
                           <p className="mt-1 font-(--font-family-head) text-2xl font-extrabold text-primary-dark">
                             {monthly?.sowPct ?? 0}%
                           </p>
                         </div>
                         <div className="rounded-lg bg-surface p-3">
-                          <p className="text-[0.58rem] font-bold uppercase text-muted">Adab Score</p>
+                          <p className="text-[0.58rem] font-bold uppercase text-muted">
+                            Adab Score
+                          </p>
                           <p className="mt-1 font-(--font-family-head) text-2xl font-extrabold text-primary-dark">
                             {monthly?.adab ?? "-"}/5
                           </p>
                         </div>
                         <div className="rounded-lg bg-surface p-3">
-                          <p className="text-[0.58rem] font-bold uppercase text-muted">Learn Attendance</p>
+                          <p className="text-[0.58rem] font-bold uppercase text-muted">
+                            Learn Attendance
+                          </p>
                           <p className="mt-1 font-(--font-family-head) text-2xl font-extrabold text-primary-dark">
                             {monthly?.learnAtt ?? 0}
                           </p>
                         </div>
                         <div className="rounded-lg bg-surface p-3">
-                          <p className="text-[0.58rem] font-bold uppercase text-muted">Weekly Validated</p>
-                          <p className={`mt-1 font-(--font-family-head) text-2xl font-extrabold ${weekly?.validated ? "text-[#16a34a]" : "text-orange"}`}>
+                          <p className="text-[0.58rem] font-bold uppercase text-muted">
+                            Weekly Validated
+                          </p>
+                          <p
+                            className={`mt-1 font-(--font-family-head) text-2xl font-extrabold ${weekly?.validated ? "text-[#16a34a]" : "text-orange"}`}
+                          >
                             {weekly?.validated ? "Yes" : "No"}
                           </p>
                         </div>
                       </div>
                       {monthly?.issues && (
                         <div className="mt-3 rounded-lg bg-orange/5 border border-orange/20 p-3">
-                          <p className="text-[0.58rem] font-bold uppercase text-orange">Issues</p>
-                          <p className="mt-1 text-xs font-semibold text-text">{monthly.issues}</p>
+                          <p className="text-[0.58rem] font-bold uppercase text-orange">
+                            Issues
+                          </p>
+                          <p className="mt-1 text-xs font-semibold text-text">
+                            {monthly.issues}
+                          </p>
                         </div>
                       )}
                       {monthly?.followUp && (
                         <div className="mt-2 rounded-lg bg-blue/5 border border-blue/20 p-3">
-                          <p className="text-[0.58rem] font-bold uppercase text-blue">Follow Up</p>
-                          <p className="mt-1 text-xs font-semibold text-text">{monthly.followUp}</p>
+                          <p className="text-[0.58rem] font-bold uppercase text-blue">
+                            Follow Up
+                          </p>
+                          <p className="mt-1 text-xs font-semibold text-text">
+                            {monthly.followUp}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -403,14 +501,20 @@ export function PicDivSantri() {
                     type="button"
                     className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-[0.78rem] font-black text-white shadow-[0_10px_22px_rgba(37,99,235,0.24)] transition-all hover:bg-primary-dark active:scale-95"
                   >
-                    <Iconify icon="solar:document-add-bold-duotone" width={18} />
+                    <Iconify
+                      icon="solar:document-add-bold-duotone"
+                      width={18}
+                    />
                     Assign SoW
                   </button>
                   <button
                     type="button"
                     className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-3 text-[0.78rem] font-extrabold text-muted transition-colors hover:bg-surface-strong hover:text-text"
                   >
-                    <Iconify icon="solar:pen-new-square-bold-duotone" width={18} />
+                    <Iconify
+                      icon="solar:pen-new-square-bold-duotone"
+                      width={18}
+                    />
                     Request Adjustment
                   </button>
                 </div>

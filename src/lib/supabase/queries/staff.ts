@@ -1,49 +1,47 @@
 import { supabase } from "../client";
 import type { PengabdianStaff, StaffRole } from "../types";
 
+const table = () => supabase.from("pengabdian_staff");
+
 // ── Read ─────────────────────────────────────────────────────
 
-export async function getAllStaff() {
-  const { data, error } = await supabase
-    .from("pengabdian_staff")
-    .select("*")
-    .order("nama_lengkap");
+export async function getAllStaff(): Promise<PengabdianStaff[]> {
+  const { data, error } = await table().select("*").order("nama_lengkap");
   if (error) throw error;
-  return data;
+  return (data ?? []) as PengabdianStaff[];
 }
 
-export async function getStaffById(id: string) {
-  const { data, error } = await supabase
-    .from("pengabdian_staff")
-    .select("*")
-    .eq("id", id)
-    .single();
+export async function getStaffById(id: string): Promise<PengabdianStaff> {
+  const { data, error } = await table().select("*").eq("id", id).single();
   if (error) throw error;
-  return data;
+  return data as PengabdianStaff;
 }
 
-export async function getStaffByRole(role: StaffRole) {
-  const { data, error } = await supabase
-    .from("pengabdian_staff")
+export async function getStaffByRole(
+  role: StaffRole,
+): Promise<PengabdianStaff[]> {
+  const { data, error } = await table()
     .select("*")
     .eq("role_pengabdian", role)
     .eq("aktif", true)
     .order("nama_lengkap");
   if (error) throw error;
-  return data;
+  return (data ?? []) as PengabdianStaff[];
 }
 
 // ── Update ───────────────────────────────────────────────────
 
-export async function updateStaffRole(id: string, role: StaffRole) {
-  const { data, error } = await supabase
-    .from("pengabdian_staff")
-    .update({ role_pengabdian: role })
+export async function updateStaffRole(
+  id: string,
+  role: StaffRole,
+): Promise<PengabdianStaff> {
+  const { data, error } = await table()
+    .update({ role_pengabdian: role } as never)
     .eq("id", id)
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as PengabdianStaff;
 }
 
 export async function updateStaffProfile(
@@ -51,13 +49,12 @@ export async function updateStaffProfile(
   updates: Partial<
     Pick<PengabdianStaff, "nama_lengkap" | "foto_url" | "telegram_id">
   >,
-) {
-  const { data, error } = await supabase
-    .from("pengabdian_staff")
-    .update(updates)
+): Promise<PengabdianStaff> {
+  const { data, error } = await table()
+    .update(updates as never)
     .eq("id", id)
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as PengabdianStaff;
 }
