@@ -118,7 +118,7 @@ function MobileDock({ items }: BottomDockProps) {
 
   return (
     <nav
-      className="fixed bottom-[max(1rem,calc(env(safe-area-inset-bottom)+0.75rem))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-[440px] -translate-x-1/2 items-center justify-around rounded-full border border-white/80 bg-surface/82 px-2 py-2 shadow-[0_14px_44px_rgba(39,49,38,0.18),inset_0_1px_0_rgba(255,255,255,0.68)] backdrop-blur-[22px] md:hidden dark:border-sky-200/18 dark:bg-surface/64 dark:shadow-[0_20px_58px_rgba(0,0,0,0.48),0_0_26px_rgba(125,211,252,0.07),inset_0_1px_0_rgba(255,255,255,0.08)]"
+      className="fixed bottom-[max(1rem,calc(env(safe-area-inset-bottom)+0.75rem))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-[440px] -translate-x-1/2 items-center justify-around rounded-full border border-white/80 bg-surface/75 px-2 py-2 shadow-[0_18px_60px_rgba(39,49,38,0.18),inset_0_1px_0_rgba(255,255,255,0.65)] backdrop-blur-[22px] md:hidden dark:border-sky-200/18 dark:bg-surface/62 dark:shadow-[0_24px_70px_rgba(0,0,0,0.48),0_0_28px_rgba(125,211,252,0.07),inset_0_1px_0_rgba(255,255,255,0.08)]"
       aria-label="Navigasi halaman"
     >
       {items.map((item) => {
@@ -130,20 +130,22 @@ function MobileDock({ items }: BottomDockProps) {
             aria-current={isActive ? "page" : undefined}
             onClick={() => navigate({ to: "/dashboard/$tab", params: { tab: item.id } })}
             className={`relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-2 py-1.5 transition-colors duration-200 ${
-              isActive ? "text-white" : "text-sky-100/68 hover:text-sky-100"
+              isActive
+                ? "text-white dark:text-sky-50"
+                : "text-muted hover:text-primary-dark dark:text-sky-100/68 dark:hover:text-sky-50"
             }`}
           >
             {isActive && (
               <motion.span
                 layoutId="mobile-dock-active"
-                className="absolute inset-0 rounded-full bg-sky-400/24 shadow-[0_8px_22px_rgba(14,165,233,0.2)] ring-1 ring-inset ring-sky-200/22"
+                className="absolute inset-0 rounded-full bg-primary-dark shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_10px_28px_rgba(30,58,138,0.25)] dark:bg-sky-400/22 dark:ring-1 dark:ring-inset dark:ring-sky-200/26 dark:shadow-[0_12px_30px_rgba(14,165,233,0.22),inset_0_1px_0_rgba(255,255,255,0.18)]"
                 transition={{ type: "spring", stiffness: 420, damping: 34 }}
               />
             )}
             <span className="relative z-10 flex h-5 w-5 items-center justify-center">
               <Iconify icon={item.icon} width={20} />
             </span>
-            <span className="relative z-10 max-w-full truncate text-[0.6rem] font-bold leading-none">
+            <span className="relative z-10 max-w-full truncate text-[0.58rem] font-bold leading-none">
               {item.label}
             </span>
           </button>

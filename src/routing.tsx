@@ -149,6 +149,7 @@ const PicRegTabComponents: Record<string, React.FC> = {
 };
 
 const validTabs = Object.keys(adminTabComponents);
+const siswaTabs = ["home", "mapping", "monitoring", "report", "profile"];
 const validRoleIds = roles.map((item) => item.id) as RoleId[];
 
 function LoginRouteComponent() {
@@ -239,24 +240,27 @@ function DashboardTab() {
 
   if (!session) return null;
 
-  const activePage = validTabs.includes(tab) ? tab : "home";
-
   if (session.role === "admin") {
+    const activePage = validTabs.includes(tab) ? tab : "home";
     return <AdminPage activePage={activePage} />;
   }
 
   if (session.role === "pic-div") {
+    const activePage = validTabs.includes(tab) ? tab : "home";
     return <PicDivPage activePage={activePage} />;
   }
 
   if (session.role === "pic-reg") {
+    const activePage = validTabs.includes(tab) ? tab : "home";
     return <PicRegPage activePage={activePage} />;
   }
 
   if (session.role === "siswa") {
+    const activePage = siswaTabs.includes(tab) ? tab : "home";
     return <SiswaDashboard user={session} activePage={activePage} />;
   }
 
+  const activePage = validTabs.includes(tab) ? tab : "home";
   return <RoleDashboardContent user={session} activePage={activePage} />;
 }
 

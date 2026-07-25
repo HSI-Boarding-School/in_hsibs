@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../iconify/iconify";
+import { CustomSelect, type SelectOption } from "../ui/CustomSelect";
 import { useTheme } from "../../lib/theme";
+import { useLocalStorageState } from "../../lib/useLocalStorageState";
 import type { Session } from "../../types";
 
 interface NavbarProps {
@@ -9,18 +11,39 @@ interface NavbarProps {
   user: Session;
 }
 
+const academicYearOptions: SelectOption[] = [
+  {
+    value: "2024/2025",
+    label: "TA 2024/25",
+    description: "Arsip tahun lalu",
+    icon: "solar:calendar-mark-bold-duotone",
+  },
+  {
+    value: "2025/2026",
+    label: "TA 2025/26",
+    description: "Tahun ajaran aktif",
+    icon: "solar:calendar-mark-bold-duotone",
+  },
+  {
+    value: "2026/2027",
+    label: "TA 2026/27",
+    description: "Persiapan berikutnya",
+    icon: "solar:calendar-mark-bold-duotone",
+  },
+];
+
 function Avatar({ user }: { user: Session }) {
   if (user.avatar) {
     return (
       <img
         src={user.avatar}
         alt={user.roleLabel}
-        className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-border"
+        className="h-9 w-9 rounded-full object-cover ring-2 ring-white max-sm:h-8 max-sm:w-8 dark:ring-border"
       />
     );
   }
   return (
-    <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary-dark text-sm font-black text-white ring-2 ring-white dark:ring-border">
+    <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary-dark text-sm font-black text-white ring-2 ring-white max-sm:h-8 max-sm:w-8 max-sm:text-xs dark:ring-border">
       {user.roleLabel.slice(0, 2).toUpperCase()}
     </span>
   );
@@ -28,20 +51,25 @@ function Avatar({ user }: { user: Session }) {
 
 export function Navbar({ onLogout, user }: NavbarProps) {
   const [showProfile, setShowProfile] = useState(false);
+  const [academicYear, setAcademicYear] = useLocalStorageState(
+    "in_hsibs.filters.academicYear",
+    "2025/2026",
+  );
   const { theme, toggle } = useTheme();
   const isDark = theme === "dark";
+  const showAcademicYear = user.role === "admin" || user.role === "pic-div" || user.role === "pic-reg";
 
   return (
-    <header className="flex items-center justify-between gap-4 rounded-sm border border-white/80 bg-surface/80 px-5 py-3 shadow-[0_14px_40px_rgba(39,49,38,0.08)] backdrop-blur-sm dark:bg-surface/72 dark:shadow-[0_18px_54px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <div>
-        <label className="flex cursor-text items-center gap-2.5 rounded-sm border border-border bg-surface-strong px-4 py-3 transition-[border-color,box-shadow] duration-150 focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]">
+    <header className="flex min-w-0 items-center justify-between gap-4 rounded-sm border border-white/80 bg-surface/80 px-5 py-3 shadow-[0_14px_40px_rgba(39,49,38,0.08)] backdrop-blur-sm max-sm:gap-2 max-sm:px-3 max-sm:py-2.5 dark:bg-surface/72 dark:shadow-[0_18px_54px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.04)]">
+      <div className="min-w-0 flex-1">
+        <label className="flex min-w-0 cursor-text items-center gap-2.5 rounded-sm border border-border bg-surface-strong px-4 py-3 transition-[border-color,box-shadow] duration-150 focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)] max-sm:gap-2 max-sm:px-3 max-sm:py-2.5">
           <Iconify
             icon="solar:magnifer-bold-duotone"
             width={17}
             className="shrink-0 text-muted"
           />
           <input
-            className="w-44 border-0 bg-transparent text-sm text-text outline-none placeholder:text-muted/60 max-sm:w-28"
+            className="min-w-0 flex-1 border-0 bg-transparent text-sm text-text outline-none placeholder:text-muted/60 max-sm:w-full max-sm:text-xs"
             placeholder="Cari..."
           />
           <kbd className="hidden rounded border border-border bg-surface px-1.5 py-0.5 text-[0.65rem] font-bold text-muted sm:inline">
@@ -51,14 +79,25 @@ export function Navbar({ onLogout, user }: NavbarProps) {
       </div>
 
       {/* Right — search + notif + profile */}
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-3 max-sm:gap-1.5">
+        {showAcademicYear && (
+          <CustomSelect
+            value={academicYear}
+            onChange={setAcademicYear}
+            options={academicYearOptions}
+            icon="solar:calendar-bold-duotone"
+            align="right"
+            className="max-sm:min-w-[118px] max-sm:max-w-[118px] [&_button]:max-sm:gap-1.5 [&_button]:max-sm:px-2 [&_button]:max-sm:py-2 [&_button]:max-sm:text-[0.68rem]"
+          />
+        )}
+
         {/* Theme toggle */}
         <button
           type="button"
           aria-label={isDark ? "Aktifkan light mode" : "Aktifkan dark mode"}
           aria-pressed={isDark}
           onClick={toggle}
-          className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-strong text-muted transition-colors hover:border-primary/30 hover:bg-primary-soft/35 hover:text-primary-dark"
+          className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-strong text-muted transition-colors hover:border-primary/30 hover:bg-primary-soft/35 hover:text-primary-dark max-sm:h-9 max-sm:w-9"
         >
           <AnimatePresence mode="wait" initial={false}>
             <motion.span
@@ -85,7 +124,7 @@ export function Navbar({ onLogout, user }: NavbarProps) {
         <button
           type="button"
           aria-label="Notifikasi"
-          className="relative flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-surface-strong text-muted transition-colors hover:border-primary/30 hover:bg-primary-soft/35 hover:text-primary-dark"
+            className="relative flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-surface-strong text-muted transition-colors hover:border-primary/30 hover:bg-primary-soft/35 hover:text-primary-dark max-sm:h-9 max-sm:w-9"
         >
           <Iconify icon="solar:bell-bold-duotone" width={22} />
           {/* Unread dot */}
@@ -97,7 +136,7 @@ export function Navbar({ onLogout, user }: NavbarProps) {
           <button
             type="button"
             aria-label="Profil"
-            className="flex items-center gap-2 rounded-lg border border-border bg-surface-strong px-2 py-1.5 transition-colors hover:border-primary/30 hover:bg-primary-soft/25"
+            className="flex items-center gap-2 rounded-lg border border-border bg-surface-strong px-2 py-1.5 transition-colors hover:border-primary/30 hover:bg-primary-soft/25 max-sm:gap-0 max-sm:px-1.5 max-sm:py-1"
             onClick={() => setShowProfile((v) => !v)}
           >
             <Avatar user={user} />

@@ -47,6 +47,39 @@ export const navigationItems: NavigationItem[] = [
   },
 ];
 
+export const siswaNavigationItems: NavigationItem[] = [
+  {
+    id: "home",
+    label: "Home",
+    shortcut: "HM",
+    icon: "solar:home-angle-bold-duotone",
+  },
+  {
+    id: "mapping",
+    label: "Mapping",
+    shortcut: "MP",
+    icon: "solar:widget-4-bold-duotone",
+  },
+  {
+    id: "monitoring",
+    label: "Monitoring",
+    shortcut: "MN",
+    icon: "solar:calendar-minimalistic-bold-duotone",
+  },
+  {
+    id: "report",
+    label: "Reporting",
+    shortcut: "RP",
+    icon: "solar:file-text-bold-duotone",
+  },
+  {
+    id: "profile",
+    label: "Profile",
+    shortcut: "PF",
+    icon: "solar:user-rounded-bold-duotone",
+  },
+];
+
 export const stats: Stat[] = [
   { label: "Total Santri", value: "248", tone: "green" },
   { label: "Aktif Pengabdian", value: "221", tone: "blue" },

@@ -5,6 +5,7 @@ import { Sidebar } from "./Sidebar";
 import {
   sidebarStats as adminSidebarStats,
   navigationItems,
+  siswaNavigationItems,
   roleDashboardContent,
 } from "../../data/monitoringData";
 import type { Session } from "../../types";
@@ -24,7 +25,8 @@ export function DashboardShell({
     user.role === "admin"
       ? adminSidebarStats
       : (roleDashboardContent[user.role as keyof typeof roleDashboardContent]
-          ?.sidebarStats ?? adminSidebarStats);
+           ?.sidebarStats ?? adminSidebarStats);
+  const navItems = user.role === "siswa" ? siswaNavigationItems : navigationItems;
 
   return (
     <div className="min-h-svh pl-[318px] max-lg:pl-[max(1rem,env(safe-area-inset-left))] max-lg:pr-[max(1rem,env(safe-area-inset-right))]">
@@ -40,7 +42,7 @@ export function DashboardShell({
         {children}
       </main>
 
-      <BottomDock items={navigationItems} />
+      <BottomDock items={navItems} />
     </div>
   );
 }

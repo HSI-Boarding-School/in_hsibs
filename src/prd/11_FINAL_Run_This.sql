@@ -169,11 +169,16 @@ CREATE TABLE IF NOT EXISTS pengabdian_divisi (
 );
 
 CREATE TABLE IF NOT EXISTS pengabdian_role (
-  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  divisi_id   uuid NOT NULL REFERENCES pengabdian_divisi(id),
-  nama_role   text NOT NULL,
-  deskripsi   text,
-  aktif       boolean DEFAULT true
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  role_code           text UNIQUE NOT NULL,
+  divisi_id           uuid NOT NULL REFERENCES pengabdian_divisi(id),
+  nama_role           text NOT NULL,
+  default_sow_summary text,
+  self_study          text,
+  status              text DEFAULT 'Active',
+  aktif               boolean DEFAULT true,
+  CONSTRAINT pengabdian_role_status_check CHECK (status IN ('Active', 'Inactive')),
+  CONSTRAINT pengabdian_role_divisi_nama_unique UNIQUE (divisi_id, nama_role)
 );
 
 CREATE TABLE IF NOT EXISTS sow_template (
