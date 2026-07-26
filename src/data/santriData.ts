@@ -1,10 +1,11 @@
 export interface Santri {
   id: string;
   name: string;
-  unit: "HSI BS" | "HSI BO" | "STIT Riyadh";
+  unit: string;
   loc: string;
   divs: string[];
   roles: string[];
+  sow?: Record<string, string[]>;
   picDivs: string[];
   picReg: string;
   status: "Active" | "On Hold" | "Inactive" | "Alumni";

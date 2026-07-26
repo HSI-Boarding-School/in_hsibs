@@ -55,17 +55,17 @@ export async function getStaffProfile(): Promise<PengabdianStaff | null> {
 
 export async function isAdmin(): Promise<boolean> {
   const profile = await getStaffProfile();
-  return profile?.role_pengabdian === "Admin" && (profile?.aktif ?? false);
+  return profile?.role_staff === "Admin" && (profile?.aktif ?? false);
 }
 
 export async function isPicDiv(): Promise<boolean> {
   const profile = await getStaffProfile();
-  return profile?.role_pengabdian === "PIC_Div" && (profile?.aktif ?? false);
+  return profile?.role_staff === "PIC_Div" && (profile?.aktif ?? false);
 }
 
 export async function isPicReg(): Promise<boolean> {
   const profile = await getStaffProfile();
-  return profile?.role_pengabdian === "PIC_Reg" && (profile?.aktif ?? false);
+  return profile?.role_staff === "PIC_Reg" && (profile?.aktif ?? false);
 }
 
 // ── Listen perubahan session (untuk AuthProvider) ────────────

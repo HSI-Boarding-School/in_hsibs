@@ -92,8 +92,8 @@ on conflict (siswa_id) do update set
   catatan = excluded.catatan,
   diperbarui_pada = now();
 
--- 2) Insert/update penempatan_santri dari unit + lokasi.
-insert into public.penempatan_santri (
+-- 2) Insert/update pengabdian_penempatan_santri dari unit + lokasi.
+insert into public.pengabdian_penempatan_santri (
   pengabdian_id,
   unit_id,
   lokasi_id,
@@ -126,12 +126,12 @@ left join public.pengabdian_staff pic_reg
   on lower(trim(pic_reg.nama_lengkap)) = lower(trim(s."PIC Reg"))
 where not exists (
   select 1
-  from public.penempatan_santri existing
+  from public.pengabdian_penempatan_santri existing
   where existing.pengabdian_id = ps.id
 );
 
--- 3) Insert penugasan_divisi dari assignment CSV.
-insert into public.penugasan_divisi (
+-- 3) Insert pengabdian_penugasan_divisi dari assignment CSV.
+insert into public.pengabdian_penugasan_divisi (
   penempatan_id,
   divisi_id,
   pic_div_id,
@@ -160,7 +160,7 @@ join public.kesiswaan k
   on k.nis = map.nis
 join public.pengabdian_santri ps
   on ps.siswa_id = k.id
-join public.penempatan_santri p
+join public.pengabdian_penempatan_santri p
   on p.pengabdian_id = ps.id
 join public.pengabdian_divisi d
   on d.kode_divisi = a."Division Code"
@@ -168,7 +168,7 @@ left join public.pengabdian_staff pic_div
   on lower(trim(pic_div.nama_lengkap)) = lower(trim(a."Default PIC Div"))
 where not exists (
   select 1
-  from public.penugasan_divisi existing
+  from public.pengabdian_penugasan_divisi existing
   where existing.penempatan_id = p.id
     and existing.divisi_id = d.id
     and existing.level = a."Assignment Level"::assignment_level_enum
@@ -247,7 +247,7 @@ select
 from public.pengabdian_santri ps
 join public.kesiswaan k
   on k.id = ps.siswa_id
-left join public.penempatan_santri p
+left join public.pengabdian_penempatan_santri p
   on p.pengabdian_id = ps.id
 left join public.pengabdian_unit u
   on u.id = p.unit_id
@@ -257,7 +257,7 @@ left join public.pengabdian_region r
   on r.id = l.region_id
 left join public.pengabdian_staff pic_reg
   on pic_reg.id = p.pic_reg_id
-left join public.penugasan_divisi tg
+left join public.pengabdian_penugasan_divisi tg
   on tg.penempatan_id = p.id
 left join public.pengabdian_divisi pd
   on pd.id = tg.divisi_id

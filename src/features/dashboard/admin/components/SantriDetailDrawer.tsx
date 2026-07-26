@@ -199,7 +199,7 @@ function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => voi
     {},
   );
   const [newSow, setNewSow] = useState("");
-  const sowMap = sowBySantri[santri.id] ?? buildInitialSow(santri.roles);
+  const sowMap = sowBySantri[santri.id] ?? santri.sow ?? buildInitialSow(santri.roles);
 
   useEffect(() => {
     setSelectedRole(null);
@@ -477,7 +477,13 @@ function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => voi
                 </AnimatePresence>
               </div>
             ) : (
-              <EmptyText>Belum ada role</EmptyText>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border border-dashed border-primary/28 bg-primary-soft/32 px-3 py-2 text-[0.75rem] font-extrabold text-primary transition-colors hover:bg-primary hover:text-white"
+              >
+                <Iconify icon="solar:add-circle-bold-duotone" width={16} />
+                Tambah role
+              </button>
             )}
           </Section>
         </div>

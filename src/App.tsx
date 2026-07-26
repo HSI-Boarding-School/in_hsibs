@@ -3,6 +3,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { router } from "./routing";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { ThemeProvider } from "./lib/theme";
+import { ToastProvider } from "./components/ui/ToastProvider";
 
 function AppInner() {
   const { session } = useAuth();
@@ -17,9 +18,11 @@ function AppInner() {
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <AppInner />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <AppInner />
+        </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

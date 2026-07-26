@@ -165,13 +165,27 @@ export function SantriCard({ santri, onOpen }: SantriCardProps) {
           </span>
         </div>
       ) : (
-        <div className="flex items-center gap-1.5 text-[0.65rem] italic text-muted/60">
-          <Iconify
-            icon="solar:tag-horizontal-bold-duotone"
-            width={13}
-            className="shrink-0 text-muted/40"
-          />
-          <span>Belum ada role</span>
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-dashed border-border/70 bg-surface-strong/22 px-2.5 py-2 text-[0.65rem] text-muted/70">
+          <span className="inline-flex min-w-0 items-center gap-1.5 italic">
+            <Iconify
+              icon="solar:tag-horizontal-bold-duotone"
+              width={13}
+              className="shrink-0 text-muted/40"
+            />
+            <span>Belum ada role</span>
+          </span>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              handleClick();
+            }}
+            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors hover:bg-primary hover:text-white"
+            aria-label={`Tambah role untuk ${santri.name}`}
+            title="Tambah role"
+          >
+            <Iconify icon="solar:add-circle-bold-duotone" width={16} />
+          </button>
         </div>
       )}
     </article>

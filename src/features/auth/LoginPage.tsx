@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../../components/iconify/iconify";
+import { useToast } from "../../components/ui/ToastProvider";
 import type { Role, RoleId } from "../../types";
 
 interface LoginPageProps {
@@ -9,7 +10,7 @@ interface LoginPageProps {
     role: RoleId;
     roleLabel: string;
     password: string;
-  }) => void;
+  }) => void | Promise<void>;
   roles: Role[];
   initialRole?: RoleId;
   onSelectRole?: (role: RoleId) => void;
@@ -53,12 +54,15 @@ export function LoginPage({
   showBackToChooser = true,
   onNavigateToSiswaPortal,
 }: LoginPageProps) {
+  const toast = useToast();
   const [activeRole, setActiveRole] = useState<RoleId | null>(
     initialRole ?? null,
   );
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const selectedRole = activeRole
     ? (roles.find((role) => role.id === activeRole) ?? null)
@@ -84,15 +88,25 @@ export function LoginPage({
     onBackToChooser?.();
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedRole) return;
-    onLogin({
-      password,
-      role: selectedRole.id,
-      roleLabel: selectedRole.label,
-      userId: userId || "demo-user",
-    });
+    if (!selectedRole || !userId.trim() || !password) return;
+    setSubmitting(true);
+    setLoginError(null);
+    try {
+      await onLogin({
+        password,
+        role: selectedRole.id,
+        roleLabel: selectedRole.label,
+        userId: userId.trim(),
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Login gagal. Silakan coba lagi.";
+      setLoginError(message);
+      toast.error("Login gagal", message);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -256,7 +270,7 @@ export function LoginPage({
                     htmlFor="user-id"
                     className="font-[var(--font-family-body)] text-[0.82rem] font-extrabold text-text"
                   >
-                    ID Pengguna
+                    Email Staff
                   </label>
                   <div className="flex items-center gap-2.5 rounded-[14px] border-[1.5px] border-border bg-surface px-3.5 text-muted transition-[border-color,box-shadow] duration-[180ms] focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]">
                     <Iconify icon="solar:user-bold-duotone" width={20} />
@@ -264,7 +278,7 @@ export function LoginPage({
                       id="user-id"
                       className="flex-1 border-0 bg-transparent py-3.5 font-[var(--font-family-body)] text-text outline-none placeholder:text-muted/55"
                       onChange={(event) => setUserId(event.target.value)}
-                      placeholder={"contoh: USER001"}
+                      placeholder="nama@domain.com"
                       value={userId}
                       autoComplete="username"
                     />
@@ -315,17 +329,26 @@ export function LoginPage({
                   </div>
                 </div>
 
+                {loginError && (
+                  <div role="alert" className="flex items-start gap-2 rounded-2xl bg-orange/10 px-3 py-2.5 text-xs font-bold text-orange ring-1 ring-inset ring-orange/20">
+                    <Iconify icon="solar:danger-triangle-bold-duotone" width={17} className="mt-0.5 shrink-0" />
+                    <span>{loginError}</span>
+                  </div>
+                )}
+
                 {/* Submit */}
                 <motion.button
                   type="submit"
-                  className="flex w-full items-center justify-center gap-2.5 rounded-2xl border-0 bg-gradient-to-br from-primary to-[#1d4ed8] py-4 font-[var(--font-family-body)] font-black text-white"
+                  disabled={submitting || !userId.trim() || !password}
+                  className="flex w-full items-center justify-center gap-2.5 rounded-2xl border-0 bg-gradient-to-br from-primary to-[#1d4ed8] py-4 font-[var(--font-family-body)] font-black text-white disabled:cursor-not-allowed disabled:opacity-55"
                   whileHover={{
                     scale: 1.02,
                     boxShadow: "0 12px 32px rgba(37, 99, 235, 0.35)",
                   }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <span>Masuk sebagai {selectedRole.label}</span>
+                  {submitting && <Iconify icon="svg-spinners:ring-resize" width={18} />}
+                  <span>{submitting ? "Memverifikasi akun..." : `Masuk sebagai ${selectedRole.label}`}</span>
                 </motion.button>
               </div>
             </motion.form>

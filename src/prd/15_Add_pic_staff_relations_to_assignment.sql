@@ -1,27 +1,37 @@
 -- Migration khusus untuk relasi PIC pada penempatan dan penugasan.
 -- Jalankan setelah tabel berikut sudah ada:
--- - public.penempatan_santri
--- - public.penugasan_divisi
+-- - public.pengabdian_penempatan_santri
+-- - public.pengabdian_penugasan_divisi
 -- - public.pengabdian_staff
 --
 -- Tidak menyentuh public.kesiswaan.
 
-alter table public.penempatan_santri
+-- Tabel existing mungkin dibuat sebelum kolom timestamp tersedia, sedangkan
+-- trigger fn_update_ts() selalu menulis ke NEW.diperbarui_pada.
+alter table public.pengabdian_penempatan_santri
+  add column if not exists dibuat_pada timestamptz default now(),
+  add column if not exists diperbarui_pada timestamptz default now();
+
+alter table public.pengabdian_penugasan_divisi
+  add column if not exists dibuat_pada timestamptz default now(),
+  add column if not exists diperbarui_pada timestamptz default now();
+
+alter table public.pengabdian_penempatan_santri
   add column if not exists pic_reg_id uuid references public.pengabdian_staff(id) on delete set null;
 
-create index if not exists idx_penempatan_santri_pic_reg
-  on public.penempatan_santri using btree (pic_reg_id);
+create index if not exists idx_pengabdian_penempatan_santri_pic_reg
+  on public.pengabdian_penempatan_santri using btree (pic_reg_id);
 
-alter table public.penugasan_divisi
+alter table public.pengabdian_penugasan_divisi
   add column if not exists pic_div_id uuid references public.pengabdian_staff(id) on delete set null;
 
-create index if not exists idx_penugasan_divisi_pic_div
-  on public.penugasan_divisi using btree (pic_div_id);
+create index if not exists idx_pengabdian_penugasan_divisi_pic_div
+  on public.pengabdian_penugasan_divisi using btree (pic_div_id);
 
 -- Optional backfill dari staging CSV kalau data sudah pernah diimport sebelum kolom PIC dibuat.
 -- Aman: kalau nama PIC tidak match ke pengabdian_staff, value tetap null.
 
-update public.penempatan_santri p
+update public.pengabdian_penempatan_santri p
 set pic_reg_id = staff.id
 from public.pengabdian_santri ps
 join public.kesiswaan k
@@ -36,9 +46,9 @@ where p.pengabdian_id = ps.id
   and p.pic_reg_id is null
   and staff.id is not null;
 
-update public.penugasan_divisi pd
+update public.pengabdian_penugasan_divisi pd
 set pic_div_id = staff.id
-from public.penempatan_santri p
+from public.pengabdian_penempatan_santri p
 join public.pengabdian_santri ps
   on ps.id = p.pengabdian_id
 join public.kesiswaan k

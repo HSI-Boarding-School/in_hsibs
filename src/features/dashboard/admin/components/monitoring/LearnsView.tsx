@@ -6,6 +6,7 @@ import { learnSessions as initialLearnSessions, getPhaseName } from "../../../..
 import type { LearnSession } from "../../../../../data/monitoring/learnData";
 import { santriList } from "../../../../../data/santriData";
 import { useLocalStorageState } from "../../../../../lib/useLocalStorageState";
+import { useMonitoringLearnSessions } from "../../../../../models/monitoring";
 import {
   LearnSessionDetailDrawer,
   type AttendStatus,
@@ -61,10 +62,7 @@ export function LearnsView() {
   const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>("all");
   const [search, setSearch] = useState("");
 
-  const [sessions, setSessions] = useLocalStorageState<LearnSession[]>(
-    "in_hsibs.monitoring.learn.sessions",
-    initialLearnSessions,
-  );
+  const { sessions, setSessions, isLoading, error } = useMonitoringLearnSessions(initialLearnSessions);
   const [formOpen, setFormOpen] = useState(false);
 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -167,6 +165,12 @@ export function LearnsView() {
       transition={{ duration: 0.18 }}
     >
       {/* Filter toolbar — single row */}
+      {(isLoading || error) && (
+        <div className={`rounded-2xl border px-4 py-3 text-xs font-bold ${error ? "border-orange/20 bg-orange/8 text-orange" : "border-primary/15 bg-primary-soft/35 text-primary"}`}>
+          {error ?? "Memuat learn session dari Supabase..."}
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-surface/85 p-2 shadow-[0_4px_14px_rgba(39,49,38,0.05)]">
         <div className="group flex min-w-0 flex-1 items-center gap-2 rounded-lg bg-surface-strong/60 px-3 py-2 ring-1 ring-inset ring-transparent transition-all duration-150 focus-within:bg-surface focus-within:ring-primary/40 max-md:basis-full md:min-w-[180px]">
           <Iconify

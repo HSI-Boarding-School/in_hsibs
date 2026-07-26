@@ -8,62 +8,15 @@ import {
   type Santri,
 } from "../../../data/santriData";
 import { projects } from "../../../data/monitoring/projectData";
-import { dailyEntries, weeklyEntries } from "../../../data/monitoring/reportData";
+import { weeklyEntries } from "../../../data/monitoring/reportData";
+import {
+  useAdminDashboard,
+  type AdminAlert,
+  type AdminAuditLog,
+} from "../../../models/admin";
 
 const cardClass =
   "rounded-[26px] border border-border/70 bg-surface/82 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:shadow-[0_18px_70px_rgba(0,0,0,0.28)]";
-
-const systemAlerts = [
-  {
-    id: 1,
-    title: "Weekly report belum lengkap",
-    detail: "Beberapa siswa belum mengirim weekly review pekan ini.",
-    level: "High",
-  },
-  {
-    id: 2,
-    title: "PIC regional perlu validasi lokasi",
-    detail: "Data lokasi Remote dan Pandeglang perlu dicek ulang.",
-    level: "Medium",
-  },
-  {
-    id: 3,
-    title: "Data assignment baru masuk",
-    detail: "Mapping project dan divisi perlu direview sebelum aktif.",
-    level: "Info",
-  },
-];
-
-const auditLogs = [
-  {
-    id: 1,
-    actor: "Admin",
-    action: "Memindahkan siswa ke divisi IT",
-    target: "IN_HSIBS_S08",
-    time: "10 menit lalu",
-  },
-  {
-    id: 2,
-    actor: "PIC Divisi",
-    action: "Memverifikasi weekly review",
-    target: "Academic",
-    time: "34 menit lalu",
-  },
-  {
-    id: 3,
-    actor: "PIC Regional",
-    action: "Update status lokasi",
-    target: "Sukabumi",
-    time: "1 jam lalu",
-  },
-  {
-    id: 4,
-    actor: "System",
-    action: "Mengirim reminder daily log",
-    target: "7 siswa",
-    time: "2 jam lalu",
-  },
-];
 
 function pct(value: number, total: number) {
   return total ? Math.round((value / total) * 100) : 0;
@@ -84,34 +37,28 @@ function MetricCard({
   sub,
   icon,
   tone,
-  meta,
 }: {
   label: string;
   value: string | number;
   sub: string;
   icon: string;
   tone: "blue" | "green" | "orange" | "purple";
-  meta: string;
 }) {
   const styles: Record<
     "blue" | "green" | "orange" | "purple",
-    { icon: string; badge: string }
+    { icon: string }
   > = {
     blue: {
       icon: "bg-blue/10 text-blue",
-      badge: "bg-blue/10 text-blue",
     },
     green: {
       icon: "bg-green/10 text-green",
-      badge: "bg-green/10 text-green",
     },
     orange: {
       icon: "bg-orange/10 text-orange",
-      badge: "bg-orange/10 text-orange",
     },
     purple: {
       icon: "bg-purple/10 text-purple",
-      badge: "bg-purple/10 text-purple",
     },
   };
   const style = styles[tone];
@@ -122,13 +69,10 @@ function MetricCard({
         <Iconify icon={icon} width={24} />
       </span>
       <p className="pr-12 text-xs font-black uppercase tracking-widest text-muted">{label}</p>
-      <div className="mt-5 flex items-end justify-between gap-3">
+      <div className="mt-5">
         <p className="font-(--font-family-head) text-4xl font-extrabold tracking-tight text-primary-dark">
           {value}
         </p>
-        <span className={`mb-1 rounded-full px-2.5 py-1 text-[0.65rem] font-black ${style.badge}`}>
-          {meta}
-        </span>
       </div>
       <p className="mt-2 text-sm font-semibold leading-relaxed text-muted">{sub}</p>
     </article>
@@ -140,14 +84,22 @@ function LoadCard({
   items,
   total,
   icon,
+  loading = false,
+  error,
 }: {
   title: string;
   items: { label: string; value: number }[];
   total: number;
   icon: string;
+  loading?: boolean;
+  error?: string | null;
 }) {
   const max = Math.max(...items.map((item) => item.value), 1);
-  const topItem = items.reduce((top, item) => (item.value > top.value ? item : top), items[0]);
+  const populatedItems = items.filter((item) => item.value > 0);
+  const topItem = populatedItems.reduce(
+    (top, item) => (item.value > top.value ? item : top),
+    populatedItems[0],
+  );
 
   return (
     <article className={`${cardClass} p-5`}>
@@ -155,15 +107,24 @@ function LoadCard({
         <div>
           <p className="text-xs font-black uppercase tracking-widest text-primary">Operational Load</p>
           <h2 className="font-(--font-family-head) text-2xl font-extrabold tracking-tight text-primary-dark">{title}</h2>
-          <p className="mt-1 text-sm font-semibold text-muted">Terpadat: {topItem.label}</p>
+          <p className="mt-1 text-sm font-semibold text-muted">
+            {topItem ? `Terpadat: ${topItem.label}` : "Belum ada distribusi aktif"}
+          </p>
         </div>
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Iconify icon={icon} width={22} />
         </span>
       </div>
 
-      <div className="grid gap-3">
-        {items.map((item) => (
+      {loading ? (
+        <PanelState icon="svg-spinners:ring-resize" title="Memuat distribusi..." />
+      ) : error ? (
+        <PanelState icon="solar:danger-triangle-bold-duotone" title="Data belum dapat dimuat" description={error} tone="error" />
+      ) : populatedItems.length === 0 ? (
+        <PanelState icon="solar:chart-2-bold-duotone" title="Belum ada data" description="Distribusi akan muncul setelah placement dan assignment tersedia." />
+      ) : (
+        <div className="grid gap-3">
+        {populatedItems.map((item) => (
           <div key={item.label} className="rounded-2xl bg-surface-strong/42 p-3 ring-1 ring-inset ring-border/45">
             <div className="mb-2 flex items-center justify-between gap-3 text-sm">
               <span className="min-w-0 truncate font-bold text-text">{item.label}</span>
@@ -181,7 +142,8 @@ function LoadCard({
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
         <span className="font-semibold text-muted">Total coverage</span>
@@ -191,7 +153,7 @@ function LoadCard({
   );
 }
 
-function DataCompletenessCard({ score }: { score: number }) {
+function DataCompletenessCard({ score, loading, error }: { score: number; loading: boolean; error: string | null }) {
   const circumference = 2 * Math.PI * 42;
 
   return (
@@ -203,7 +165,9 @@ function DataCompletenessCard({ score }: { score: number }) {
             Data Completeness Score
           </h2>
         </div>
-        <span className="rounded-full bg-green/10 px-3 py-1 text-xs font-black text-green">Healthy</span>
+        <span className={`rounded-full px-3 py-1 text-xs font-black ${error ? "bg-orange/10 text-orange" : score >= 80 ? "bg-green/10 text-green" : "bg-blue/10 text-blue"}`}>
+          {error ? "Unavailable" : loading ? "Loading" : score >= 80 ? "Healthy" : "Needs Review"}
+        </span>
       </div>
       <div className="mt-6 grid grid-cols-[132px_1fr] items-center gap-6 max-sm:grid-cols-1">
         <div className="relative h-[132px] w-[132px]">
@@ -226,7 +190,7 @@ function DataCompletenessCard({ score }: { score: number }) {
             />
           </svg>
           <span className="absolute inset-0 flex items-center justify-center font-(--font-family-head) text-3xl font-extrabold text-primary-dark">
-            {score}%
+            {loading || error ? "--" : `${score}%`}
           </span>
         </div>
         <div className="grid gap-4 text-sm">
@@ -251,7 +215,7 @@ function DataCompletenessCard({ score }: { score: number }) {
   );
 }
 
-function AlertsCard() {
+function AlertsCard({ alerts, loading, error }: { alerts: AdminAlert[]; loading: boolean; error: string | null }) {
   const levelStyles: Record<string, string> = {
     High: "bg-orange/10 text-orange ring-orange/20",
     Medium: "bg-blue/10 text-blue ring-blue/20",
@@ -265,10 +229,19 @@ function AlertsCard() {
           <p className="text-xs font-black uppercase tracking-widest text-orange">System Alerts</p>
           <h2 className="font-(--font-family-head) text-2xl font-extrabold tracking-tight text-primary-dark">Alert Aktif</h2>
         </div>
-        <span className="rounded-full bg-orange/10 px-3 py-1 text-xs font-black text-orange">{systemAlerts.length} alert</span>
+        <span className={`rounded-full px-3 py-1 text-xs font-black ${alerts.length ? "bg-orange/10 text-orange" : "bg-green/10 text-green"}`}>
+          {loading ? "..." : `${alerts.length} alert`}
+        </span>
       </div>
-      <div className="grid gap-3">
-        {systemAlerts.map((alert) => (
+      {loading ? (
+        <PanelState icon="svg-spinners:ring-resize" title="Memeriksa sistem..." />
+      ) : error ? (
+        <PanelState icon="solar:danger-triangle-bold-duotone" title="Gagal memuat alert" description={error} tone="error" />
+      ) : alerts.length === 0 ? (
+        <PanelState icon="solar:shield-check-bold-duotone" title="Tidak ada notifikasi" description="Semua data pengabdian dalam kondisi aman." tone="success" />
+      ) : (
+        <div className="grid gap-3">
+        {alerts.map((alert) => (
           <div key={alert.id} className="grid grid-cols-[auto_1fr] gap-3 rounded-2xl bg-surface-strong/42 p-3.5 ring-1 ring-inset ring-border/45">
             <span className={`mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-xl ring-1 ${levelStyles[alert.level]}`}>
               <Iconify icon="solar:bell-bing-bold-duotone" width={17} />
@@ -276,20 +249,18 @@ function AlertsCard() {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <strong className="text-sm text-primary-dark">{alert.title}</strong>
-                <span className={`rounded-full px-2 py-0.5 text-[0.62rem] font-black ring-1 ${levelStyles[alert.level]}`}>
-                  {alert.level}
-                </span>
               </div>
               <p className="mt-1 text-xs font-semibold leading-relaxed text-muted">{alert.detail}</p>
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
     </article>
   );
 }
 
-function AuditLogCard() {
+function AuditLogCard({ logs, loading, error }: { logs: AdminAuditLog[]; loading: boolean; error: string | null }) {
   return (
     <article className={`${cardClass} p-5`}>
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -301,8 +272,15 @@ function AuditLogCard() {
           <Iconify icon="solar:history-bold-duotone" width={22} />
         </span>
       </div>
-      <div className="grid gap-3">
-        {auditLogs.map((log) => (
+      {loading ? (
+        <PanelState icon="svg-spinners:ring-resize" title="Memuat aktivitas..." />
+      ) : error ? (
+        <PanelState icon="solar:danger-triangle-bold-duotone" title="Audit log belum dapat dimuat" description={error} tone="error" />
+      ) : logs.length === 0 ? (
+        <PanelState icon="solar:history-bold-duotone" title="Belum ada aktivitas" description="Aktivitas terbaru akan tampil di sini." />
+      ) : (
+        <div className="grid gap-3">
+        {logs.map((log) => (
           <div key={log.id} className="grid grid-cols-[auto_1fr_auto] items-start gap-3 rounded-2xl bg-surface-strong/38 p-3.5 max-sm:grid-cols-[auto_1fr]">
             <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Iconify icon="solar:check-circle-bold-duotone" width={17} />
@@ -319,33 +297,68 @@ function AuditLogCard() {
             </span>
           </div>
         ))}
-      </div>
+        </div>
+      )}
     </article>
   );
 }
 
+function PanelState({
+  icon,
+  title,
+  description,
+  tone = "neutral",
+}: {
+  icon: string;
+  title: string;
+  description?: string;
+  tone?: "neutral" | "success" | "error";
+}) {
+  const toneClass = {
+    neutral: "bg-primary/8 text-primary",
+    success: "bg-green/10 text-green",
+    error: "bg-orange/10 text-orange",
+  }[tone];
+
+  return (
+    <div className="flex min-h-40 flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-surface-strong/28 px-5 py-8 text-center">
+      <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${toneClass}`}>
+        <Iconify icon={icon} width={23} />
+      </span>
+      <p className="mt-3 text-sm font-extrabold text-primary-dark">{title}</p>
+      {description && <p className="mt-1 max-w-sm text-xs font-semibold leading-relaxed text-muted">{description}</p>}
+    </div>
+  );
+}
+
 export function AdminDashboardHome() {
+  const { data: dashboardData, loading: dashboardLoading, error: dashboardError } =
+    useAdminDashboard();
   const [mappedSantri] = useLocalStorageState<Santri[]>("in_hsibs.mapping.santri", santriList);
 
   const activeSantri = mappedSantri.filter((item) => item.status === "Active");
   const divisionCounts = countBy(mappedSantri, (item) => item.divs);
   const locationCounts = countBy(mappedSantri, (item) => [item.loc]);
-  const divisionLoad = divisions.map((division) => ({
+  const localDivisionLoad = divisions.map((division) => ({
     label: division.label,
     value: divisionCounts[division.code] ?? 0,
   }));
-  const locationLoad = locations.map((location) => ({
+  const localLocationLoad = locations.map((location) => ({
     label: location,
     value: locationCounts[location] ?? 0,
   }));
-  const totalAssignments =
+  const localTotalAssignments =
     mappedSantri.reduce(
       (sum, item) => sum + item.divs.length + item.roles.length,
       0,
     ) + projects.length;
-  const pendingApprovals =
+  const localPendingApprovals =
     weeklyEntries.filter((entry) => !entry.validated).length +
     projects.filter((project) => project.status === "Submitted").length;
+  const totalStudents = dashboardData?.totalStudents ?? mappedSantri.length;
+  const totalAssignments =
+    dashboardData?.totalDivisionAssignments ?? localTotalAssignments;
+  const pendingApprovals = dashboardData?.pendingApprovals ?? localPendingApprovals;
   const requiredFields = mappedSantri.length * 6 || 1;
   const completedFields = mappedSantri.reduce(
     (sum, item) =>
@@ -358,9 +371,13 @@ export function AdminDashboardHome() {
       Number(Boolean(item.picReg)),
     0,
   );
-  const completenessScore = pct(completedFields, requiredFields);
-  const hasCriticalAlert = systemAlerts.some((alert) => alert.level === "High");
-  const hasAttentionAlert = systemAlerts.some((alert) => alert.level === "Medium");
+  const completenessScore = dashboardData?.completenessScore ?? pct(completedFields, requiredFields);
+  const divisionLoad = dashboardData?.divisionLoad ?? localDivisionLoad;
+  const locationLoad = dashboardData?.locationLoad ?? localLocationLoad;
+  const alerts = dashboardData?.alerts ?? [];
+  const auditLogs = dashboardData?.auditLogs ?? [];
+  const hasCriticalAlert = alerts.some((alert) => alert.level === "High");
+  const hasAttentionAlert = alerts.some((alert) => alert.level === "Medium");
   const systemStatus = hasCriticalAlert
     ? {
         label: "Action",
@@ -406,11 +423,11 @@ export function AdminDashboardHome() {
           <div className="grid grid-cols-3 gap-2 max-sm:w-full max-sm:grid-cols-1">
             <div className="rounded-2xl bg-surface/80 px-4 py-3 ring-1 ring-inset ring-border/60">
               <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted">Active</p>
-              <p className="mt-1 font-(--font-family-head) text-xl font-extrabold text-primary-dark">{activeSantri.length}</p>
+              <p className="mt-1 font-(--font-family-head) text-xl font-extrabold text-primary-dark">{dashboardLoading ? "..." : dashboardError ? "--" : dashboardData?.activeStudents ?? activeSantri.length}</p>
             </div>
             <div className="rounded-2xl bg-surface/80 px-4 py-3 ring-1 ring-inset ring-border/60">
-              <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted">Reports</p>
-              <p className="mt-1 font-(--font-family-head) text-xl font-extrabold text-primary-dark">{dailyEntries.length}</p>
+              <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted">Placements</p>
+              <p className="mt-1 font-(--font-family-head) text-xl font-extrabold text-primary-dark">{dashboardLoading ? "..." : dashboardError ? "--" : dashboardData?.totalPlacements ?? mappedSantri.length}</p>
             </div>
             <div className="rounded-2xl bg-surface/80 px-4 py-3 ring-1 ring-inset ring-border/60">
               <p className="text-[0.65rem] font-black uppercase tracking-wider text-muted">Quality</p>
@@ -421,23 +438,23 @@ export function AdminDashboardHome() {
       </section>
 
       <section className="grid grid-cols-4 gap-4 max-xl:grid-cols-2 max-sm:grid-cols-1" aria-label="Admin summary metrics">
-        <MetricCard label="Total Santri" value={mappedSantri.length} sub={`${activeSantri.length} siswa aktif pengabdian`} icon="solar:square-academic-cap-bold-duotone" tone="blue" meta="Live" />
-        <MetricCard label="Total Assignments" value={totalAssignments} sub="Akumulasi divisi, role, dan project" icon="solar:clipboard-list-bold-duotone" tone="purple" meta="Mapped" />
-        <MetricCard label="Pending Approvals" value={pendingApprovals} sub="Weekly review dan project submit" icon="solar:checklist-minimalistic-bold-duotone" tone="orange" meta="Action" />
-        <MetricCard label="System Alerts" value={systemAlerts.length} sub={systemStatus.sub} icon={systemStatus.icon} tone={systemStatus.tone} meta={systemStatus.label} />
+        <MetricCard label="Total Santri Pengabdian" value={dashboardLoading ? "..." : dashboardError ? "--" : totalStudents} sub={dashboardError ?? `${dashboardData?.activeStudents ?? activeSantri.length} santri aktif pengabdian`} icon="solar:square-academic-cap-bold-duotone" tone="blue" />
+        <MetricCard label="Total Assignments" value={dashboardLoading ? "..." : dashboardError ? "--" : totalAssignments} sub={dashboardError ?? "Total penugasan divisi aktif dan tertunda"} icon="solar:clipboard-list-bold-duotone" tone="purple" />
+        <MetricCard label="Pending Approvals" value={dashboardLoading ? "..." : dashboardError ? "--" : pendingApprovals} sub={dashboardError ?? "Penugasan divisi yang belum disetujui"} icon="solar:checklist-minimalistic-bold-duotone" tone="orange" />
+        <MetricCard label="System Alerts" value={dashboardLoading ? "..." : alerts.length} sub={dashboardError ?? systemStatus.sub} icon={dashboardError ? "solar:danger-triangle-bold-duotone" : systemStatus.icon} tone={dashboardError ? "orange" : systemStatus.tone} />
       </section>
 
       <section className="grid grid-cols-2 gap-4 max-lg:grid-cols-1">
-        <LoadCard title="Division Load" items={divisionLoad} total={mappedSantri.length} icon="solar:chart-square-bold-duotone" />
-        <LoadCard title="Location Load" items={locationLoad} total={mappedSantri.length} icon="solar:buildings-2-bold-duotone" />
+        <LoadCard title="Division Load" items={divisionLoad} total={totalStudents} icon="solar:chart-square-bold-duotone" loading={dashboardLoading} error={dashboardError} />
+        <LoadCard title="Location Load" items={locationLoad} total={totalStudents} icon="solar:buildings-2-bold-duotone" loading={dashboardLoading} error={dashboardError} />
       </section>
 
       <section className="grid grid-cols-[0.9fr_1.1fr] gap-4 max-xl:grid-cols-1">
-        <DataCompletenessCard score={completenessScore} />
-        <AlertsCard />
+        <DataCompletenessCard score={completenessScore} loading={dashboardLoading} error={dashboardError} />
+        <AlertsCard alerts={alerts} loading={dashboardLoading} error={dashboardError} />
       </section>
 
-      <AuditLogCard />
+      <AuditLogCard logs={auditLogs} loading={dashboardLoading} error={dashboardError} />
     </motion.div>
   );
 }

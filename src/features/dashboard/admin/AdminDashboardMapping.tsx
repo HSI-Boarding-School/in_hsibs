@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { SantriCard } from "./components/SantriCard";
@@ -9,6 +9,7 @@ import type { Santri } from "../../../data/santriData";
 import { KanbanBoard } from "../../../components/ui/KanbanBoard";
 import type { KanbanColumnDef } from "../../../components/ui/KanbanBoard";
 import { useLocalStorageState } from "../../../lib/useLocalStorageState";
+import { useAdminMappingData } from "../../../models/admin";
 
 type ViewTab = "santri" | "unit" | "divisi" | "lokasi" | "pic" | "projek";
 
@@ -41,12 +42,33 @@ const defaultFilters: FilterState = {
 export function AdminDashboardMapping() {
   const [viewTab, setViewTab] = useState<ViewTab>("santri");
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
-  const [santriList, setSantriList] = useLocalStorageState<Santri[]>(
+  const { data: mappingData, isLoading: mappingLoading, error: mappingError } = useAdminMappingData();
+  const [storedSantriList, setStoredSantriList] = useLocalStorageState<Santri[]>(
     "in_hsibs.mapping.santri",
     initialSantriList,
   );
+  const [workingSantriList, setWorkingSantriList] = useState<Santri[] | null>(null);
   const [activeSantriId, setActiveSantriId] = useState<string | null>(null);
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
+
+  useEffect(() => {
+    if (mappingData) setWorkingSantriList(mappingData.santri);
+  }, [mappingData]);
+
+  const santriList = workingSantriList ?? storedSantriList;
+  const setSantriList = useCallback(
+    (updater: (prev: Santri[]) => Santri[]) => {
+      if (workingSantriList !== null) {
+        setWorkingSantriList((prev) => (prev ? updater(prev) : prev));
+        return;
+      }
+      setStoredSantriList(updater);
+    },
+    [setStoredSantriList, workingSantriList],
+  );
+  const baseUnits = mappingData?.units.length ? mappingData.units : [...units];
+  const baseDivisions = mappingData?.divisions.length ? mappingData.divisions : divisions;
+  const baseLocations = mappingData?.locations.length ? mappingData.locations : locations;
 
   const activeSantri = useMemo(
     () => (activeSantriId ? santriList.find((s) => s.id === activeSantriId) ?? null : null),
@@ -135,8 +157,8 @@ export function AdminDashboardMapping() {
 
   // ── Unit View ──────────────────────────────────────────────
   const unitColumns: KanbanColumnDef[] = useMemo(
-    () => [...units.map((u) => ({ id: u, label: u })), ...extraUnits.map((u) => ({ id: u, label: u }))],
-    [extraUnits]
+    () => [...baseUnits.map((u) => ({ id: u, label: u })), ...extraUnits.map((u) => ({ id: u, label: u }))],
+    [baseUnits, extraUnits]
   );
 
   const unitColumnItems = useMemo(() => {
@@ -179,10 +201,10 @@ export function AdminDashboardMapping() {
   // ── Divisi View ────────────────────────────────────────────
   const divColumns: KanbanColumnDef[] = useMemo(
     () => [
-      ...divisions.map((d) => ({ id: d.code, label: `${d.label} (${d.code})` })),
+      ...baseDivisions.map((d) => ({ id: d.code, label: `${d.label} (${d.code})` })),
       ...extraDivs.map((d) => ({ id: d.code, label: d.label })),
     ],
-    [extraDivs]
+    [baseDivisions, extraDivs]
   );
 
   const getPrimaryDiv = useCallback((s: Santri) => s.divs[0] || "", []);
@@ -233,8 +255,8 @@ export function AdminDashboardMapping() {
 
   // ── Lokasi View ────────────────────────────────────────────
   const locColumns: KanbanColumnDef[] = useMemo(
-    () => [...locations.map((l) => ({ id: l, label: l })), ...extraLocs.map((l) => ({ id: l, label: l }))],
-    [extraLocs]
+    () => [...baseLocations.map((l) => ({ id: l, label: l })), ...extraLocs.map((l) => ({ id: l, label: l }))],
+    [baseLocations, extraLocs]
   );
 
   const locColumnItems = useMemo(() => {
@@ -367,6 +389,8 @@ export function AdminDashboardMapping() {
         </div>
 
         <div className="pt-4">
+          {mappingLoading && <MappingState icon="svg-spinners:ring-resize" title="Memuat data mapping dari Supabase..." />}
+          {mappingError && <MappingState icon="solar:danger-triangle-bold-duotone" title="Data Supabase belum dapat dimuat" description={mappingError} tone="error" />}
           <AnimatePresence mode="wait">
             <motion.div
               key={viewTab}
@@ -376,11 +400,15 @@ export function AdminDashboardMapping() {
               transition={{ duration: 0.18 }}
             >
               {viewTab === "santri" && (
-                <div className="grid grid-cols-3 gap-3 max-xl:grid-cols-2 max-sm:grid-cols-1">
-                  {filtered.map((s) => (
-                    <SantriCard key={s.id} santri={s} onOpen={handleOpenSantri} />
-                  ))}
-                </div>
+                filtered.length ? (
+                  <div className="grid grid-cols-3 gap-3 max-xl:grid-cols-2 max-sm:grid-cols-1">
+                    {filtered.map((s) => (
+                      <SantriCard key={s.id} santri={s} onOpen={handleOpenSantri} />
+                    ))}
+                  </div>
+                ) : (
+                  <MappingState icon="solar:users-group-rounded-bold-duotone" title="Belum ada santri" description="Data akan muncul setelah pengabdian_santri, placement, dan assignment tersedia." />
+                )
               )}
               {viewTab === "unit" && (
                 <KanbanBoard
@@ -436,7 +464,14 @@ export function AdminDashboardMapping() {
         </div>
       </div>
 
-      <MappingToolbar filters={filters} onFilterChange={setFilters} resultCount={filtered.length} />
+      <MappingToolbar
+        filters={filters}
+        onFilterChange={setFilters}
+        resultCount={filtered.length}
+        unitOptions={baseUnits}
+        divisionOptions={baseDivisions}
+        locationOptions={baseLocations}
+      />
 
       <SantriDetailDrawer
         santri={activeSantri}
@@ -454,6 +489,30 @@ export function AdminDashboardMapping() {
         onCancel={() => setPendingMove(null)}
         onConfirm={confirmPendingMove}
       />
+    </div>
+  );
+}
+
+function MappingState({
+  icon,
+  title,
+  description,
+  tone = "neutral",
+}: {
+  icon: string;
+  title: string;
+  description?: string;
+  tone?: "neutral" | "error";
+}) {
+  const toneClass = tone === "error" ? "bg-orange/10 text-orange" : "bg-primary/8 text-primary";
+
+  return (
+    <div className="mb-4 flex min-h-32 flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-surface/78 px-5 py-8 text-center shadow-[0_12px_34px_rgba(0,0,0,0.06)]">
+      <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${toneClass}`}>
+        <Iconify icon={icon} width={23} />
+      </span>
+      <p className="mt-3 text-sm font-extrabold text-primary-dark">{title}</p>
+      {description && <p className="mt-1 max-w-lg text-xs font-semibold leading-relaxed text-muted">{description}</p>}
     </div>
   );
 }

@@ -22,7 +22,7 @@ export async function getStaffByRole(
 ): Promise<PengabdianStaff[]> {
   const { data, error } = await table()
     .select("*")
-    .eq("role_pengabdian", role)
+    .eq("role_staff", role)
     .eq("aktif", true)
     .order("nama_lengkap");
   if (error) throw error;
@@ -36,7 +36,7 @@ export async function updateStaffRole(
   role: StaffRole,
 ): Promise<PengabdianStaff> {
   const { data, error } = await table()
-    .update({ role_pengabdian: role } as never)
+    .update({ role_staff: role } as never)
     .eq("id", id)
     .select()
     .single();

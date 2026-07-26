@@ -3,15 +3,12 @@ import { Calendar } from "../../../../../components/calendar/Calendar";
 import { CalendarForm } from "../../../../../components/calendar/CalendarForm";
 import { calendarEvents as initialEvents } from "../../../../../data/monitoring/calendarData";
 import type { CalendarEvent } from "../../../../../components/calendar/types";
-import { useLocalStorageState } from "../../../../../lib/useLocalStorageState";
+import { useMonitoringCalendarEvents } from "../../../../../models/monitoring";
 
 let nextId = 100;
 
 export function CalendarView() {
-  const [events, setEvents] = useLocalStorageState<CalendarEvent[]>(
-    "in_hsibs.monitoring.calendar.events",
-    initialEvents,
-  );
+  const { events, setEvents, isLoading, error } = useMonitoringCalendarEvents(initialEvents);
   const [formOpen, setFormOpen] = useState(false);
   const [formDate, setFormDate] = useState<string | undefined>(undefined);
 
@@ -33,6 +30,11 @@ export function CalendarView() {
 
   return (
     <>
+      {(isLoading || error) && (
+        <div className={`mb-3 rounded-2xl border px-4 py-3 text-xs font-bold ${error ? "border-orange/20 bg-orange/8 text-orange" : "border-primary/15 bg-primary-soft/35 text-primary"}`}>
+          {error ?? "Memuat event kalender dari Supabase..."}
+        </div>
+      )}
       <Calendar
         events={events}
         onAddEvent={handleAddEvent}

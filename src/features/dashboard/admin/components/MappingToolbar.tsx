@@ -14,6 +14,9 @@ interface MappingToolbarProps {
   filters: FilterState;
   onFilterChange: (filters: FilterState) => void;
   resultCount: number;
+  unitOptions?: string[];
+  divisionOptions?: { code: string; label: string }[];
+  locationOptions?: string[];
 }
 
 export const statusOptions = ["Active", "On Hold", "Inactive", "Alumni"];
@@ -42,7 +45,16 @@ const statusDot: Record<string, string> = {
 
 const divLabelMap = new Map(divisions.map((d) => [d.code, d.label]));
 
-export function MappingToolbar({ filters, onFilterChange, resultCount }: MappingToolbarProps) {
+export function MappingToolbar({
+  filters,
+  onFilterChange,
+  resultCount,
+  unitOptions = [...units],
+  divisionOptions = divisions,
+  locationOptions = locations,
+}: MappingToolbarProps) {
+  const currentDivLabelMap = new Map(divisionOptions.map((d) => [d.code, d.label]));
+
   function toggle(arr: string[], val: string): string[] {
     return arr.includes(val) ? arr.filter((v) => v !== val) : [...arr, val];
   }
@@ -170,7 +182,7 @@ export function MappingToolbar({ filters, onFilterChange, resultCount }: Mapping
               count={filters.unit.length}
               onClear={() => clearGroup("unit")}
             >
-              {[...units].map((opt) => {
+              {unitOptions.map((opt) => {
                 const isActive = filters.unit.includes(opt);
                 const theme = unitChipTheme[opt];
                 return (
@@ -195,7 +207,7 @@ export function MappingToolbar({ filters, onFilterChange, resultCount }: Mapping
               count={filters.div.length}
               onClear={() => clearGroup("div")}
             >
-              {divisions.map((d) => {
+              {divisionOptions.map((d) => {
                 const isActive = filters.div.includes(d.code);
                 return (
                   <Chip
@@ -206,7 +218,7 @@ export function MappingToolbar({ filters, onFilterChange, resultCount }: Mapping
                     }
                     activeCls="bg-primary text-white shadow-[0_4px_10px_rgba(37,99,235,0.25)]"
                     idleCls={`${getDivColor(d.code)} ring-1 ring-inset ring-black/[0.04] hover:brightness-95`}
-                    title={divLabelMap.get(d.code) ?? d.code}
+                    title={currentDivLabelMap.get(d.code) ?? divLabelMap.get(d.code) ?? d.code}
                   >
                     {d.code}
                   </Chip>
@@ -220,7 +232,7 @@ export function MappingToolbar({ filters, onFilterChange, resultCount }: Mapping
               count={filters.loc.length}
               onClear={() => clearGroup("loc")}
             >
-              {locations.map((opt) => {
+              {locationOptions.map((opt) => {
                 const isActive = filters.loc.includes(opt);
                 return (
                   <Chip

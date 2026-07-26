@@ -197,7 +197,7 @@ CREATE TABLE pengabdian_divisi (
 );
 
 -- Penempatan santri ke unit + lokasi
-CREATE TABLE penempatan_santri (
+CREATE TABLE pengabdian_penempatan_santri (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   pengabdian_id   uuid REFERENCES pengabdian_santri(id) ON DELETE CASCADE,
   unit_id         uuid REFERENCES pengabdian_unit(id),
@@ -208,9 +208,9 @@ CREATE TABLE penempatan_santri (
 );
 
 -- Penugasan santri ke divisi (bisa lebih dari satu)
-CREATE TABLE penugasan_divisi (
+CREATE TABLE pengabdian_penugasan_divisi (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  penempatan_id   uuid REFERENCES penempatan_santri(id) ON DELETE CASCADE,
+  penempatan_id   uuid REFERENCES pengabdian_penempatan_santri(id) ON DELETE CASCADE,
   divisi_id       uuid REFERENCES pengabdian_divisi(id),
   level_penugasan assignment_level_peng NOT NULL DEFAULT 'Primary',
   status          pengabdian_status DEFAULT 'Aktif',

@@ -8,7 +8,7 @@
 //
 // Supabase Auth memberi:
 //   - session dari auth.users
-//   - profile.role_pengabdian dari pengabdian_staff
+//   - profile.role_staff dari pengabdian_staff
 //
 // File ini menjembatani keduanya agar routing.tsx tidak perlu diubah.
 // ============================================================
@@ -22,27 +22,25 @@ import {
 } from "react";
 import type { Session as SupabaseSession } from "@supabase/supabase-js";
 import { supabase } from "./supabase/client";
-import type { PengabdianStaff } from "./supabase/types";
 import type { Session } from "../types";
-
-// Map role Supabase → role lama yang dipakai routing
-function mapRole(role: PengabdianStaff["role_pengabdian"]): Session["role"] {
-  const map: Record<string, Session["role"]> = {
-    Admin: "admin",
-    PIC_Div: "pic-div",
-    PIC_Reg: "pic-reg",
-    Viewer: "siswa", // fallback
-  };
-  return map[role] ?? "siswa";
-}
+import {
+  restoreStaffAuth,
+  signInStaff,
+  signOutStaff,
+  type StaffProfileModel,
+} from "../models/auth";
 
 interface AuthContextValue {
   session: Session | null;
   sbSession: SupabaseSession | null;
-  profile: PengabdianStaff | null;
+  profile: StaffProfileModel | null;
   loading: boolean;
-  login: (credentials: Session) => void; // compat lama (untuk LoginPage mock)
-  loginWithSupabase: (email: string, password: string) => Promise<void>;
+  login: (credentials: Session) => void;
+  loginWithSupabase: (
+    email: string,
+    password: string,
+    expectedRole: Session["role"],
+  ) => Promise<Session>;
   logout: () => Promise<void>;
 }
 
@@ -51,40 +49,16 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [sbSession, setSbSession] = useState<SupabaseSession | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<PengabdianStaff | null>(null);
+  const [profile, setProfile] = useState<StaffProfileModel | null>(null);
   const [loading, setLoading] = useState(true);
-
-  async function fetchProfile(userId: string): Promise<PengabdianStaff | null> {
-    const { data, error } = await supabase
-      .from("pengabdian_staff")
-      .select("*")
-      .eq("id", userId)
-      .single();
-    if (error && error.code !== "PGRST116") {
-      console.error("fetchProfile error:", error.message);
-    }
-    return data ?? null;
-  }
-
-  async function buildSession(
-    sbUser: SupabaseSession["user"],
-    staffProfile: PengabdianStaff | null,
-  ): Promise<Session> {
-    return {
-      userId: staffProfile?.kode_staff ?? sbUser.id.slice(0, 8),
-      role: staffProfile ? mapRole(staffProfile.role_pengabdian) : "siswa",
-      roleLabel: staffProfile?.role_pengabdian ?? "Viewer",
-      password: "", // tidak relevan setelah login
-    };
-  }
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       setSbSession(data.session);
       if (data.session?.user) {
-        const p = await fetchProfile(data.session.user.id);
-        setProfile(p);
-        setSession(await buildSession(data.session.user, p));
+        const auth = await restoreStaffAuth(data.session.user);
+        setProfile(auth?.profile ?? null);
+        setSession(auth?.session ?? null);
       }
       setLoading(false);
     });
@@ -93,9 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (_event, newSbSession) => {
         setSbSession(newSbSession);
         if (newSbSession?.user) {
-          const p = await fetchProfile(newSbSession.user.id);
-          setProfile(p);
-          setSession(await buildSession(newSbSession.user, p));
+          const auth = await restoreStaffAuth(newSbSession.user);
+          setProfile(auth?.profile ?? null);
+          setSession(auth?.session ?? null);
         } else {
           setProfile(null);
           setSession(null);
@@ -108,18 +82,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Login via Supabase (email + password)
-  async function loginWithSupabase(email: string, password: string) {
+  async function loginWithSupabase(
+    email: string,
+    password: string,
+    expectedRole: Session["role"],
+  ) {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) {
+    try {
+      const auth = await signInStaff({ email, password, expectedRole });
+      const { data } = await supabase.auth.getSession();
+      setSbSession(data.session);
+      setProfile(auth.profile);
+      setSession(auth.session);
+      return auth.session;
+    } finally {
       setLoading(false);
-      throw error;
     }
-    // session akan di-set oleh onAuthStateChange
-    setLoading(false);
   }
 
   // Login lama (mock/demo — untuk LoginPage yang belum pakai Supabase)
@@ -129,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    await supabase.auth.signOut();
+    await signOutStaff();
     setSession(null);
     setProfile(null);
     setSbSession(null);

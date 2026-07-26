@@ -298,7 +298,7 @@ CREATE TRIGGER trg_cek_alumni
 -- BAGIAN 7: PENEMPATAN
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS penempatan_santri (
+CREATE TABLE IF NOT EXISTS pengabdian_penempatan_santri (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   pengabdian_id   uuid NOT NULL REFERENCES pengabdian_santri(id) ON DELETE CASCADE,
   unit_id         uuid REFERENCES pengabdian_unit(id),
@@ -308,9 +308,9 @@ CREATE TABLE IF NOT EXISTS penempatan_santri (
   dibuat_pada     timestamptz DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS penugasan_divisi (
+CREATE TABLE IF NOT EXISTS pengabdian_penugasan_divisi (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  penempatan_id   uuid NOT NULL REFERENCES penempatan_santri(id) ON DELETE CASCADE,
+  penempatan_id   uuid NOT NULL REFERENCES pengabdian_penempatan_santri(id) ON DELETE CASCADE,
   divisi_id       uuid NOT NULL REFERENCES pengabdian_divisi(id),
   level           assignment_level_enum NOT NULL DEFAULT 'Primary',
   status          pengabdian_status_enum DEFAULT 'Aktif',
@@ -322,7 +322,7 @@ CREATE TABLE IF NOT EXISTS penugasan_divisi (
 
 CREATE TABLE IF NOT EXISTS penugasan_role (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  penugasan_div_id uuid NOT NULL REFERENCES penugasan_divisi(id) ON DELETE CASCADE,
+  penugasan_div_id uuid NOT NULL REFERENCES pengabdian_penugasan_divisi(id) ON DELETE CASCADE,
   role_id         uuid NOT NULL REFERENCES pengabdian_role(id),
   status          pengabdian_status_enum DEFAULT 'Aktif'
 );
@@ -782,8 +782,8 @@ CREATE POLICY pol_audit_read ON audit_log
 
   SANTRI & PENEMPATAN (6)
     pengabdian_santri         — santri aktif → siswa (tabel lama) + auth.users
-    penempatan_santri         — santri di unit + lokasi mana
-    penugasan_divisi          — santri di divisi apa
+    pengabdian_penempatan_santri — santri di unit + lokasi mana
+    pengabdian_penugasan_divisi — santri di divisi apa
     penugasan_role            — role santri dalam divisi
     sow_assignment            — SoW per santri
     request_perubahan_penempatan

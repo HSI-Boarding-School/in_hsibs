@@ -90,11 +90,11 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   }
 
   const isAdmin =
-    profile?.role_pengabdian === "Admin" && (profile?.aktif ?? false);
+    profile?.role_staff === "Admin" && (profile?.aktif ?? false);
   const isPicDiv =
-    profile?.role_pengabdian === "PIC_Div" && (profile?.aktif ?? false);
+    profile?.role_staff === "PIC_Div" && (profile?.aktif ?? false);
   const isPicReg =
-    profile?.role_pengabdian === "PIC_Reg" && (profile?.aktif ?? false);
+    profile?.role_staff === "PIC_Reg" && (profile?.aktif ?? false);
   const isStaff = !!profile && (profile?.aktif ?? false);
 
   return (

@@ -36,6 +36,7 @@ import {
 } from "./features/dashboard/pic-reg";
 import { roles } from "./data/monitoringData";
 import type { RoleId, Session } from "./types";
+import { useToast } from "./components/ui/ToastProvider";
 
 interface RouterContext {
   session: Session | null;
@@ -153,12 +154,18 @@ const siswaTabs = ["home", "mapping", "monitoring", "report", "profile"];
 const validRoleIds = roles.map((item) => item.id) as RoleId[];
 
 function LoginRouteComponent() {
-  const { login } = useAuth();
+  const { loginWithSupabase } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
-  function handleLogin(credentials: Session) {
-    login(credentials);
-    router.update({ context: { session: credentials } });
+  async function handleLogin(credentials: Session) {
+    const session = await loginWithSupabase(
+      credentials.userId,
+      credentials.password,
+      credentials.role,
+    );
+    router.update({ context: { session } });
+    toast.success("Login berhasil", `Selamat datang, ${session.roleLabel}.`);
     navigate({ to: "/dashboard/$tab", params: { tab: "home" } });
   }
 
@@ -178,12 +185,18 @@ function LoginRouteComponent() {
 
 function LoginRoleRouteComponent() {
   const { role } = loginRoleRoute.useParams();
-  const { login } = useAuth();
+  const { loginWithSupabase } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
-  function handleLogin(credentials: Session) {
-    login(credentials);
-    router.update({ context: { session: credentials } });
+  async function handleLogin(credentials: Session) {
+    const session = await loginWithSupabase(
+      credentials.userId,
+      credentials.password,
+      credentials.role,
+    );
+    router.update({ context: { session } });
+    toast.success("Login berhasil", `Selamat datang, ${session.roleLabel}.`);
     navigate({ to: "/dashboard/$tab", params: { tab: "home" } });
   }
 
@@ -201,10 +214,12 @@ function LoginRoleRouteComponent() {
 function PortalSiswaRouteComponent() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   function handleLogin(credentials: Session) {
     login(credentials);
     router.update({ context: { session: credentials } });
+    toast.success("Login berhasil", "Selamat datang di Portal Siswa.");
     navigate({ to: "/dashboard/$tab", params: { tab: "home" } });
   }
 
@@ -218,6 +233,7 @@ function PortalSiswaRouteComponent() {
 
 function DashboardLayout() {
   const { session, logout } = useAuth();
+  const toast = useToast();
 
   useEffect(() => {
     if (!session) {
@@ -227,8 +243,20 @@ function DashboardLayout() {
 
   if (!session) return null;
 
+  async function handleLogout() {
+    try {
+      await logout();
+      toast.success("Logout berhasil", "Sesi kamu sudah berakhir dengan aman.");
+    } catch (error) {
+      toast.error(
+        "Logout gagal",
+        error instanceof Error ? error.message : "Silakan coba lagi.",
+      );
+    }
+  }
+
   return (
-    <DashboardShell onLogout={logout} user={session}>
+    <DashboardShell onLogout={handleLogout} user={session}>
       <Outlet />
     </DashboardShell>
   );
