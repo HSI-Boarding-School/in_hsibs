@@ -1,17 +1,28 @@
-import { useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { motion } from "motion/react";
 import { Iconify } from "../../../../../components/iconify/iconify";
 import { CustomSelect } from "../../../../../components/ui/CustomSelect";
-import { learnSessions as initialLearnSessions, getPhaseName } from "../../../../../data/monitoring/learnData";
+import { getPhaseName } from "../../../../../data/monitoring/learnData";
 import type { LearnSession } from "../../../../../data/monitoring/learnData";
-import { santriList } from "../../../../../data/santriData";
-import { useLocalStorageState } from "../../../../../lib/useLocalStorageState";
-import { useMonitoringLearnSessions } from "../../../../../models/monitoring";
+import type { Santri } from "../../../../../data/santriData";
+import {
+  createMonitoringLearnSession,
+  deleteMonitoringLearnSession,
+  getMonitoringLearnAttendance,
+  getMonitoringLearnParticipants,
+  setMonitoringLearnAttendance,
+  updateMonitoringLearnSession,
+  updateMonitoringLearnStatus,
+  useMonitoringLearnSessions,
+} from "../../../../../models/monitoring";
 import {
   LearnSessionDetailDrawer,
   type AttendStatus,
 } from "./LearnSessionDetailDrawer";
 import { LearnForm } from "./LearnForm";
+import { MonitoringLoadingState } from "./MonitoringLoadingState";
+import { useToast } from "../../../../../components/ui/ToastProvider";
+import { ConfirmDeleteDialog } from "../../../../../components/ui/ConfirmDeleteDialog";
 
 const phaseColors: Record<string, string> = {
   1: "border-l-[#f472b6]",
@@ -62,15 +73,24 @@ export function LearnsView() {
   const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>("all");
   const [search, setSearch] = useState("");
 
-  const { sessions, setSessions, isLoading, error } = useMonitoringLearnSessions(initialLearnSessions);
+  const { sessions, setSessions, isLoading, error, refresh } = useMonitoringLearnSessions();
+  const toast = useToast();
   const [formOpen, setFormOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<LearnSession | null>(null);
+  const [participants, setParticipants] = useState<Santri[]>([]);
+  const [participantsLoading, setParticipantsLoading] = useState(true);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  // attendance: { [sessionId]: { [santriId]: "Izin" | "Alpha" } }
-  // default Hadir = absence in map
-  const [attendance, setAttendance] = useLocalStorageState<
-    Record<string, Record<string, "Izin" | "Alpha">>
-  >("in_hsibs.monitoring.learn.attendance", {});
+  const [activeAttendance, setActiveAttendance] = useState<Record<string, "Izin" | "Alpha">>({});
+
+  useEffect(() => {
+    getMonitoringLearnParticipants()
+      .then(setParticipants)
+      .catch((err) => toast.error("Peserta gagal dimuat", err instanceof Error ? err.message : "Silakan coba lagi."))
+      .finally(() => setParticipantsLoading(false));
+  }, [toast]);
 
   const filtered = useMemo(() => {
     return sessions.filter((s) => {
@@ -104,44 +124,102 @@ export function LearnsView() {
 
   const handleCloseDrawer = useCallback(() => {
     setActiveSessionId(null);
+    setActiveAttendance({});
   }, []);
 
+  useEffect(() => {
+    if (!activeSession?.databaseId) return;
+    getMonitoringLearnAttendance(activeSession.databaseId)
+      .then((rows) => {
+        const byPengabdianId = new Map(participants.filter((item) => item.pengabdianId).map((item) => [item.pengabdianId!, item.id]));
+        const next: Record<string, "Izin" | "Alpha"> = {};
+        rows.forEach((row) => {
+          const participantId = byPengabdianId.get(row.pengabdian_id);
+          if (participantId && row.status !== "Hadir") next[participantId] = row.status;
+        });
+        setActiveAttendance(next);
+      })
+      .catch((err) => toast.error("Absensi gagal dimuat", err instanceof Error ? err.message : "Silakan coba lagi."));
+  }, [activeSession?.databaseId, participants, toast]);
+
   const handleSetAttendance = useCallback(
-    (sessionId: string, santriId: string, status: AttendStatus) => {
-      setAttendance((prev) => {
-        const sessionMap = { ...(prev[sessionId] ?? {}) };
-        if (status === "Hadir") {
-          delete sessionMap[santriId];
-        } else {
-          sessionMap[santriId] = status;
-        }
-        return { ...prev, [sessionId]: sessionMap };
+    async (sessionId: string, santriId: string, status: AttendStatus) => {
+      const session = sessions.find((item) => item.id === sessionId);
+      const participant = participants.find((item) => item.id === santriId);
+      if (!session?.databaseId || !participant?.pengabdianId) return;
+      const previous = activeAttendance[santriId];
+      setActiveAttendance((current) => {
+        const next = { ...current };
+        if (status === "Hadir") delete next[santriId];
+        else next[santriId] = status;
+        return next;
       });
+      try {
+        await setMonitoringLearnAttendance(session.databaseId, participant.pengabdianId, status);
+      } catch (err) {
+        setActiveAttendance((current) => {
+          const next = { ...current };
+          if (previous) next[santriId] = previous;
+          else delete next[santriId];
+          return next;
+        });
+        toast.error("Absensi gagal disimpan", err instanceof Error ? err.message : "Silakan coba lagi.");
+      }
     },
-    [],
+    [activeAttendance, participants, sessions, toast],
   );
 
   const handleUpdateSessionStatus = useCallback(
-    (sessionId: string, status: LearnSession["status"]) => {
-      setSessions((prev) =>
-        prev.map((session) =>
-          session.id === sessionId ? { ...session, status } : session,
-        ),
-      );
+    async (sessionId: string, status: LearnSession["status"]) => {
+      const session = sessions.find((item) => item.id === sessionId);
+      if (!session?.databaseId) return;
+      try {
+        await updateMonitoringLearnStatus(session.databaseId, status);
+        setSessions((prev) =>
+          prev.map((item) => item.id === sessionId ? { ...item, status } : item),
+        );
+        toast.success("Status sesi diperbarui", `${session.title} · ${status}`);
+      } catch (err) {
+        toast.error("Status gagal diperbarui", err instanceof Error ? err.message : "Silakan coba lagi.");
+      }
     },
-    [],
+    [sessions, setSessions, toast],
   );
 
-  const handleAddSession = useCallback((draft: Omit<LearnSession, "id">) => {
-    setSessions((prev) => {
-      // Generate ID: L## for mandatory, RS## for role-specific
-      const prefix = draft.type === "mandatory" ? "L" : "RS";
-      const sameType = prev.filter((s) => s.id.startsWith(prefix));
-      const nextNum = String(sameType.length + 1).padStart(2, "0");
-      const id = `${prefix}${nextNum}`;
-      return [{ ...draft, id }, ...prev];
-    });
-  }, []);
+  const handleSaveSession = useCallback(async (draft: Omit<LearnSession, "id" | "databaseId">) => {
+    if (editingSession?.databaseId) {
+      await updateMonitoringLearnSession(editingSession.databaseId, { ...draft, totalSantri: participants.length });
+      await refresh();
+      toast.success("Learn session diperbarui", draft.title);
+      setEditingSession(null);
+      return;
+    }
+    const prefix = draft.type === "mandatory" ? "L" : "RS";
+    const numbers = sessions
+      .filter((session) => session.id.startsWith(prefix))
+      .map((session) => Number(session.id.replace(/\D/g, "")))
+      .filter(Number.isFinite);
+    const code = `${prefix}${String((Math.max(0, ...numbers) || 0) + 1).padStart(2, "0")}`;
+    await createMonitoringLearnSession(code, { ...draft, totalSantri: participants.length });
+    await refresh();
+    toast.success("Learn session ditambahkan", draft.title);
+  }, [editingSession, participants.length, refresh, sessions, toast]);
+
+  const handleDeleteSession = useCallback(async () => {
+    if (!activeSession?.databaseId) return;
+    setDeleting(true);
+    try {
+      await deleteMonitoringLearnSession(activeSession.databaseId);
+      toast.success("Learn session dihapus", activeSession.title);
+      setConfirmDelete(false);
+      handleCloseDrawer();
+      await refresh();
+    } catch (err) {
+      toast.error("Sesi gagal dihapus", err instanceof Error ? err.message : "Silakan coba lagi.");
+    } finally {
+      setDeleting(false);
+    }
+  }, [activeSession, handleCloseDrawer, refresh, toast]);
 
   const hasActiveFilters =
     typeFilter !== "all" || statusFilter !== "all" || phaseFilter !== "all" || search !== "";
@@ -153,9 +231,9 @@ export function LearnsView() {
     setSearch("");
   };
 
-  const activeAttendance = activeSession
-    ? attendance[activeSession.id] ?? {}
-    : {};
+  if (isLoading || participantsLoading) {
+    return <MonitoringLoadingState variant="list" label="learn session" />;
+  }
 
   return (
     <motion.div
@@ -165,9 +243,9 @@ export function LearnsView() {
       transition={{ duration: 0.18 }}
     >
       {/* Filter toolbar — single row */}
-      {(isLoading || error) && (
-        <div className={`rounded-2xl border px-4 py-3 text-xs font-bold ${error ? "border-orange/20 bg-orange/8 text-orange" : "border-primary/15 bg-primary-soft/35 text-primary"}`}>
-          {error ?? "Memuat learn session dari Supabase..."}
+      {error && (
+        <div className="rounded-2xl border border-orange/20 bg-orange/8 px-4 py-3 text-xs font-bold text-orange">
+          {error}
         </div>
       )}
 
@@ -233,7 +311,7 @@ export function LearnsView() {
 
         <button
           type="button"
-          onClick={() => setFormOpen(true)}
+            onClick={() => { setEditingSession(null); setFormOpen(true); }}
           className="ml-auto flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-[0.75rem] font-bold text-white shadow-[0_4px_12px_rgba(37,99,235,0.25)] transition-all hover:bg-primary-dark active:scale-95 max-md:ml-0 max-md:w-full max-md:justify-center"
         >
           <Iconify icon="mingcute:add-line" width={14} />
@@ -262,7 +340,7 @@ export function LearnsView() {
             width={40}
             className="text-muted/40"
           />
-          <p className="mt-3 text-sm font-bold text-muted">Tidak ada sesi yang cocok</p>
+          <p className="mt-3 text-sm font-extrabold text-muted">Tidak ada sesi yang cocok</p>
           <p className="mt-1 text-xs text-muted/60">Coba ubah filter di atas</p>
         </div>
       ) : (
@@ -274,9 +352,7 @@ export function LearnsView() {
               index={i}
               onOpen={handleOpenSession}
               attendCount={
-                attendance[session.id]
-                  ? Object.keys(attendance[session.id]).length
-                  : 0
+                activeSessionId === session.id ? Object.keys(activeAttendance).length : 0
               }
             />
           ))}
@@ -287,7 +363,7 @@ export function LearnsView() {
         session={activeSession}
         open={activeSession !== null}
         onClose={handleCloseDrawer}
-        santriList={santriList}
+        santriList={participants}
         attendance={activeAttendance}
         onUpdateStatus={(status) => {
           if (activeSession) handleUpdateSessionStatus(activeSession.id, status);
@@ -295,12 +371,29 @@ export function LearnsView() {
         onSetAttendance={(sid, status) => {
           if (activeSession) handleSetAttendance(activeSession.id, sid, status);
         }}
+        onDelete={() => setConfirmDelete(true)}
+        onEdit={() => {
+          if (!activeSession) return;
+          setEditingSession(activeSession);
+          handleCloseDrawer();
+          setFormOpen(true);
+        }}
+      />
+
+      <ConfirmDeleteDialog
+        open={confirmDelete}
+        title="Hapus learn session?"
+        description={`Sesi ${activeSession?.title ?? "ini"} dan data attendance terkait akan dihapus.`}
+        loading={deleting}
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={handleDeleteSession}
       />
 
       <LearnForm
         open={formOpen}
-        onClose={() => setFormOpen(false)}
-        onSubmit={handleAddSession}
+        session={editingSession}
+        onClose={() => { setFormOpen(false); setEditingSession(null); }}
+        onSubmit={handleSaveSession}
       />
     </motion.div>
   );

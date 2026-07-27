@@ -28,7 +28,7 @@ export function useAdminMappingData(filter: AdminDataFilter = {}) {
     return () => {
       ignore = true;
     };
-  }, [filter.academicYearId, filter.gender]);
+  }, [filter.academicYearId, filter.gender, filter.divisionId]);
 
   return { data, isLoading, error };
 }

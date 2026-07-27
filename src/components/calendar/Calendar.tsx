@@ -94,7 +94,7 @@ function MonthDayCell({
   onClick: () => void;
   onQuickAdd?: () => void;
 }) {
-  const visibleEvents = events.slice(0, 2);
+  const visibleEvents = events.slice(0, 4);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -110,7 +110,7 @@ function MonthDayCell({
       onClick={onClick}
       onKeyDown={handleKeyDown}
       whileTap={{ scale: 0.995 }}
-      className={`group relative min-h-[94px] cursor-pointer border-r border-b border-border/75 bg-bg/35 p-2 text-left transition-colors last:border-r-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 max-sm:min-h-[76px] max-sm:p-1.5 ${
+      className={`group relative min-h-[82px] cursor-pointer border-r border-b border-border/75 bg-bg/35 p-2 text-left transition-colors last:border-r-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 max-sm:min-h-[62px] max-sm:p-1.5 ${
         isSelected
           ? "bg-primary-soft/28 ring-1 ring-inset ring-primary/45"
           : "hover:bg-surface-strong/42"
@@ -127,14 +127,14 @@ function MonthDayCell({
           {day}
         </span>
         {events.length > 0 && (
-          <span className="shrink-0 whitespace-nowrap text-[0.65rem] font-extrabold text-text max-sm:hidden">
-            {events.length} event{events.length > 1 ? "s" : ""}
+          <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-surface-strong px-1.5 text-[0.58rem] font-black text-primary-dark ring-1 ring-border/70 max-sm:h-4 max-sm:min-w-4 max-sm:px-1 max-sm:text-[0.5rem]">
+            {events.length}
           </span>
         )}
       </div>
 
       {events.length > 0 && (
-        <div className="mt-2 grid gap-1.5 max-sm:mt-1 max-sm:flex max-sm:flex-wrap max-sm:gap-1">
+        <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1.5 max-sm:mt-2 max-sm:gap-1">
           {visibleEvents.map((ev) => (
             <button
               key={ev.id}
@@ -143,17 +143,15 @@ function MonthDayCell({
                 e.stopPropagation();
                 onClick();
               }}
-              className="group/event flex min-w-0 items-start gap-1.5 rounded-md text-left transition-colors hover:bg-surface/70 max-sm:p-0"
+              title={ev.title}
+              className="group/event flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface/75 ring-1 ring-border/55 transition-colors hover:bg-surface-strong max-sm:h-3.5 max-sm:w-3.5 max-sm:bg-transparent max-sm:ring-0"
             >
-              <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${evDotColor(ev)} shadow-sm max-sm:mt-0 max-sm:h-1.5 max-sm:w-1.5`} />
-              <span className="line-clamp-2 text-[0.65rem] font-bold leading-snug text-muted group-hover/event:text-text max-sm:hidden">
-                {ev.title}
-              </span>
+              <span className={`h-2 w-2 shrink-0 rounded-full ${evDotColor(ev)} shadow-sm max-sm:h-1.5 max-sm:w-1.5`} />
             </button>
           ))}
           {events.length > visibleEvents.length && (
-            <span className="text-[0.6rem] font-bold text-primary max-sm:hidden">
-              +{events.length - visibleEvents.length} lainnya
+            <span className="inline-flex h-5 items-center rounded-full bg-primary-soft px-1.5 text-[0.55rem] font-black text-primary max-sm:h-4 max-sm:px-1 max-sm:text-[0.48rem]">
+              +{events.length - visibleEvents.length}
             </span>
           )}
         </div>
@@ -719,7 +717,7 @@ export function Calendar({
                 return (
                   <div
                     key={`e-${i}`}
-                    className={`min-h-[94px] border-b border-border/75 bg-bg/20 max-sm:min-h-[76px] ${
+                    className={`min-h-[82px] border-b border-border/75 bg-bg/20 max-sm:min-h-[62px] ${
                       isEndOfRow ? "" : "border-r"
                     }`}
                   />

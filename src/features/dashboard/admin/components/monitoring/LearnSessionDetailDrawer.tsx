@@ -39,6 +39,8 @@ interface LearnSessionDetailDrawerProps {
   attendance: Record<string, "Izin" | "Alpha">;
   onUpdateStatus: (status: LearnSession["status"]) => void;
   onSetAttendance: (santriId: string, status: AttendStatus) => void;
+  onDelete: () => void;
+  onEdit: () => void;
 }
 
 export function LearnSessionDetailDrawer({
@@ -49,6 +51,8 @@ export function LearnSessionDetailDrawer({
   attendance,
   onUpdateStatus,
   onSetAttendance,
+  onDelete,
+  onEdit,
 }: LearnSessionDetailDrawerProps) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -93,6 +97,8 @@ export function LearnSessionDetailDrawer({
               attendance={attendance}
               onUpdateStatus={onUpdateStatus}
               onSetAttendance={onSetAttendance}
+              onDelete={onDelete}
+              onEdit={onEdit}
             />
           </motion.aside>
         </>
@@ -108,6 +114,8 @@ function DrawerContent({
   attendance,
   onUpdateStatus,
   onSetAttendance,
+  onDelete,
+  onEdit,
 }: {
   session: LearnSession;
   onClose: () => void;
@@ -115,6 +123,8 @@ function DrawerContent({
   attendance: Record<string, "Izin" | "Alpha">;
   onUpdateStatus: (status: LearnSession["status"]) => void;
   onSetAttendance: (santriId: string, status: AttendStatus) => void;
+  onDelete: () => void;
+  onEdit: () => void;
 }) {
   const heroBg = themeBgCls[session.themeCls] || "from-primary/10 via-primary/5 to-transparent";
   const themeBadge = themeBadgeCls[session.themeCls] || "bg-surface-strong text-muted ring-border";
@@ -148,14 +158,22 @@ function DrawerContent({
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-xl p-2 text-muted transition-colors hover:bg-surface-strong hover:text-text"
-          aria-label="Tutup"
-        >
-          <Iconify icon="mingcute:close-line" width={18} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button type="button" onClick={onEdit} className="rounded-xl p-2 text-muted transition-colors hover:bg-primary-soft hover:text-primary" aria-label="Edit sesi">
+            <Iconify icon="solar:pen-bold-duotone" width={17} />
+          </button>
+          <button type="button" onClick={onDelete} className="rounded-xl p-2 text-muted transition-colors hover:bg-orange/8 hover:text-orange" aria-label="Hapus sesi">
+            <Iconify icon="solar:trash-bin-trash-bold-duotone" width={17} />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl p-2 text-muted transition-colors hover:bg-surface-strong hover:text-text"
+            aria-label="Tutup"
+          >
+            <Iconify icon="mingcute:close-line" width={18} />
+          </button>
+        </div>
       </div>
 
       <Scrollbar className="flex-1">

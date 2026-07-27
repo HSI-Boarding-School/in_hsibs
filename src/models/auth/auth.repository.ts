@@ -9,6 +9,8 @@ import {
   type StaffProfileModel,
 } from "./auth.model";
 
+const portalRoleStorageKey = "in_hsibs.auth.portalRole";
+
 function toStaffProfile(row: PengabdianStaff): StaffProfileModel {
   return {
     id: row.id,
@@ -33,13 +35,20 @@ async function getStaffByUserId(userId: string) {
   return data ? toStaffProfile(data) : null;
 }
 
-function buildStaffAuth(user: User, profile: StaffProfileModel): StaffAuthModel {
+function buildStaffAuth(
+  user: User,
+  profile: StaffProfileModel,
+  portalRole = mapStaffRole(profile.role),
+): StaffAuthModel {
   return {
     profile,
     session: {
       userId: profile.code || user.email || user.id.slice(0, 8),
-      role: mapStaffRole(profile.role),
-      roleLabel: getStaffRoleLabel(profile.role),
+      role: portalRole,
+      roleLabel:
+        profile.role === "Admin" && portalRole !== "admin"
+          ? `Admin · ${portalRole === "pic-div" ? "PIC Divisi" : "PIC Regional"}`
+          : getStaffRoleLabel(profile.role),
       password: "",
       avatar: profile.avatarUrl ?? undefined,
     },
@@ -62,21 +71,31 @@ export async function signInStaff(input: StaffLoginInput): Promise<StaffAuthMode
     await supabase.auth.signOut();
     throw new Error("Akun staff sedang nonaktif.");
   }
-  if (mapStaffRole(profile.role) !== input.expectedRole) {
+  const actualRole = mapStaffRole(profile.role);
+  const adminPortalAccess = profile.role === "Admin" && input.expectedRole !== "siswa";
+  if (actualRole !== input.expectedRole && !adminPortalAccess) {
     await supabase.auth.signOut();
     throw new Error(`Akun ini terdaftar sebagai ${getStaffRoleLabel(profile.role)}, bukan portal yang dipilih.`);
   }
 
-  return buildStaffAuth(data.user, profile);
+  window.localStorage.setItem(portalRoleStorageKey, input.expectedRole);
+  return buildStaffAuth(data.user, profile, input.expectedRole);
 }
 
 export async function restoreStaffAuth(user: User): Promise<StaffAuthModel | null> {
   const profile = await getStaffByUserId(user.id);
   if (!profile?.active) return null;
-  return buildStaffAuth(user, profile);
+  const storedPortalRole = window.localStorage.getItem(portalRoleStorageKey);
+  const portalRole =
+    profile.role === "Admin"
+      && (storedPortalRole === "admin" || storedPortalRole === "pic-div" || storedPortalRole === "pic-reg")
+      ? storedPortalRole
+      : mapStaffRole(profile.role);
+  return buildStaffAuth(user, profile, portalRole);
 }
 
 export async function signOutStaff() {
   const { error } = await supabase.auth.signOut();
   if (error) throw new Error(error.message);
+  window.localStorage.removeItem(portalRoleStorageKey);
 }

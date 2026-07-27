@@ -1,5 +1,6 @@
 export interface LearnSession {
   id: string;
+  databaseId?: string;
   type: "mandatory" | "rolespec";
   phase: number | string;
   month: number | null;

@@ -4,12 +4,15 @@ import { Iconify } from "../iconify/iconify";
 import { CustomSelect } from "../ui/CustomSelect";
 import { CustomDatePicker } from "../ui/CustomDatePicker";
 import type { CalendarEvent, CalendarEventType, CalendarEventStatus } from "./types";
+import { ConfirmDeleteDialog } from "../ui/ConfirmDeleteDialog";
 
 interface CalendarFormProps {
   open: boolean;
   defaultDate?: string;
+  event?: CalendarEvent | null;
   onClose: () => void;
-  onSubmit: (ev: Omit<CalendarEvent, "id">) => void;
+  onSubmit: (ev: Omit<CalendarEvent, "id">) => Promise<void>;
+  onDelete?: () => Promise<void>;
 }
 
 const TYPE_OPTIONS = [
@@ -29,7 +32,7 @@ function todayKey(): string {
   return new Date().toISOString().split("T")[0];
 }
 
-export function CalendarForm({ open, defaultDate, onClose, onSubmit }: CalendarFormProps) {
+export function CalendarForm({ open, defaultDate, event, onClose, onSubmit, onDelete }: CalendarFormProps) {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [type, setType] = useState<CalendarEventType>("learn");
@@ -39,38 +42,65 @@ export function CalendarForm({ open, defaultDate, onClose, onSubmit }: CalendarF
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("09:00");
   const [description, setDescription] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Sync date with defaultDate every time the modal is opened
   useEffect(() => {
     if (open) {
-      setTitle("");
-      setSubtitle("");
-      setType("learn");
-      setStatus("scheduled");
-      setDate(defaultDate || todayKey());
-      setAllDay(true);
-      setStart("08:00");
-      setEnd("09:00");
-      setDescription("");
+      setTitle(event?.title ?? "");
+      setSubtitle(event?.subtitle ?? "");
+      setType(event?.type ?? "learn");
+      setStatus(event?.status ?? "scheduled");
+      setDate(event?.date ?? defaultDate ?? todayKey());
+      setAllDay(event?.allDay ?? true);
+      setStart(event?.start ? new Date(event.start).toTimeString().slice(0, 5) : "08:00");
+      setEnd(event?.end ? new Date(event.end).toTimeString().slice(0, 5) : "09:00");
+      setDescription(event?.description ?? "");
+      setError(null);
+      setConfirmDelete(false);
     }
-  }, [open, defaultDate]);
+  }, [open, defaultDate, event]);
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
-    onSubmit({
-      date,
-      title: title.trim(),
-      subtitle: subtitle.trim() || undefined,
-      type,
-      status,
-      allDay,
-      start: allDay ? undefined : start,
-      end: allDay ? undefined : end,
-      description: description.trim() || undefined,
-      color: undefined,
-    });
-    onClose();
+    setSaving(true);
+    setError(null);
+    try {
+      await onSubmit({
+        date,
+        title: title.trim(),
+        subtitle: subtitle.trim() || undefined,
+        type,
+        status,
+        allDay,
+        start: allDay ? undefined : start,
+        end: allDay ? undefined : end,
+        description: description.trim() || undefined,
+        color: undefined,
+      });
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal menyimpan event.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!onDelete) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await onDelete();
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal menghapus event.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -93,7 +123,7 @@ export function CalendarForm({ open, defaultDate, onClose, onSubmit }: CalendarF
           >
             <div className="flex items-center justify-between border-b border-border px-6 py-4">
               <div className="min-w-0">
-                <h2 className="font-(--font-family-head) text-base font-extrabold text-primary-dark">Tambah Event</h2>
+                <h2 className="font-(--font-family-head) text-base font-extrabold text-primary-dark">{event ? "Edit Event" : "Tambah Event"}</h2>
                 {date && (
                   <p className="mt-0.5 flex items-center gap-1 text-[0.7rem] font-semibold text-muted">
                     <Iconify icon="solar:calendar-bold-duotone" width={12} className="text-primary" />
@@ -119,6 +149,7 @@ export function CalendarForm({ open, defaultDate, onClose, onSubmit }: CalendarF
             </div>
 
             <form onSubmit={handleSubmit} className="grid gap-4 px-6 py-5">
+              {error && <div className="rounded-xl border border-orange/20 bg-orange/7 px-3 py-2 text-xs font-bold text-orange">{error}</div>}
               <div className="grid gap-1.5">
                 <label className="text-[0.7rem] font-bold uppercase tracking-wider text-muted">Judul *</label>
                 <input
@@ -213,21 +244,35 @@ export function CalendarForm({ open, defaultDate, onClose, onSubmit }: CalendarF
               </div>
 
               <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
+                {onDelete && (
+                  <button type="button" onClick={() => setConfirmDelete(true)} disabled={saving} className="mr-auto rounded-xl px-4 py-2.5 text-sm font-bold text-orange hover:bg-orange/8 disabled:opacity-50">Hapus</button>
+                )}
                 <button
                   type="button"
                   onClick={onClose}
+                  disabled={saving}
                   className="rounded-xl border border-border bg-surface px-5 py-2.5 text-sm font-bold text-muted transition-all hover:bg-surface-strong active:scale-[0.97]"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-primary-dark active:scale-[0.97] shadow-[0_2px_8px_rgba(37,99,235,0.2)]"
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-primary-dark active:scale-[0.97] disabled:opacity-50 shadow-[0_2px_8px_rgba(37,99,235,0.2)]"
                 >
-                  Simpan
+                  {saving && <Iconify icon="svg-spinners:ring-resize" width={14} />}
+                  {event ? "Simpan Perubahan" : "Simpan"}
                 </button>
               </div>
             </form>
+            <ConfirmDeleteDialog
+              open={confirmDelete}
+              title="Hapus event?"
+              description={`Event ${event?.title ?? "ini"} akan dihapus dari kalender.`}
+              loading={saving}
+              onCancel={() => setConfirmDelete(false)}
+              onConfirm={handleDelete}
+            />
           </motion.div>
         </motion.div>
       )}

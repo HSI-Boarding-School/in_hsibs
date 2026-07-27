@@ -1,5 +1,6 @@
 export interface Santri {
   id: string;
+  pengabdianId?: string;
   name: string;
   unit: string;
   loc: string;

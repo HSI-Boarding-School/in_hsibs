@@ -7,8 +7,9 @@ import type { LearnSession } from "../../../../../data/monitoring/learnData";
 
 interface LearnFormProps {
   open: boolean;
+  session?: LearnSession | null;
   onClose: () => void;
-  onSubmit: (session: Omit<LearnSession, "id">) => void;
+  onSubmit: (session: Omit<LearnSession, "id" | "databaseId">) => Promise<void>;
 }
 
 const TYPE_OPTIONS = [
@@ -45,7 +46,7 @@ function todayKey(): string {
   return new Date().toISOString().split("T")[0];
 }
 
-export function LearnForm({ open, onClose, onSubmit }: LearnFormProps) {
+export function LearnForm({ open, session, onClose, onSubmit }: LearnFormProps) {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [type, setType] = useState("mandatory");
@@ -60,25 +61,28 @@ export function LearnForm({ open, onClose, onSubmit }: LearnFormProps) {
   const [how, setHow] = useState("");
   const [speaker, setSpeaker] = useState("");
   const [status, setStatus] = useState("Planned");
+  const [saving, setSaving] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
-      setTitle("");
-      setSubtitle("");
-      setType("mandatory");
-      setPhase("1");
-      setThemeCls("c-deen");
-      setTheme("");
-      setWhat("");
-      setWho("Semua santri");
-      setWhy("");
-      setWhen(todayKey());
-      setWhere("Online");
-      setHow("");
-      setSpeaker("");
-      setStatus("Planned");
+      setTitle(session?.title ?? "");
+      setSubtitle(session?.subtitle ?? "");
+      setType(session?.type ?? "mandatory");
+      setPhase(session ? String(session.phase) : "1");
+      setThemeCls(session?.themeCls ?? "c-deen");
+      setTheme(session?.theme ?? "");
+      setWhat(session?.what ?? "");
+      setWho(session?.who ?? "Semua santri");
+      setWhy(session?.why ?? "");
+      setWhen(session && /^\d{4}-\d{2}-\d{2}$/.test(session.when) ? session.when : todayKey());
+      setWhere(session?.where ?? "Online");
+      setHow(session?.how ?? "");
+      setSpeaker(session?.speaker ?? "");
+      setStatus(session?.status ?? "Planned");
+      setSubmitError(null);
     }
-  }, [open]);
+  }, [open, session]);
 
   // Sync phase if type changes
   useEffect(() => {
@@ -94,34 +98,42 @@ export function LearnForm({ open, onClose, onSubmit }: LearnFormProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [themeCls]);
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
     const phaseValue: number | string = phase === "rs" ? "rs" : Number(phase);
     const monthValue = type === "mandatory" && phase !== "rs" ? Number(phase) : null;
     const quarterValue = type === "rolespec" ? "Q1" : null;
 
-    onSubmit({
-      type: type as LearnSession["type"],
-      phase: phaseValue,
-      month: monthValue,
-      quarter: quarterValue,
-      theme: theme.trim() || THEME_OPTIONS.find((t) => t.value === themeCls)?.label || "Umum",
-      themeCls,
-      title: title.trim(),
-      subtitle: subtitle.trim(),
-      what: what.trim() || subtitle.trim() || title.trim(),
-      who: who.trim() || "Semua santri",
-      why: why.trim(),
-      when: when, // YYYY-MM-DD
-      where: where.trim() || "Online",
-      how: how.trim(),
-      speaker: speaker.trim() || "TBD",
-      status: status as LearnSession["status"],
-      attendance: 0,
-      totalSantri: TOTAL_SANTRI_DEFAULT,
-    });
-    onClose();
+    setSaving(true);
+    setSubmitError(null);
+    try {
+      await onSubmit({
+        type: type as LearnSession["type"],
+        phase: phaseValue,
+        month: monthValue,
+        quarter: quarterValue,
+        theme: theme.trim() || THEME_OPTIONS.find((t) => t.value === themeCls)?.label || "Umum",
+        themeCls,
+        title: title.trim(),
+        subtitle: subtitle.trim(),
+        what: what.trim() || subtitle.trim() || title.trim(),
+        who: who.trim() || "Semua santri",
+        why: why.trim(),
+        when,
+        where: where.trim() || "Online",
+        how: how.trim(),
+        speaker: speaker.trim() || "TBD",
+        status: status as LearnSession["status"],
+        attendance: 0,
+        totalSantri: TOTAL_SANTRI_DEFAULT,
+      });
+      onClose();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Gagal menambahkan sesi.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -149,7 +161,7 @@ export function LearnForm({ open, onClose, onSubmit }: LearnFormProps) {
                 </span>
                 <div>
                   <h2 className="font-(--font-family-head) text-base font-extrabold leading-none text-primary-dark">
-                    Tambah Jadwal Belajar
+                      {session ? "Edit Jadwal Belajar" : "Tambah Jadwal Belajar"}
                   </h2>
                   <p className="mt-1 text-[0.65rem] text-muted">
                     Lengkapi info sesi yang akan diadakan
@@ -167,6 +179,7 @@ export function LearnForm({ open, onClose, onSubmit }: LearnFormProps) {
             </div>
 
             <form onSubmit={handleSubmit} className="grid max-h-[78vh] gap-3 overflow-y-auto scrollbar-v-thin p-5">
+              {submitError && <div className="rounded-xl border border-orange/20 bg-orange/7 px-3 py-2 text-xs font-bold text-orange">{submitError}</div>}
               <Field label="Judul *">
                 <input
                   type="text"
@@ -307,10 +320,11 @@ export function LearnForm({ open, onClose, onSubmit }: LearnFormProps) {
                 </button>
                 <button
                   type="submit"
+                  disabled={saving}
                   className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-[0.75rem] font-bold text-white shadow-[0_4px_12px_rgba(37,99,235,0.25)] transition-all hover:bg-primary-dark active:scale-95"
                 >
-                  <Iconify icon="mingcute:add-line" width={14} />
-                  Tambah Sesi
+                  <Iconify icon={saving ? "svg-spinners:ring-resize" : "mingcute:add-line"} width={14} />
+                  {saving ? "Menyimpan..." : session ? "Simpan Perubahan" : "Tambah Sesi"}
                 </button>
               </div>
             </form>

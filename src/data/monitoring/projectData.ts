@@ -1,12 +1,17 @@
 export interface Project {
   id: string;
+  databaseId?: string;
   name: string;
   track: string;
+  trackId?: number | null;
   div: string;
+  divisionId?: string | null;
   owners: string[];
+  ownerIds?: string[];
   platform: string;
   link: string;
   reviewer: string;
+  reviewerId?: string | null;
   status: "Idea" | "In Progress" | "Submitted" | "Approved" | "Archived";
   wajib: boolean;
 }

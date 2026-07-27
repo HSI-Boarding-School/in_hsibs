@@ -1,14 +1,23 @@
-import { useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "motion/react";
 import { Iconify } from "../../../../../components/iconify/iconify";
 import { CustomSelect } from "../../../../../components/ui/CustomSelect";
-import { projects as initialProjects, trackColors, statusBadge } from "../../../../../data/monitoring/projectData";
+import { trackColors, statusBadge } from "../../../../../data/monitoring/projectData";
 import type { Project } from "../../../../../data/monitoring/projectData";
-import { santriList } from "../../../../../data/santriData";
 import { ProjectForm } from "./ProjectForm";
-import { useLocalStorageState } from "../../../../../lib/useLocalStorageState";
+import {
+  createMonitoringProject,
+  deleteMonitoringProject,
+  getMonitoringProjectOptions,
+  updateMonitoringProject,
+  useMonitoringProjects,
+  type MonitoringProjectInput,
+  type MonitoringProjectOptions,
+} from "../../../../../models/monitoring";
+import { MonitoringLoadingState } from "./MonitoringLoadingState";
+import { useToast } from "../../../../../components/ui/ToastProvider";
 
-const santriNameMap = new Map(santriList.map((s) => [s.id, s.name]));
+const emptyOptions: MonitoringProjectOptions = { tracks: [], divisions: [], owners: [], reviewers: [] };
 
 const DIV_FILTER_OPTIONS = [
   { value: "All", label: "Semua Divisi", icon: "solar:layers-bold-duotone" },
@@ -31,14 +40,23 @@ const STATUS_FILTER_OPTIONS = [
 ];
 
 export function ProjectView() {
-  const [projects, setProjects] = useLocalStorageState<Project[]>(
-    "in_hsibs.monitoring.projects",
-    initialProjects,
-  );
+  const { projects, isLoading, error, refresh } = useMonitoringProjects();
+  const toast = useToast();
   const [filterDiv, setFilterDiv] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [options, setOptions] = useState<MonitoringProjectOptions>(emptyOptions);
+  const [optionsLoading, setOptionsLoading] = useState(true);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getMonitoringProjectOptions()
+      .then(setOptions)
+      .catch((err) => setOptionsError(err instanceof Error ? err.message : "Gagal memuat opsi project."))
+      .finally(() => setOptionsLoading(false));
+  }, []);
 
   const filtered = useMemo(
     () =>
@@ -65,13 +83,33 @@ export function ProjectView() {
     };
   }, [projects]);
 
-  const handleAddProject = useCallback((draft: Omit<Project, "id">) => {
-    setProjects((prev) => {
-      const nextNum = String(prev.length + 1).padStart(3, "0");
-      const id = `P${nextNum}`;
-      return [{ ...draft, id }, ...prev];
-    });
-  }, []);
+  async function handleSaveProject(input: MonitoringProjectInput) {
+    if (activeProject?.databaseId) {
+      await updateMonitoringProject(activeProject.databaseId, input);
+      toast.success("Project diperbarui", input.name);
+    } else {
+      await createMonitoringProject(input);
+      toast.success("Project ditambahkan", input.name);
+    }
+    await refresh();
+  }
+
+  async function handleDeleteProject() {
+    if (!activeProject?.databaseId) return;
+    await deleteMonitoringProject(activeProject.databaseId);
+    toast.success("Project dihapus", activeProject.name);
+    await refresh();
+  }
+
+  function openCreateForm() {
+    setActiveProject(null);
+    setFormOpen(true);
+  }
+
+  function openEditForm(project: Project) {
+    setActiveProject(project);
+    setFormOpen(true);
+  }
 
   const hasActiveFilters = filterDiv !== "All" || filterStatus !== "All" || search !== "";
 
@@ -81,6 +119,10 @@ export function ProjectView() {
     setSearch("");
   };
 
+  if (isLoading || optionsLoading) {
+    return <MonitoringLoadingState variant="list" label="data project" />;
+  }
+
   return (
     <motion.div
       className="grid gap-5"
@@ -89,6 +131,12 @@ export function ProjectView() {
       transition={{ duration: 0.18 }}
     >
       {/* Filter toolbar */}
+      {(error || optionsError) && (
+        <div className="rounded-2xl border border-orange/20 bg-orange/8 px-4 py-3 text-xs font-bold text-orange">
+          {error ?? optionsError}
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-surface/85 p-2 shadow-[0_4px_14px_rgba(39,49,38,0.05)]">
         <div className="group flex min-w-0 flex-1 items-center gap-2 rounded-lg bg-surface-strong/60 px-3 py-2 ring-1 ring-inset ring-transparent transition-all duration-150 focus-within:bg-surface focus-within:ring-primary/40 max-md:basis-full md:min-w-[180px]">
           <Iconify
@@ -144,7 +192,7 @@ export function ProjectView() {
 
         <button
           type="button"
-          onClick={() => setFormOpen(true)}
+          onClick={openCreateForm}
           className="ml-auto flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-[0.75rem] font-bold text-white shadow-[0_4px_12px_rgba(37,99,235,0.25)] transition-all hover:bg-primary-dark active:scale-95 max-md:ml-0 max-md:w-full max-md:justify-center"
         >
           <Iconify icon="mingcute:add-line" width={14} />
@@ -172,7 +220,25 @@ export function ProjectView() {
         <span className="font-bold text-text">{stats.total} Total</span>
       </div>
 
-      {filtered.length === 0 ? (
+      {error ? null : projects.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/60 bg-surface/40 px-5 py-16 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-strong text-muted">
+            <Iconify icon="solar:folder-open-bold-duotone" width={25} />
+          </span>
+          <p className="mt-4 text-sm font-extrabold text-muted">Belum ada data project</p>
+          <p className="mt-1 max-w-md text-xs font-semibold leading-relaxed text-muted">
+            Tabel pengabdian_projects masih kosong. Tambahkan project baru untuk mulai mengatur track, divisi, owner, dan reviewer.
+          </p>
+          <button
+            type="button"
+            onClick={openCreateForm}
+            className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-[0.75rem] font-extrabold text-white transition-colors hover:bg-primary-dark"
+          >
+            <Iconify icon="mingcute:add-line" width={15} />
+            Tambah Project
+          </button>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/60 bg-surface/40 py-16">
           <Iconify
             icon="solar:folder-with-files-bold-duotone"
@@ -180,13 +246,13 @@ export function ProjectView() {
             className="text-muted/40"
           />
           <p className="mt-3 text-sm font-bold text-muted">Tidak ada project yang cocok</p>
-          <p className="mt-1 text-xs text-muted/60">Coba ubah filter atau tambah project baru</p>
+          <p className="mt-1 text-xs text-muted/60">Coba ubah pencarian atau filter yang aktif</p>
         </div>
       ) : (
         <div className="grid gap-3">
           {filtered.map((project, i) => (
             <motion.div
-              key={project.id}
+              key={project.databaseId ?? project.id}
               className="rounded-xl border border-white/80 bg-surface/85 p-[18px] shadow-[0_8px_30px_rgba(39,49,38,0.06)]"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -221,9 +287,7 @@ export function ProjectView() {
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[0.7rem] text-muted">
                     <span className="flex items-center gap-1">
                       <Iconify icon="solar:users-group-rounded-bold-duotone" width={12} />
-                      {project.owners.length > 0
-                        ? project.owners.map((oid) => santriNameMap.get(oid) || oid).join(", ")
-                        : "Belum ada owner"}
+                      {project.owners.length > 0 ? project.owners.join(", ") : "Belum ada owner"}
                     </span>
                     <span className="flex items-center gap-1">
                       <Iconify icon="solar:folder-with-files-bold-duotone" width={12} />
@@ -236,6 +300,15 @@ export function ProjectView() {
                   </div>
                 </div>
 
+                <div className="flex shrink-0 items-center gap-2 max-sm:w-full">
+                  <button
+                    type="button"
+                    onClick={() => openEditForm(project)}
+                    className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-[0.7rem] font-bold text-muted hover:border-primary/30 hover:text-primary"
+                  >
+                    <Iconify icon="solar:pen-bold-duotone" width={14} />
+                    Edit
+                  </button>
                 {project.link ? (
                   <a
                     href={project.link}
@@ -252,6 +325,7 @@ export function ProjectView() {
                     No link
                   </span>
                 )}
+                </div>
               </div>
             </motion.div>
           ))}
@@ -260,8 +334,11 @@ export function ProjectView() {
 
       <ProjectForm
         open={formOpen}
-        onClose={() => setFormOpen(false)}
-        onSubmit={handleAddProject}
+        project={activeProject}
+        options={options}
+        onClose={() => { setFormOpen(false); setActiveProject(null); }}
+        onSubmit={handleSaveProject}
+        onDelete={activeProject ? handleDeleteProject : undefined}
       />
     </motion.div>
   );

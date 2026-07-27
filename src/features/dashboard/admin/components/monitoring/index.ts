@@ -4,3 +4,4 @@ export { ProjectView } from "./ProjectView";
 export { ReportView } from "./ReportView";
 export { AtRiskView } from "./AtRiskView";
 export { MukafaahView } from "./MukafaahView";
+export { MonitoringLoadingState } from "./MonitoringLoadingState";

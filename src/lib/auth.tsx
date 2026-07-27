@@ -45,6 +45,20 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+const legacySessionStorageKey = "in_hsibs.auth.legacySession";
+
+function readLegacySession(): Session | null {
+  try {
+    const value = window.localStorage.getItem(legacySessionStorageKey);
+    if (!value) return null;
+    const stored = JSON.parse(value) as Partial<Session>;
+    if (stored.role !== "siswa" || !stored.userId || !stored.roleLabel) return null;
+    return { ...stored, password: "" } as Session;
+  } catch {
+    window.localStorage.removeItem(legacySessionStorageKey);
+    return null;
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [sbSession, setSbSession] = useState<SupabaseSession | null>(null);
@@ -53,26 +67,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      setSbSession(data.session);
-      if (data.session?.user) {
-        const auth = await restoreStaffAuth(data.session.user);
-        setProfile(auth?.profile ?? null);
-        setSession(auth?.session ?? null);
+    async function restoreSession() {
+      try {
+        const { data } = await supabase.auth.getSession();
+        setSbSession(data.session);
+        if (data.session?.user) {
+          const auth = await restoreStaffAuth(data.session.user);
+          setProfile(auth?.profile ?? null);
+          setSession(auth?.session ?? null);
+        } else {
+          setSession(readLegacySession());
+        }
+      } catch {
+        setSbSession(null);
+        setProfile(null);
+        setSession(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    }
+
+    void restoreSession();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (_event, newSbSession) => {
         setSbSession(newSbSession);
         if (newSbSession?.user) {
-          const auth = await restoreStaffAuth(newSbSession.user);
-          setProfile(auth?.profile ?? null);
-          setSession(auth?.session ?? null);
+          try {
+            const auth = await restoreStaffAuth(newSbSession.user);
+            setProfile(auth?.profile ?? null);
+            setSession(auth?.session ?? null);
+          } catch {
+            setProfile(null);
+            setSession(null);
+          }
         } else {
           setProfile(null);
-          setSession(null);
+          setSession(readLegacySession());
         }
       },
     );
@@ -90,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const auth = await signInStaff({ email, password, expectedRole });
+      window.localStorage.removeItem(legacySessionStorageKey);
       const { data } = await supabase.auth.getSession();
       setSbSession(data.session);
       setProfile(auth.profile);
@@ -103,7 +135,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Login lama (mock/demo — untuk LoginPage yang belum pakai Supabase)
   // Tetap ada agar routing.tsx tidak error saat demo
   function login(credentials: Session) {
-    setSession(credentials);
+    const safeSession = { ...credentials, password: "" };
+    window.localStorage.setItem(legacySessionStorageKey, JSON.stringify(safeSession));
+    setSession(safeSession);
   }
 
   async function logout() {
@@ -111,6 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setProfile(null);
     setSbSession(null);
+    window.localStorage.removeItem(legacySessionStorageKey);
   }
 
   return (

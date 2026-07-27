@@ -1,6 +1,7 @@
 export interface AdminDataFilter {
   academicYearId?: string;
   gender?: string;
+  divisionId?: string;
 }
 
 export interface AdminDashboardSnapshot {
@@ -46,4 +47,5 @@ export interface AdminMappingData {
   units: string[];
   divisions: AdminMappingDivisionOption[];
   locations: string[];
+  scopeDivision?: AdminMappingDivisionOption;
 }

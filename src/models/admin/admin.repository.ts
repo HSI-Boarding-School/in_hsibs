@@ -171,7 +171,6 @@ export async function getAdminDashboardSnapshot(
 export async function getAdminMappingData(
   filter: AdminDataFilter = {},
 ): Promise<AdminMappingData> {
-  void filter;
   const [students, identities, placements, assignments, units, divisions, locations, roles] = await Promise.all([
     supabase.from("pengabdian_santri").select("id,siswa_id,kode_santri,status"),
     supabase.from("kesiswaan").select("id,nis,nama_lengkap"),
@@ -220,11 +219,14 @@ export async function getAdminMappingData(
     rolesByDivisionId.set(row.divisi_id, current);
   });
 
-  return {
-    santri: studentRows.map((student, index) => {
+  const scopeDivision = filter.divisionId
+    ? divisionRows.find((row) => row.id === filter.divisionId)
+    : undefined;
+  const mappedSantri = studentRows.map((student, index) => {
       const identity = identityById.get(student.siswa_id);
       const placement = placementByPengabdianId.get(student.id);
-      const studentAssignments = placement ? assignmentsByPlacementId.get(placement.id) ?? [] : [];
+      const studentAssignments = (placement ? assignmentsByPlacementId.get(placement.id) ?? [] : [])
+        .filter((row) => !row.status || row.status === "Aktif");
       const divs = compactUnique(studentAssignments.map((row) => divisionById.get(row.divisi_id)?.kode_divisi));
       const picDivs = compactUnique(studentAssignments.map((row) => row.pic_div_id ? staffById.get(row.pic_div_id)?.nama_lengkap ?? "PIC Divisi belum terbaca" : null));
       const roleAssignments = studentAssignments.flatMap((row) => rolesByDivisionId.get(row.divisi_id) ?? []);
@@ -236,6 +238,7 @@ export async function getAdminMappingData(
 
       return {
         id: student.kode_santri || identity?.nis || `PENGABDIAN-${index + 1}`,
+        pengabdianId: student.id,
         name: identity?.nama_lengkap || "Santri tanpa nama",
         unit: (placement?.unit_id ? unitById.get(placement.unit_id)?.nama_unit : "") as Santri["unit"],
         loc: placement?.lokasi_id ? locationById.get(placement.lokasi_id)?.nama_lokasi ?? "Belum ditempatkan" : "Belum ditempatkan",
@@ -246,9 +249,17 @@ export async function getAdminMappingData(
         picReg: placement?.pic_reg_id ? staffById.get(placement.pic_reg_id)?.nama_lengkap ?? "PIC Regional belum terbaca" : "",
         status: mapStatus(student.status),
       };
-    }),
+    });
+
+  return {
+    santri: scopeDivision
+      ? mappedSantri.filter((student) => student.divs.includes(scopeDivision.kode_divisi))
+      : mappedSantri,
     units: compactUnique(unitRows.map((row) => row.nama_unit)),
     divisions: divisionRows.map((row) => ({ code: row.kode_divisi, label: row.nama_divisi })),
     locations: compactUnique(locationRows.map((row) => row.nama_lokasi)),
+    scopeDivision: scopeDivision
+      ? { code: scopeDivision.kode_divisi, label: scopeDivision.nama_divisi }
+      : undefined,
   };
 }
