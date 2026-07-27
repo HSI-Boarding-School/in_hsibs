@@ -280,9 +280,14 @@ function mapProjectStatus(status: string | null): Project["status"] {
   return "Idea";
 }
 
-export async function getMonitoringProjects(): Promise<Project[]> {
+export async function getMonitoringProjects(creatorId?: string): Promise<Project[]> {
+  let projectQuery = supabase
+    .from("pengabdian_projects")
+    .select("id,track_id,project_name,divisi_id,status,platform,reviewer,link,is_wajib,dibuat_oleh,created_at")
+    .order("created_at", { ascending: false });
+  if (creatorId) projectQuery = projectQuery.eq("dibuat_oleh", creatorId);
   const [projects, owners, santri, identities, divisions, tracks] = await Promise.all([
-    supabase.from("pengabdian_projects").select("id,track_id,project_name,divisi_id,status,platform,reviewer,link,is_wajib,created_at").order("created_at", { ascending: false }),
+    projectQuery,
     supabase.from("pengabdian_project_owner").select("id,project_id,pengabdian_id,role_owner,ditambahkan_pada"),
     supabase.from("pengabdian_santri").select("id,siswa_id,kode_santri"),
     supabase.from("kesiswaan").select("id,nis,nama_lengkap"),
@@ -398,7 +403,7 @@ async function replaceProjectOwners(projectId: string, ownerIds: string[]) {
   if (insertError) throw new Error(`Gagal menyimpan owner project: ${insertError.message}`);
 }
 
-export async function createMonitoringProject(input: MonitoringProjectInput) {
+export async function createMonitoringProject(input: MonitoringProjectInput, creatorId?: string) {
   const { data, error } = await supabase
     .from("pengabdian_projects")
     .insert({
@@ -410,6 +415,7 @@ export async function createMonitoringProject(input: MonitoringProjectInput) {
       reviewer: input.reviewerId,
       link: input.link || null,
       is_wajib: input.wajib,
+      dibuat_oleh: creatorId,
     } as never)
     .select("id")
     .single();
@@ -417,8 +423,8 @@ export async function createMonitoringProject(input: MonitoringProjectInput) {
   await replaceProjectOwners((data as { id: string }).id, input.ownerIds);
 }
 
-export async function updateMonitoringProject(projectId: string, input: MonitoringProjectInput) {
-  const { error } = await supabase
+export async function updateMonitoringProject(projectId: string, input: MonitoringProjectInput, creatorId?: string) {
+  let query = supabase
     .from("pengabdian_projects")
     .update({
       project_name: input.name,
@@ -431,13 +437,19 @@ export async function updateMonitoringProject(projectId: string, input: Monitori
       is_wajib: input.wajib,
     } as never)
     .eq("id", projectId);
+  if (creatorId) query = query.eq("dibuat_oleh", creatorId);
+  const { data, error } = await query.select("id").maybeSingle();
   if (error) throw new Error(`Gagal memperbarui project: ${error.message}`);
+  if (!data) throw new Error("Project tidak ditemukan atau bukan milik akun ini.");
   await replaceProjectOwners(projectId, input.ownerIds);
 }
 
-export async function deleteMonitoringProject(projectId: string) {
-  const { error } = await supabase.from("pengabdian_projects").delete().eq("id", projectId);
+export async function deleteMonitoringProject(projectId: string, creatorId?: string) {
+  let query = supabase.from("pengabdian_projects").delete().eq("id", projectId);
+  if (creatorId) query = query.eq("dibuat_oleh", creatorId);
+  const { data, error } = await query.select("id");
   if (error) throw new Error(`Gagal menghapus project: ${error.message}`);
+  if (!data?.length) throw new Error("Project tidak ditemukan atau bukan milik akun ini.");
 }
 
 function isSubmitted(status: PengabdianReportProgressViewRow["weekly_status"]) {

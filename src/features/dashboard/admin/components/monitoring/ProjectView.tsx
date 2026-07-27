@@ -39,8 +39,8 @@ const STATUS_FILTER_OPTIONS = [
   { value: "Archived", label: "Archived", icon: "solar:archive-bold-duotone" },
 ];
 
-export function ProjectView() {
-  const { projects, isLoading, error, refresh } = useMonitoringProjects();
+export function ProjectView({ creatorId }: { creatorId?: string }) {
+  const { projects, isLoading, error, refresh } = useMonitoringProjects(creatorId);
   const toast = useToast();
   const [filterDiv, setFilterDiv] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
@@ -85,10 +85,10 @@ export function ProjectView() {
 
   async function handleSaveProject(input: MonitoringProjectInput) {
     if (activeProject?.databaseId) {
-      await updateMonitoringProject(activeProject.databaseId, input);
+      await updateMonitoringProject(activeProject.databaseId, input, creatorId);
       toast.success("Project diperbarui", input.name);
     } else {
-      await createMonitoringProject(input);
+      await createMonitoringProject(input, creatorId);
       toast.success("Project ditambahkan", input.name);
     }
     await refresh();
@@ -96,7 +96,7 @@ export function ProjectView() {
 
   async function handleDeleteProject() {
     if (!activeProject?.databaseId) return;
-    await deleteMonitoringProject(activeProject.databaseId);
+    await deleteMonitoringProject(activeProject.databaseId, creatorId);
     toast.success("Project dihapus", activeProject.name);
     await refresh();
   }
@@ -227,7 +227,7 @@ export function ProjectView() {
           </span>
           <p className="mt-4 text-sm font-extrabold text-muted">Belum ada data project</p>
           <p className="mt-1 max-w-md text-xs font-semibold leading-relaxed text-muted">
-            Tabel pengabdian_projects masih kosong. Tambahkan project baru untuk mulai mengatur track, divisi, owner, dan reviewer.
+            {creatorId ? "Belum ada project yang dibuat oleh akun ini." : "Tabel pengabdian_projects masih kosong. Tambahkan project baru untuk mulai mengatur track, divisi, owner, dan reviewer."}
           </p>
           <button
             type="button"

@@ -1,646 +1,149 @@
-import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useState, type ReactNode } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
-import { santriList } from "../../../data/santriData";
-import {
-  weeklyEntries,
-  monthlyEntries,
-} from "../../../data/monitoring/reportData";
+import { useToast } from "../../../components/ui/ToastProvider";
+import { useAuth } from "../../../lib/auth";
+import { useAdminMappingData } from "../../../models/admin";
+import { setReportManagementStatus, useReportManagement, type ReportQueueItem } from "../../../models/report";
+import { ProjectView } from "../admin/components/monitoring/ProjectView";
 
-const CURRENT_DIVISION = "IT";
-const CURRENT_DIVISION_LABEL = "IT";
-const PIC_NAME = "Kak Andy";
+type MonitoringTab = "weekly" | "monthly" | "projects";
 
-const shortId = (fullId: string) => fullId.replace("IN_HSIBS_", "");
-
-type ValidationTab = "weekly" | "monthly" | "special";
-
-const validationTabs: {
-  id: ValidationTab;
-  label: string;
-  icon: string;
-  description: string;
-}[] = [
-  {
-    id: "weekly",
-    label: "Weekly Review",
-    icon: "solar:clipboard-list-bold-duotone",
-    description: "Validasi laporan mingguan santri",
-  },
-  {
-    id: "monthly",
-    label: "Monthly Evaluation",
-    icon: "solar:calendar-minimalistic-bold-duotone",
-    description: "Review draft evaluasi bulanan",
-  },
-  {
-    id: "special",
-    label: "Special Report",
-    icon: "solar:file-text-bold-duotone",
-    description: "Review laporan khusus tahap pertama",
-  },
+const tabs: { id: MonitoringTab; label: string; icon: string; description: string }[] = [
+  { id: "weekly", label: "Weekly Review", icon: "solar:clipboard-list-bold-duotone", description: "Validasi laporan mingguan" },
+  { id: "monthly", label: "Monthly Report", icon: "solar:calendar-minimalistic-bold-duotone", description: "Review laporan bulanan" },
+  { id: "projects", label: "Projects", icon: "solar:folder-with-files-bold-duotone", description: "Project yang kamu buat" },
 ];
 
-interface ValidationNote {
-  targetId: string;
-  type: "weekly" | "monthly" | "special";
-  note: string;
-}
-
 export function PicDivValidation() {
-  const [activeTab, setActiveTab] = useState<ValidationTab>("weekly");
-  const [validatedIds, setValidatedIds] = useState<Set<string>>(new Set());
-  const [_rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
-  const [notes, setNotes] = useState<ValidationNote[]>([]);
-  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const { profile } = useAuth();
+  const toast = useToast();
+  const [activeTab, setActiveTab] = useState<MonitoringTab>("weekly");
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [noteTargetId, setNoteTargetId] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
+  const mapping = useAdminMappingData({ divisionId: profile?.divisionId ?? undefined });
+  const reports = useReportManagement();
 
-  const divisionSantri = useMemo(
-    () => santriList.filter((s) => s.divs.includes(CURRENT_DIVISION)),
-    [],
-  );
-  const santriShortIds = useMemo(
-    () => divisionSantri.map((s) => shortId(s.id)),
-    [divisionSantri],
-  );
-
-  // Weekly validation queue
-  const weeklyQueue = useMemo(
-    () =>
-      weeklyEntries.filter(
-        (w) =>
-          santriShortIds.includes(w.sid) &&
-          !w.validated &&
-          !validatedIds.has(`w-${w.sid}`),
-      ),
-    [santriShortIds, validatedIds],
-  );
-
-  // Monthly evaluation queue (pending review, not yet finalized)
-  const monthlyQueue = useMemo(
-    () =>
-      monthlyEntries.filter(
-        (m) =>
-          santriShortIds.includes(m.sid) && !validatedIds.has(`m-${m.sid}`),
-      ),
-    [santriShortIds, validatedIds],
-  );
-
-  // Special reports (mock data for demo)
-  const specialReports = useMemo(
-    () =>
-      [
-        {
-          id: "SR001",
-          santriId: "S03",
-          type: "Izin Tidak Hadir Learn",
-          date: "2025-06-18",
-          reason: "Kegiatan keluarga mendesak",
-          status: "pending" as const,
-        },
-        {
-          id: "SR002",
-          santriId: "S15",
-          type: "Request Perpanjangan Deadline Project",
-          date: "2025-06-20",
-          reason: "Butuh waktu tambahan untuk quality assurance",
-          status: "pending" as const,
-        },
-        {
-          id: "SR003",
-          santriId: "S08",
-          type: "Permohonan Ganti Role",
-          date: "2025-06-21",
-          reason: "Ingin fokus ke Developer role",
-          status: "pending" as const,
-        },
-      ].filter((r) => santriShortIds.includes(r.santriId)),
-    [santriShortIds],
-  );
-
-  function getSantriName(sid: string): string {
-    return divisionSantri.find((s) => shortId(s.id) === sid)?.name ?? sid;
+  if (!profile?.divisionId) {
+    return <StatePanel icon="solar:buildings-3-linear" title="Divisi belum terhubung" description="Akun ini belum memiliki divisi pada pengabdian_staff.divisi_id." />;
+  }
+  if (mapping.isLoading || reports.isLoading) return <MonitoringLoading />;
+  if (mapping.error || reports.error || !mapping.data?.scopeDivision) {
+    return <StatePanel icon="solar:danger-triangle-bold-duotone" title="Monitoring belum dapat dimuat" description={mapping.error ?? reports.error ?? "Data divisi tidak ditemukan."} tone="error" />;
   }
 
-  function getSantriLoc(sid: string): string {
-    return divisionSantri.find((s) => shortId(s.id) === sid)?.loc ?? "-";
+  const studentIds = new Set(mapping.data.santri.map((student) => student.pengabdianId).filter((id): id is string => Boolean(id)));
+  const scopedReports = reports.data.queue.filter((report) => studentIds.has(report.pengabdianId));
+  const weeklyQueue = scopedReports.filter((report) => report.scope === "Weekly" && report.status === "Terkirim");
+  const monthlyQueue = scopedReports.filter((report) => report.scope === "Monthly" && report.status === "Terkirim");
+  const tabCount: Record<MonitoringTab, number | null> = { weekly: weeklyQueue.length, monthly: monthlyQueue.length, projects: null };
+
+  async function changeStatus(report: ReportQueueItem, status: "Divalidasi" | "Perlu_Revisi") {
+    setSavingId(report.id);
+    try {
+      await setReportManagementStatus(report.id, status, noteTargetId === report.id ? noteText : undefined);
+      await reports.refresh();
+      setNoteTargetId(null);
+      setNoteText("");
+      toast.success(status === "Divalidasi" ? "Laporan divalidasi" : "Revisi diminta", `${report.studentName} · ${report.summary}`);
+    } catch (error) {
+      toast.error("Status gagal diperbarui", error instanceof Error ? error.message : "Coba kembali beberapa saat lagi.");
+    } finally {
+      setSavingId(null);
+    }
   }
 
-  function handleValidate(id: string) {
-    setValidatedIds((prev) => new Set([...prev, id]));
-  }
-
-  function handleReject(id: string) {
-    setRejectedIds((prev) => new Set([...prev, id]));
-    setValidatedIds((prev) => new Set([...prev, id]));
-  }
-
-  function handleSaveNote() {
-    if (!activeNoteId || !noteText.trim()) return;
-    setNotes((prev) => [
-      ...prev.filter((n) => n.targetId !== activeNoteId),
-      {
-        targetId: activeNoteId,
-        type: activeTab,
-        note: noteText.trim(),
-      },
-    ]);
-    setActiveNoteId(null);
-    setNoteText("");
-  }
-
-  function getNote(targetId: string): string {
-    return notes.find((n) => n.targetId === targetId)?.note ?? "";
+  function openNote(report: ReportQueueItem) {
+    setNoteTargetId(report.id);
+    setNoteText(report.latestNote ?? "");
   }
 
   return (
-    <motion.div
-      className="grid gap-5"
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-3">
-          <p className="text-xs font-black uppercase tracking-widest text-primary">
-            PIC Divisi
-          </p>
-          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[0.65rem] font-black text-primary">
-            {CURRENT_DIVISION_LABEL}
-          </span>
+    <motion.div className="grid gap-5" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}>
+      <section className="relative overflow-hidden rounded-3xl border border-border bg-surface p-6 shadow-sm">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+        <div className="relative">
+          <div className="flex items-center gap-3"><p className="text-xs font-black uppercase tracking-widest text-primary">PIC Divisi</p><span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[0.65rem] font-black text-primary">{mapping.data.scopeDivision.code}</span></div>
+          <h1 className="mt-2 font-(--font-family-head) text-3xl font-extrabold tracking-tight text-primary-dark md:text-4xl">Validation & Monitoring</h1>
+          <p className="mt-1 max-w-2xl text-sm text-muted">Review laporan santri divisi {mapping.data.scopeDivision.label} dan kelola project milik {profile.name}.</p>
         </div>
-        <h1 className="mt-1 font-(--font-family-head) text-4xl font-extrabold tracking-tight text-primary-dark">
-          Validation & Monitoring
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          Validasi laporan, review evaluasi, dan kelola special report santri
-          divisi {CURRENT_DIVISION_LABEL}.
-        </p>
-      </div>
+      </section>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 scrollbar-x pb-1">
-        {validationTabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          const count =
-            tab.id === "weekly"
-              ? weeklyQueue.length
-              : tab.id === "monthly"
-                ? monthlyQueue.length
-                : specialReports.length;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center gap-2.5 rounded-xl px-5 py-3 text-[0.82rem] font-bold whitespace-nowrap transition-all duration-200 ${
-                isActive
-                  ? "bg-primary text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)]"
-                  : "bg-surface text-text hover:bg-primary-soft hover:text-primary-dark border border-border/50"
-              }`}
-            >
-              <Iconify icon={tab.icon} width={18} />
-              {tab.label}
-              {count > 0 && (
-                <span
-                  className={`ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[0.6rem] font-black ${
-                    isActive
-                      ? "bg-white/20 text-white"
-                      : "bg-orange/10 text-orange"
-                  }`}
-                >
-                  {count}
-                </span>
-              )}
-            </button>
-          );
+      <nav className="flex items-center gap-2 overflow-x-auto pb-1" aria-label="Monitoring PIC Divisi">
+        {tabs.map((tab) => {
+          const active = activeTab === tab.id;
+          const count = tabCount[tab.id];
+          return <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} title={tab.description} className={`flex items-center gap-2.5 whitespace-nowrap rounded-xl px-5 py-3 text-[0.82rem] font-bold transition-all ${active ? "bg-primary text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)]" : "border border-border/50 bg-surface text-text hover:bg-primary-soft"}`}><Iconify icon={tab.icon} width={18} />{tab.label}{count !== null && <span className={`ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[0.6rem] font-black ${active ? "bg-white/20 text-white" : count ? "bg-orange/10 text-orange" : "bg-surface-strong text-muted"}`}>{count}</span>}</button>;
         })}
-      </div>
+      </nav>
 
-      {/* Content */}
       <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.18 }}
-        >
-          {/* ── Weekly Review Tab ──────────────────────────── */}
-          {activeTab === "weekly" && (
-            <div className="grid gap-4">
-              <div className="rounded-xl border border-white/80 bg-surface/85 p-5 shadow-[0_14px_40px_rgba(39,49,38,0.08)]">
-                <div className="mb-4">
-                  <h3 className="font-(--font-family-head) text-lg font-extrabold text-primary-dark">
-                    Pending Weekly Validation
-                  </h3>
-                  <p className="text-sm text-muted">
-                    {weeklyQueue.length} laporan mingguan menunggu validasi dari{" "}
-                    {PIC_NAME}
-                  </p>
-                </div>
-
-                {weeklyQueue.length === 0 ? (
-                  <div className="flex flex-col items-center gap-2 py-10 text-center">
-                    <Iconify
-                      icon="solar:checkmark-circle-bold-duotone"
-                      width={40}
-                      className="text-[#16a34a]/40"
-                    />
-                    <p className="text-sm font-bold text-muted">
-                      Semua weekly review sudah divalidasi
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid gap-3">
-                    {weeklyQueue.map((entry, i) => (
-                      <motion.div
-                        key={entry.sid}
-                        className="rounded-xl border border-border/60 bg-surface p-4"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05, duration: 0.25 }}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <strong className="text-sm text-primary-dark">
-                                {getSantriName(entry.sid)}
-                              </strong>
-                              <span className="rounded-full bg-surface-strong px-2 py-0.5 text-[0.62rem] font-bold text-muted">
-                                {entry.week}
-                              </span>
-                              <span
-                                className={`rounded-full px-2 py-0.5 text-[0.62rem] font-black ${
-                                  entry.sowProgress === "Behind"
-                                    ? "bg-orange/10 text-orange"
-                                    : entry.sowProgress === "Ahead"
-                                      ? "bg-[#16a34a]/10 text-[#16a34a]"
-                                      : "bg-blue/10 text-blue"
-                                }`}
-                              >
-                                {entry.sowProgress}
-                              </span>
-                            </div>
-                            <p className="mt-0.5 text-xs text-muted">
-                              {getSantriLoc(entry.sid)}
-                            </p>
-                          </div>
-                          <div className="flex shrink-0 gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleValidate(`w-${entry.sid}`)}
-                              className="rounded-lg bg-primary px-3.5 py-2 text-[0.72rem] font-black text-white transition-all hover:bg-primary-dark active:scale-95"
-                            >
-                              Validate
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleReject(`w-${entry.sid}`)}
-                              className="rounded-lg border border-border bg-surface px-3.5 py-2 text-[0.72rem] font-bold text-muted transition-colors hover:bg-surface-strong"
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="mt-3 grid gap-2">
-                          {entry.highlight && (
-                            <div className="rounded-lg bg-[#16a34a]/5 border border-[#16a34a]/20 p-2.5">
-                              <p className="text-[0.6rem] font-black uppercase text-[#16a34a]">
-                                Highlight
-                              </p>
-                              <p className="mt-0.5 text-xs font-semibold text-text">
-                                {entry.highlight}
-                              </p>
-                            </div>
-                          )}
-                          {entry.lowlight && entry.lowlight !== "-" && (
-                            <div className="rounded-lg bg-orange/5 border border-orange/20 p-2.5">
-                              <p className="text-[0.6rem] font-black uppercase text-orange">
-                                Lowlight
-                              </p>
-                              <p className="mt-0.5 text-xs font-semibold text-text">
-                                {entry.lowlight}
-                              </p>
-                            </div>
-                          )}
-                          {entry.picNote && (
-                            <div className="rounded-lg bg-blue/5 border border-blue/20 p-2.5">
-                              <p className="text-[0.6rem] font-black uppercase text-blue">
-                                PIC Note
-                              </p>
-                              <p className="mt-0.5 text-xs font-semibold text-text">
-                                {entry.picNote}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Add note */}
-                        <div className="mt-3 border-t border-border/40 pt-3">
-                          {activeNoteId === entry.sid ? (
-                            <div className="flex items-center gap-2">
-                              <input
-                                className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text outline-none focus:border-primary/40 placeholder:text-muted/50"
-                                placeholder="Tulis catatan untuk santri..."
-                                value={noteText}
-                                onChange={(e) => setNoteText(e.target.value)}
-                                onKeyDown={(e) =>
-                                  e.key === "Enter" && handleSaveNote()
-                                }
-                              />
-                              <button
-                                type="button"
-                                onClick={handleSaveNote}
-                                className="rounded-lg bg-primary px-3 py-2 text-[0.68rem] font-black text-white"
-                              >
-                                Save
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setActiveNoteId(null);
-                                  setNoteText("");
-                                }}
-                                className="rounded-lg border border-border bg-surface px-3 py-2 text-[0.68rem] font-bold text-muted"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveNoteId(entry.sid);
-                                setNoteText(getNote(entry.sid));
-                              }}
-                              className="flex items-center gap-1.5 text-[0.72rem] font-bold text-primary transition-colors hover:text-primary-dark"
-                            >
-                              <Iconify
-                                icon="solar:pen-bold-duotone"
-                                width={14}
-                              />
-                              {getNote(entry.sid)
-                                ? "Edit Note"
-                                : "Add PIC Note"}
-                            </button>
-                          )}
-                          {getNote(entry.sid) && !activeNoteId && (
-                            <p className="mt-1.5 rounded-lg bg-primary/5 border border-primary/20 p-2 text-xs text-primary-dark">
-                              {getNote(entry.sid)}
-                            </p>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── Monthly Evaluation Tab ─────────────────────── */}
-          {activeTab === "monthly" && (
-            <div className="grid gap-4">
-              <div className="rounded-xl border border-white/80 bg-surface/85 p-5 shadow-[0_14px_40px_rgba(39,49,38,0.08)]">
-                <div className="mb-4">
-                  <h3 className="font-(--font-family-head) text-lg font-extrabold text-primary-dark">
-                    Monthly Evaluation Draft
-                  </h3>
-                  <p className="text-sm text-muted">
-                    {monthlyQueue.length} evaluasi bulanan menunggu review dari{" "}
-                    {PIC_NAME}
-                  </p>
-                </div>
-
-                {monthlyQueue.length === 0 ? (
-                  <div className="flex flex-col items-center gap-2 py-10 text-center">
-                    <Iconify
-                      icon="solar:checkmark-circle-bold-duotone"
-                      width={40}
-                      className="text-[#16a34a]/40"
-                    />
-                    <p className="text-sm font-bold text-muted">
-                      Semua evaluasi sudah direview
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid gap-3">
-                    {monthlyQueue.map((entry, i) => (
-                      <motion.div
-                        key={entry.sid}
-                        className="rounded-xl border border-border/60 bg-surface p-4"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05, duration: 0.25 }}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <strong className="text-sm text-primary-dark">
-                                {getSantriName(entry.sid)}
-                              </strong>
-                              <span className="rounded-full bg-surface-strong px-2 py-0.5 text-[0.62rem] font-bold text-muted">
-                                {entry.month}
-                              </span>
-                              <span
-                                className={`rounded-full px-2 py-0.5 text-[0.62rem] font-black ${
-                                  entry.status === "Red"
-                                    ? "bg-red-50 text-red-700"
-                                    : entry.status === "Yellow"
-                                      ? "bg-amber-50 text-amber-700"
-                                      : "bg-green-50 text-green-700"
-                                }`}
-                              >
-                                {entry.status}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex shrink-0 gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleValidate(`m-${entry.sid}`)}
-                              className="rounded-lg bg-primary px-3.5 py-2 text-[0.72rem] font-black text-white transition-all hover:bg-primary-dark active:scale-95"
-                            >
-                              Review Done
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Metrics grid */}
-                        <div className="mt-3 grid grid-cols-5 gap-2">
-                          {[
-                            {
-                              label: "SoW %",
-                              value: `${entry.sowPct}%`,
-                              warn: entry.sowPct < 50,
-                            },
-                            {
-                              label: "Adab",
-                              value: `${entry.adab}/5`,
-                              warn: entry.adab < 3,
-                            },
-                            {
-                              label: "Learn",
-                              value: String(entry.learnAtt),
-                              warn: entry.learnAtt === 0,
-                            },
-                            {
-                              label: "Projects",
-                              value: String(entry.projApproved),
-                              warn: entry.projApproved === 0,
-                            },
-                            {
-                              label: "Status",
-                              value: entry.status,
-                              warn: entry.status !== "Green",
-                            },
-                          ].map((metric) => (
-                            <div
-                              key={metric.label}
-                              className="rounded-lg bg-surface-strong/60 p-2.5 text-center"
-                            >
-                              <p className="text-[0.58rem] font-bold uppercase text-muted">
-                                {metric.label}
-                              </p>
-                              <p
-                                className={`mt-0.5 text-sm font-black ${metric.warn ? "text-orange" : "text-primary-dark"}`}
-                              >
-                                {metric.value}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Issues & Notes */}
-                        <div className="mt-3 grid gap-2">
-                          {entry.issues && (
-                            <div className="rounded-lg bg-orange/5 border border-orange/20 p-2.5">
-                              <p className="text-[0.6rem] font-black uppercase text-orange">
-                                Issues
-                              </p>
-                              <p className="mt-0.5 text-xs font-semibold text-text">
-                                {entry.issues}
-                              </p>
-                            </div>
-                          )}
-                          {entry.followUp && (
-                            <div className="rounded-lg bg-blue/5 border border-blue/20 p-2.5">
-                              <p className="text-[0.6rem] font-black uppercase text-blue">
-                                Follow Up
-                              </p>
-                              <p className="mt-0.5 text-xs font-semibold text-text">
-                                {entry.followUp}
-                              </p>
-                            </div>
-                          )}
-                          {entry.picDivNote && (
-                            <div className="rounded-lg bg-purple/5 border border-purple/20 p-2.5">
-                              <p className="text-[0.6rem] font-black uppercase text-purple">
-                                PIC Div Note
-                              </p>
-                              <p className="mt-0.5 text-xs font-semibold text-text">
-                                {entry.picDivNote}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── Special Report Tab ─────────────────────────── */}
-          {activeTab === "special" && (
-            <div className="grid gap-4">
-              <div className="rounded-xl border border-white/80 bg-surface/85 p-5 shadow-[0_14px_40px_rgba(39,49,38,0.08)]">
-                <div className="mb-4">
-                  <h3 className="font-(--font-family-head) text-lg font-extrabold text-primary-dark">
-                    Special Report Review
-                  </h3>
-                  <p className="text-sm text-muted">
-                    {specialReports.length} special report menunggu review tahap
-                    pertama dari {PIC_NAME}
-                  </p>
-                </div>
-
-                {specialReports.length === 0 ? (
-                  <div className="flex flex-col items-center gap-2 py-10 text-center">
-                    <Iconify
-                      icon="solar:checkmark-circle-bold-duotone"
-                      width={40}
-                      className="text-[#16a34a]/40"
-                    />
-                    <p className="text-sm font-bold text-muted">
-                      Tidak ada special report pending
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid gap-3">
-                    {specialReports.map((report, i) => (
-                      <motion.div
-                        key={report.id}
-                        className="rounded-xl border border-border/60 bg-surface p-4"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05, duration: 0.25 }}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="rounded-full bg-purple/10 px-2.5 py-1 text-[0.65rem] font-black text-purple">
-                                {report.type}
-                              </span>
-                              <span className="text-[0.65rem] text-muted">
-                                {report.date}
-                              </span>
-                            </div>
-                            <h4 className="mt-2 text-sm font-extrabold text-primary-dark">
-                              {getSantriName(report.santriId)}
-                            </h4>
-                            <p className="mt-1 text-xs text-muted">
-                              {report.reason}
-                            </p>
-                          </div>
-                          <div className="flex shrink-0 gap-2">
-                            <button
-                              type="button"
-                              className="rounded-lg bg-primary px-3.5 py-2 text-[0.72rem] font-black text-white transition-all hover:bg-primary-dark active:scale-95"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              type="button"
-                              className="rounded-lg border border-border bg-surface px-3.5 py-2 text-[0.72rem] font-bold text-muted transition-colors hover:bg-surface-strong"
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="mt-3 rounded-lg bg-surface-strong/40 p-3">
-                          <p className="text-[0.6rem] font-black uppercase text-muted">
-                            Review Notes
-                          </p>
-                          <p className="mt-1 text-xs text-muted italic">
-                            Review tahap pertama oleh PIC Divisi. Final approval
-                            memerlukan Admin.
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+        <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
+          {activeTab === "weekly" && <ReportQueue title="Pending Weekly Validation" description={`${weeklyQueue.length} laporan mingguan menunggu validasi dari ${profile.name}.`} reports={weeklyQueue} savingId={savingId} noteTargetId={noteTargetId} noteText={noteText} setNoteText={setNoteText} openNote={openNote} closeNote={() => { setNoteTargetId(null); setNoteText(""); }} changeStatus={changeStatus} />}
+          {activeTab === "monthly" && <ReportQueue title="Pending Monthly Review" description={`${monthlyQueue.length} laporan bulanan menunggu review dari ${profile.name}.`} reports={monthlyQueue} savingId={savingId} noteTargetId={noteTargetId} noteText={noteText} setNoteText={setNoteText} openNote={openNote} closeNote={() => { setNoteTargetId(null); setNoteText(""); }} changeStatus={changeStatus} />}
+          {activeTab === "projects" && <ProjectView creatorId={profile.id} />}
         </motion.div>
       </AnimatePresence>
     </motion.div>
   );
+}
+
+interface ReportQueueProps {
+  title: string;
+  description: string;
+  reports: ReportQueueItem[];
+  savingId: string | null;
+  noteTargetId: string | null;
+  noteText: string;
+  setNoteText: (value: string) => void;
+  openNote: (report: ReportQueueItem) => void;
+  closeNote: () => void;
+  changeStatus: (report: ReportQueueItem, status: "Divalidasi" | "Perlu_Revisi") => Promise<void>;
+}
+
+function ReportQueue({ title, description, reports, savingId, noteTargetId, noteText, setNoteText, openNote, closeNote, changeStatus }: ReportQueueProps) {
+  return (
+    <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+      <header className="mb-4"><h2 className="font-(--font-family-head) text-lg font-extrabold text-primary-dark">{title}</h2><p className="text-sm text-muted">{description}</p></header>
+      {reports.length ? <div className="grid gap-3">{reports.map((report, index) => (
+        <motion.article key={report.id} className="rounded-2xl border border-border/60 bg-background/45 p-4" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }}>
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2"><strong className="text-sm text-primary-dark">{report.studentName}</strong><span className="rounded-full bg-surface-strong px-2 py-0.5 text-[0.62rem] font-bold text-muted">{report.studentCode}</span><span className="rounded-full bg-primary/10 px-2 py-0.5 text-[0.62rem] font-black text-primary">{report.summary}</span>{report.hasBlocker && <span className="rounded-full bg-orange/10 px-2 py-0.5 text-[0.62rem] font-black text-orange">Ada kendala</span>}</div>
+              <p className="mt-1 text-xs font-semibold text-muted">{formatPeriod(report.periodStart, report.periodEnd)} · Versi {report.version}</p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <button type="button" disabled={savingId === report.id} onClick={() => void changeStatus(report, "Divalidasi")} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-[0.72rem] font-black text-white hover:bg-primary-dark disabled:cursor-wait disabled:opacity-60"><Iconify icon={savingId === report.id ? "solar:refresh-linear" : "solar:check-circle-bold"} width={14} className={savingId === report.id ? "animate-spin" : ""} />Validasi</button>
+              <button type="button" disabled={savingId === report.id} onClick={() => void changeStatus(report, "Perlu_Revisi")} className="rounded-lg border border-border bg-surface px-3.5 py-2 text-[0.72rem] font-bold text-muted hover:border-orange/30 hover:text-orange disabled:opacity-60">Revisi</button>
+            </div>
+          </div>
+
+          {report.details.length > 0 && <div className="mt-3 grid gap-2 md:grid-cols-2">{report.details.map((detail) => <div key={detail.label} className="rounded-xl border border-border/40 bg-surface p-3"><p className="text-[0.6rem] font-black uppercase tracking-wide text-muted">{detail.label}</p><p className="mt-1 text-xs font-semibold leading-relaxed text-text">{detail.value || "-"}</p></div>)}</div>}
+
+          <div className="mt-3 border-t border-border/40 pt-3">
+            {noteTargetId === report.id ? <div className="flex flex-col gap-2 sm:flex-row"><input value={noteText} onChange={(event) => setNoteText(event.target.value)} placeholder="Catatan disimpan bersama aksi validasi atau revisi..." className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text outline-none focus:border-primary/40" /><button type="button" onClick={closeNote} className="rounded-lg border border-border px-3 py-2 text-xs font-bold text-muted">Batal</button></div> : <button type="button" onClick={() => openNote(report)} className="inline-flex items-center gap-1.5 text-[0.72rem] font-bold text-primary"><Iconify icon="solar:pen-bold-duotone" width={14} />{report.latestNote ? "Edit catatan" : "Tambah catatan"}</button>}
+            {report.latestNote && noteTargetId !== report.id && <p className="mt-2 rounded-lg border border-primary/15 bg-primary/5 p-2.5 text-xs text-text">{report.latestNote}</p>}
+          </div>
+        </motion.article>
+      ))}</div> : <EmptyState />}
+    </section>
+  );
+}
+
+function formatPeriod(start: string, end: string) {
+  const formatter = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" });
+  return `${formatter.format(new Date(`${start}T00:00:00`))} - ${formatter.format(new Date(`${end}T00:00:00`))}`;
+}
+
+function EmptyState() {
+  return <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border bg-background/35 py-12 text-center"><Iconify icon="solar:checkmark-circle-bold-duotone" width={40} className="text-emerald-400/50" /><p className="text-sm font-bold text-muted">Tidak ada laporan yang menunggu review.</p></div>;
+}
+
+function StatePanel({ icon, title, description, tone = "neutral", action }: { icon: string; title: string; description: string; tone?: "neutral" | "error"; action?: ReactNode }) {
+  return <div className="flex min-h-[50vh] items-center justify-center"><div className="max-w-md rounded-3xl border border-border bg-surface p-8 text-center"><span className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${tone === "error" ? "bg-orange/10 text-orange" : "bg-background text-muted"}`}><Iconify icon={icon} width={28} /></span><h1 className="mt-4 text-lg font-black text-text">{title}</h1><p className="mt-2 text-sm leading-relaxed text-muted">{description}</p>{action}</div></div>;
+}
+
+function MonitoringLoading() {
+  return <div className="grid gap-5 animate-pulse"><div className="h-44 rounded-3xl bg-surface" /><div className="h-12 max-w-2xl rounded-xl bg-surface" /><div className="h-96 rounded-2xl bg-surface" /></div>;
 }

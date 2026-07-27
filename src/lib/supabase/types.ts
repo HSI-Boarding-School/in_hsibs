@@ -281,6 +281,7 @@ export interface PengabdianProjectRow {
   reviewer: string | null;
   link: string | null;
   is_wajib: boolean | null;
+  dibuat_oleh: string | null;
   created_at: string;
 }
 

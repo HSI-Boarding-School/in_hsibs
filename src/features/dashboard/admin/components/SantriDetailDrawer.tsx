@@ -141,9 +141,10 @@ interface SantriDetailDrawerProps {
   santri: Santri | null;
   open: boolean;
   onClose: () => void;
+  readOnly?: boolean;
 }
 
-export function SantriDetailDrawer({ santri, open, onClose }: SantriDetailDrawerProps) {
+export function SantriDetailDrawer({ santri, open, onClose, readOnly = false }: SantriDetailDrawerProps) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -180,7 +181,7 @@ export function SantriDetailDrawer({ santri, open, onClose }: SantriDetailDrawer
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 34 }}
           >
-            <DrawerContent santri={santri} onClose={onClose} />
+            <DrawerContent santri={santri} onClose={onClose} readOnly={readOnly} />
           </motion.aside>
         </>
       )}
@@ -188,7 +189,7 @@ export function SantriDetailDrawer({ santri, open, onClose }: SantriDetailDrawer
   );
 }
 
-function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => void }) {
+function DrawerContent({ santri, onClose, readOnly }: { santri: Santri; onClose: () => void; readOnly: boolean }) {
   const shortId = santri.id.replace("IN_HSIBS_", "");
   const unit = getUnitTheme(santri.unit);
   const status = statusTheme[santri.status];
@@ -199,7 +200,9 @@ function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => voi
     {},
   );
   const [newSow, setNewSow] = useState("");
-  const sowMap = sowBySantri[santri.id] ?? santri.sow ?? buildInitialSow(santri.roles);
+  const sowMap = readOnly
+    ? santri.sow ?? {}
+    : sowBySantri[santri.id] ?? santri.sow ?? buildInitialSow(santri.roles);
 
   useEffect(() => {
     setSelectedRole(null);
@@ -400,7 +403,7 @@ function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => voi
                     className="rounded-xl border border-dashed border-border/70 bg-surface-strong/22 px-3 py-3 text-[0.72rem] font-semibold text-muted"
                   >
                     <Iconify icon="solar:cursor-bold-duotone" width={13} className="mr-1.5 inline align-[-2px] text-primary/70" />
-                    Klik salah satu role untuk melihat atau menambahkan Scope of Work.
+                    Klik salah satu role untuk melihat Scope of Work.
                   </motion.div>
                 )}
 
@@ -451,7 +454,7 @@ function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => voi
                       </div>
                     )}
 
-                    <div className="mt-3 flex items-center gap-2 rounded-xl border border-border/60 bg-surface px-2.5 py-2 focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.08)]">
+                    {!readOnly && <div className="mt-3 flex items-center gap-2 rounded-xl border border-border/60 bg-surface px-2.5 py-2 focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.08)]">
                       <Iconify icon="solar:add-circle-bold-duotone" width={15} className="shrink-0 text-primary/70" />
                       <input
                         type="text"
@@ -471,12 +474,12 @@ function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => voi
                       >
                         Add
                       </button>
-                    </div>
+                    </div>}
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-            ) : (
+            ) : !readOnly ? (
               <button
                 type="button"
                 className="inline-flex items-center gap-2 rounded-xl border border-dashed border-primary/28 bg-primary-soft/32 px-3 py-2 text-[0.75rem] font-extrabold text-primary transition-colors hover:bg-primary hover:text-white"
@@ -484,7 +487,7 @@ function DrawerContent({ santri, onClose }: { santri: Santri; onClose: () => voi
                 <Iconify icon="solar:add-circle-bold-duotone" width={16} />
                 Tambah role
               </button>
-            )}
+            ) : <p className="text-[0.75rem] font-semibold text-muted">Belum ada role pada mapping database.</p>}
           </Section>
         </div>
       </Scrollbar>

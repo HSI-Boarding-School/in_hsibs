@@ -54,7 +54,7 @@ export function useMonitoringLearnSessions() {
   return { sessions, setSessions, isLoading, error, refresh };
 }
 
-export function useMonitoringProjects() {
+export function useMonitoringProjects(creatorId?: string) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,14 +62,14 @@ export function useMonitoringProjects() {
   const refresh = useCallback(async () => {
     setError(null);
     try {
-      setProjects(await getMonitoringProjects());
+      setProjects(await getMonitoringProjects(creatorId));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat data project.");
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [creatorId]);
 
   useEffect(() => {
     void refresh().catch(() => undefined);
