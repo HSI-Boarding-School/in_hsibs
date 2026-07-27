@@ -533,6 +533,45 @@
   background-color: var(--color-primary);
 }
 
+/* Vertical scrollbar that only reveals its thumb on interaction. */
+.scrollbar-v-hover {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+.scrollbar-v-hover:hover,
+.scrollbar-v-hover:focus-within {
+  scrollbar-color: color-mix(in srgb, var(--color-muted) 58%, transparent) transparent;
+}
+.scrollbar-v-hover::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar-v-hover::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+.scrollbar-v-hover::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 999px;
+  transition: background-color 0.3s ease;
+}
+.scrollbar-v-hover:hover::-webkit-scrollbar-thumb,
+.scrollbar-v-hover:focus-within::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--color-muted) 58%, transparent);
+}
+.scrollbar-v-hover::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-primary);
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── Scrollbar — Horizontal (custom design) ──────────────────── */
 /*
   Desain sendiri:

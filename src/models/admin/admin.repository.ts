@@ -239,6 +239,8 @@ export async function getAdminMappingData(
       return {
         id: student.kode_santri || identity?.nis || `PENGABDIAN-${index + 1}`,
         pengabdianId: student.id,
+        placementId: placement?.id,
+        locationId: placement?.lokasi_id ?? undefined,
         name: identity?.nama_lengkap || "Santri tanpa nama",
         unit: (placement?.unit_id ? unitById.get(placement.unit_id)?.nama_unit : "") as Santri["unit"],
         loc: placement?.lokasi_id ? locationById.get(placement.lokasi_id)?.nama_lokasi ?? "Belum ditempatkan" : "Belum ditempatkan",

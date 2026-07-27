@@ -185,6 +185,13 @@ export interface PengabdianDivisiRow {
   aktif: boolean | null;
 }
 
+export interface PengabdianRegionRow {
+  id: string;
+  nama_region: string;
+  pic_reg_id: string | null;
+  dibuat_pada: string | null;
+}
+
 export interface PengabdianLokasiRow {
   id: string;
   nama_lokasi: string;
@@ -377,6 +384,46 @@ export interface PengabdianReportMonthlyRow {
   rencana_bulan_depan: string | null;
 }
 
+export interface PengabdianReportAttachmentRow {
+  id: string;
+  report_id: string;
+  storage_bucket: string;
+  storage_path: string;
+  nama_file: string;
+  mime_type: string | null;
+  ukuran_byte: number | null;
+  diunggah_oleh: string | null;
+  dibuat_pada: string;
+}
+
+export interface PengabdianClarificationRow {
+  id: string;
+  pengabdian_id: string;
+  report_id: string | null;
+  penugasan_divisi_id: string | null;
+  tipe: "SoW" | "Assignment" | "Report" | "Other";
+  pertanyaan: string;
+  pic_div_id: string | null;
+  jawaban: string | null;
+  status: "Open" | "Answered" | "Adjustment_Requested" | "Closed";
+  adjustment_note: string | null;
+  dijawab_pada: string | null;
+  ditutup_pada: string | null;
+  dibuat_pada: string;
+  diperbarui_pada: string;
+}
+
+export interface PengabdianSpecialReportRow {
+  id: string;
+  pengabdian_id: string;
+  kategori: string;
+  judul: string;
+  deskripsi: string;
+  status: "Draft" | "Terkirim" | "In_Review" | "Resolved" | "Closed";
+  dibuat_pada: string;
+  diperbarui_pada: string;
+}
+
 export interface PengabdianReportReviewRow {
   id: string;
   report_id: string;
@@ -476,6 +523,11 @@ export interface Database {
         Insert: Omit<PengabdianDivisiRow, "id"> & { id?: string };
         Update: Partial<Omit<PengabdianDivisiRow, "id">>;
       };
+      pengabdian_region: {
+        Row: PengabdianRegionRow;
+        Insert: Omit<PengabdianRegionRow, "id" | "dibuat_pada"> & { id?: string; dibuat_pada?: string };
+        Update: Partial<Omit<PengabdianRegionRow, "id">>;
+      };
       pengabdian_lokasi: {
         Row: PengabdianLokasiRow;
         Insert: Omit<PengabdianLokasiRow, "id"> & { id?: string };
@@ -550,6 +602,21 @@ export interface Database {
         Row: PengabdianReportMonthlyRow;
         Insert: Partial<PengabdianReportMonthlyRow> & Pick<PengabdianReportMonthlyRow, "report_id" | "bulan" | "tahun">;
         Update: Partial<Omit<PengabdianReportMonthlyRow, "report_id">>;
+      };
+      pengabdian_report_attachment: {
+        Row: PengabdianReportAttachmentRow;
+        Insert: Omit<PengabdianReportAttachmentRow, "id" | "dibuat_pada"> & { id?: string; dibuat_pada?: string };
+        Update: Partial<Omit<PengabdianReportAttachmentRow, "id">>;
+      };
+      pengabdian_clarification: {
+        Row: PengabdianClarificationRow;
+        Insert: Omit<PengabdianClarificationRow, "id" | "dibuat_pada" | "diperbarui_pada"> & { id?: string; dibuat_pada?: string; diperbarui_pada?: string };
+        Update: Partial<Omit<PengabdianClarificationRow, "id">>;
+      };
+      pengabdian_special_report: {
+        Row: PengabdianSpecialReportRow;
+        Insert: Omit<PengabdianSpecialReportRow, "id" | "dibuat_pada" | "diperbarui_pada"> & { id?: string; dibuat_pada?: string; diperbarui_pada?: string };
+        Update: Partial<Omit<PengabdianSpecialReportRow, "id">>;
       };
       pengabdian_report_review: {
         Row: PengabdianReportReviewRow;

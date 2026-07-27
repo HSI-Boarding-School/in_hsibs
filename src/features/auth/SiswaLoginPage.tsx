@@ -1,15 +1,9 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { Iconify } from "../../components/iconify/iconify";
-import type { RoleId } from "../../types";
 
 interface SiswaLoginPageProps {
-  onLogin: (credentials: {
-    userId: string;
-    role: RoleId;
-    roleLabel: string;
-    password: string;
-  }) => void;
+  onLogin: (email: string, password: string) => Promise<void>;
   onBackToMainPortal?: () => void;
 }
 
@@ -17,18 +11,20 @@ export function SiswaLoginPage({
   onLogin,
   onBackToMainPortal,
 }: SiswaLoginPageProps) {
-  const [userId, setUserId] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onLogin({
-      password,
-      role: "siswa",
-      roleLabel: "Siswa",
-      userId: userId || "demo-siswa",
-    });
+    if (!email.trim() || !password) return;
+    setSubmitting(true);
+    setError(null);
+    try { await onLogin(email, password); }
+    catch (err) { setError(err instanceof Error ? err.message : "Login Santri gagal."); }
+    finally { setSubmitting(false); }
   }
 
   return (
@@ -90,7 +86,7 @@ export function SiswaLoginPage({
           </p>
 
           <div className="relative mt-5 rounded-2xl bg-black/12 p-3 text-[0.72rem] font-bold text-white/82 ring-1 ring-inset ring-white/14">
-            Demo ID: S01
+            Gunakan email akun yang terhubung ke data pengabdian santri.
           </div>
         </div>
 
@@ -108,16 +104,17 @@ export function SiswaLoginPage({
               htmlFor="siswa-user-id"
               className="font-[var(--font-family-body)] text-[0.82rem] font-extrabold text-text"
             >
-              ID Santri
+              Email Santri
             </label>
             <div className="flex items-center gap-2.5 rounded-[14px] border-[1.5px] border-border bg-surface px-3.5 text-muted transition-[border-color,box-shadow] duration-[180ms] focus-within:border-amber-500/40 focus-within:shadow-[0_0_0_3px_rgba(245,158,11,0.1)]">
               <Iconify icon="solar:user-bold-duotone" width={20} />
               <input
                 id="siswa-user-id"
                 className="flex-1 border-0 bg-transparent py-3.5 font-[var(--font-family-body)] text-text outline-none placeholder:text-muted/55"
-                onChange={(event) => setUserId(event.target.value)}
-                placeholder="contoh: S01"
-                value={userId}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="nama@email.com"
+                value={email}
+                type="email"
                 autoComplete="username"
               />
             </div>
@@ -165,9 +162,12 @@ export function SiswaLoginPage({
             </div>
           </div>
 
+          {error && <div className="rounded-xl border border-orange-500/20 bg-orange-500/8 px-3 py-2.5 text-xs font-bold text-orange-600">{error}</div>}
+
           {/* Submit */}
           <motion.button
             type="submit"
+            disabled={submitting || !email.trim() || !password}
             className="flex w-full items-center justify-center gap-2.5 rounded-2xl border-0 bg-gradient-to-br from-amber-500 to-orange-700 py-4 font-[var(--font-family-body)] font-black text-white shadow-[0_8px_24px_rgba(245,158,11,0.28)]"
             whileHover={{
               scale: 1.02,
@@ -175,7 +175,8 @@ export function SiswaLoginPage({
             }}
             whileTap={{ scale: 0.98 }}
           >
-            <span>Masuk sebagai Siswa</span>
+             {submitting && <Iconify icon="svg-spinners:ring-resize" width={18} />}
+             <span>{submitting ? "Memverifikasi..." : "Masuk sebagai Siswa"}</span>
           </motion.button>
         </motion.form>
       </motion.div>

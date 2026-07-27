@@ -1,6 +1,7 @@
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabase/client";
 import type { PengabdianStaff } from "../../lib/supabase/types";
+import type { Session } from "../../types";
 import {
   getStaffRoleLabel,
   mapStaffRole,
@@ -92,6 +93,35 @@ export async function restoreStaffAuth(user: User): Promise<StaffAuthModel | nul
       ? storedPortalRole
       : mapStaffRole(profile.role);
   return buildStaffAuth(user, profile, portalRole);
+}
+
+export async function restoreStudentAuth(user: User): Promise<Session | null> {
+  const { data, error } = await supabase
+    .from("pengabdian_santri")
+    .select("id,kode_santri,status")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+  if (error) throw new Error(`Gagal memuat profil santri: ${error.message}`);
+  const student = data as unknown as Pick<import("../../lib/supabase/types").PengabdianSantri, "id" | "kode_santri" | "status"> | null;
+  if (!student || student.status !== "Aktif") return null;
+  return {
+    userId: student.kode_santri ?? user.email ?? student.id.slice(0, 8),
+    role: "siswa",
+    roleLabel: "Santri",
+    password: "",
+  };
+}
+
+export async function signInStudent(email: string, password: string): Promise<Session> {
+  const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+  if (error) throw new Error(error.message);
+  const session = await restoreStudentAuth(data.user);
+  if (!session) {
+    await supabase.auth.signOut();
+    throw new Error("Akun ini tidak terhubung ke santri pengabdian aktif.");
+  }
+  window.localStorage.removeItem(portalRoleStorageKey);
+  return session;
 }
 
 export async function signOutStaff() {

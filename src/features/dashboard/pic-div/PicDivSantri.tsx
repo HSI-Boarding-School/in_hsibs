@@ -9,7 +9,9 @@ import { SantriDetailDrawer } from "../admin/components/SantriDetailDrawer";
 
 type StatusFilter = "all" | Santri["status"];
 
-const statusOptions: { id: StatusFilter; label: string }[] = [
+const statusOptions: { id: StatusFilter; label: string }[
+  
+] = [
   { id: "all", label: "Semua" },
   { id: "Active", label: "Active" },
   { id: "On Hold", label: "On Hold" },

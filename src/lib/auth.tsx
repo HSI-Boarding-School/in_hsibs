@@ -25,6 +25,8 @@ import { supabase } from "./supabase/client";
 import type { Session } from "../types";
 import {
   restoreStaffAuth,
+  restoreStudentAuth,
+  signInStudent,
   signInStaff,
   signOutStaff,
   type StaffProfileModel,
@@ -41,6 +43,7 @@ interface AuthContextValue {
     password: string,
     expectedRole: Session["role"],
   ) => Promise<Session>;
+  loginSiswaWithSupabase: (email: string, password: string) => Promise<Session>;
   logout: () => Promise<void>;
 }
 
@@ -72,9 +75,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data } = await supabase.auth.getSession();
         setSbSession(data.session);
         if (data.session?.user) {
-          const auth = await restoreStaffAuth(data.session.user);
+          const studentSession = await restoreStudentAuth(data.session.user);
+          const auth = studentSession ? null : await restoreStaffAuth(data.session.user);
           setProfile(auth?.profile ?? null);
-          setSession(auth?.session ?? null);
+          setSession(auth?.session ?? studentSession);
         } else {
           setSession(readLegacySession());
         }
@@ -94,9 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSbSession(newSbSession);
         if (newSbSession?.user) {
           try {
-            const auth = await restoreStaffAuth(newSbSession.user);
+            const studentSession = await restoreStudentAuth(newSbSession.user);
+            const auth = studentSession ? null : await restoreStaffAuth(newSbSession.user);
             setProfile(auth?.profile ?? null);
-            setSession(auth?.session ?? null);
+            setSession(auth?.session ?? studentSession);
           } catch {
             setProfile(null);
             setSession(null);
@@ -118,18 +123,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     expectedRole: Session["role"],
   ) {
-    setLoading(true);
-    try {
-      const auth = await signInStaff({ email, password, expectedRole });
-      window.localStorage.removeItem(legacySessionStorageKey);
-      const { data } = await supabase.auth.getSession();
-      setSbSession(data.session);
-      setProfile(auth.profile);
-      setSession(auth.session);
-      return auth.session;
-    } finally {
-      setLoading(false);
-    }
+    const auth = await signInStaff({ email, password, expectedRole });
+    window.localStorage.removeItem(legacySessionStorageKey);
+    const { data } = await supabase.auth.getSession();
+    setSbSession(data.session);
+    setProfile(auth.profile);
+    setSession(auth.session);
+    return auth.session;
+  }
+
+  async function loginSiswaWithSupabase(email: string, password: string) {
+    const studentSession = await signInStudent(email, password);
+    window.localStorage.removeItem(legacySessionStorageKey);
+    const { data } = await supabase.auth.getSession();
+    setSbSession(data.session);
+    setProfile(null);
+    setSession(studentSession);
+    return studentSession;
   }
 
   // Login lama (mock/demo — untuk LoginPage yang belum pakai Supabase)
@@ -157,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         login,
         loginWithSupabase,
+        loginSiswaWithSupabase,
         logout,
       }}
     >

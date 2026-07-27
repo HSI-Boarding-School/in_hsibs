@@ -1,212 +1,191 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
-import { getDivLabel, santriList } from "../../../data/santriData";
-import { monthlyEntries, weeklyEntries } from "../../../data/monitoring/reportData";
+import type { StudentActionId, StudentReportItem, StudentWorkspaceData } from "../../../models/siswa";
 import { Card, InfoPanel, Progress, SectionTitle, StatusRow } from "./components";
 
-type Santri = (typeof santriList)[number];
-type Weekly = (typeof weeklyEntries)[number] | undefined;
-type Monthly = (typeof monthlyEntries)[number] | undefined;
-
-const quickActions = [
-  { label: "Daily Check-in", desc: "Plan, done, blocker", icon: "solar:checklist-minimalistic-bold-duotone" },
-  { label: "Weekly Review", desc: "Review pekanan", icon: "solar:calendar-mark-bold-duotone" },
-  { label: "Monthly Report", desc: "Summary bulanan", icon: "solar:file-text-bold-duotone" },
-  { label: "Special Report", desc: "Case khusus", icon: "solar:document-add-bold-duotone" },
-  { label: "Upload Evidence", desc: "Progress SoW", icon: "solar:upload-square-bold-duotone" },
-  { label: "Remind PIC", desc: "Minta review", icon: "solar:chat-round-call-bold-duotone" },
+export const studentActions: { id: StudentActionId; label: string; desc: string; icon: string }[] = [
+  { id: "daily", label: "Daily Check-in", desc: "Catatan hari ini", icon: "solar:checklist-minimalistic-bold-duotone" },
+  { id: "weekly", label: "Weekly Review", desc: "Refleksi pekanan", icon: "solar:calendar-mark-bold-duotone" },
+  { id: "monthly", label: "Monthly Report", desc: "Rangkuman bulanan", icon: "solar:file-text-bold-duotone" },
+  { id: "special", label: "Special Report", desc: "Laporkan case", icon: "solar:document-add-bold-duotone" },
+  { id: "evidence", label: "Upload Evidence", desc: "Lampirkan bukti", icon: "solar:upload-square-bold-duotone" },
+  { id: "remind", label: "Remind PIC", desc: "Minta review", icon: "solar:chat-round-call-bold-duotone" },
 ];
 
-export function SiswaHomePage({ santri, weekly, monthly, projectCount }: { santri: Santri; weekly: Weekly; monthly: Monthly; projectCount: number }) {
-  const [activeAction, setActiveAction] = useState<string | null>(null);
-  const primary = santri.roles[0] ?? "Belum ada role utama";
-  const secondary = santri.roles[1] ?? "Belum ada role kedua";
-  const side = santri.roles.slice(2);
+export function SiswaHomePage({ data, onAction }: { data: StudentWorkspaceData; onAction: (action: StudentActionId) => void }) {
+  const daily = latest(data.reports, "Daily");
+  const weekly = latest(data.reports, "Weekly");
+  const monthly = latest(data.reports, "Monthly");
+  const projectProgress = average(data.projects.map((project) => project.progress));
+  const [selectedRole, setSelectedRole] = useState(data.profile.roles[0] ?? "");
+  const activeRole = data.profile.roles.includes(selectedRole) ? selectedRole : data.profile.roles[0] ?? "";
+  const activeSow = data.profile.sow[activeRole] ?? [];
 
   return (
-    <>
-      <section className="grid grid-cols-[1.1fr_0.9fr] gap-4 max-xl:grid-cols-1">
-        <Card className="relative overflow-hidden">
-          <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/12 blur-3xl" />
-          <div className="relative">
-            <SectionTitle eyebrow="Today" title="Ruang Kerja Santri" desc="Mulai dari check-in harian, upload evidence, atau remind PIC kalau butuh review." />
-            <div className="mt-5 grid grid-cols-3 gap-2 max-md:grid-cols-2 max-sm:grid-cols-1">
-              {quickActions.map((action) => (
-                <button
-                  key={action.label}
-                  type="button"
-                  onClick={() => setActiveAction(action.label)}
-                  className="group rounded-2xl border border-border/60 bg-surface px-3 py-3 text-left transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary-soft/30"
-                >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
-                    <Iconify icon={action.icon} width={20} />
-                  </span>
-                  <p className="mt-3 text-sm font-extrabold text-primary-dark">{action.label}</p>
-                  <p className="mt-0.5 text-xs font-semibold text-muted">{action.desc}</p>
-                </button>
-              ))}
-            </div>
+    <div className="grid gap-4">
+      <section className="relative overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-r from-primary/10 via-surface to-sky-500/8 p-5 shadow-[0_16px_50px_rgba(37,99,235,0.08)]">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-primary/12 blur-3xl" />
+        <div className="relative grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-primary px-2.5 py-1 text-[0.58rem] font-black uppercase tracking-wider text-white">Konteks Pengabdian</span><span className="text-xs font-bold text-muted">{data.profile.unit} · {data.profile.location}</span></div>
+            <h2 className="mt-3 text-xl font-extrabold text-primary-dark">{data.profile.divisions.join(" · ") || "Divisi belum ditentukan"}</h2>
+            <div className="mt-2 flex flex-wrap gap-2">{data.profile.roles.map((role) => <span key={role} className="rounded-lg border border-primary/12 bg-surface/75 px-2.5 py-1 text-[0.65rem] font-extrabold text-primary">{role}</span>)}</div>
           </div>
-        </Card>
-
-        <Card>
-          <SectionTitle eyebrow="Latest PIC Note" title="Catatan Terbaru" />
-          <div className="mt-4 rounded-3xl bg-gradient-to-br from-primary/12 to-blue/8 p-4 ring-1 ring-inset ring-primary/10">
-            <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary text-white">
-                <Iconify icon="solar:chat-round-like-bold-duotone" width={20} />
-              </span>
-              <div>
-                <p className="text-sm font-semibold leading-relaxed text-text">
-                  Fokus selesaikan evidence SoW minggu ini. Kalau blocker belum clear, remind PIC Div lewat portal.
-                </p>
-                <p className="mt-3 text-xs font-black text-primary">PIC Divisi • 2 jam lalu</p>
-              </div>
-            </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[380px]">
+            <ContextContact icon="solar:shield-user-bold-duotone" label="PIC Divisi" value={data.profile.picDivisions.join(" · ") || "Belum ada"} />
+            <ContextContact icon="solar:map-point-bold-duotone" label="PIC Regional" value={data.profile.picRegional} />
           </div>
-          <div className="mt-4 grid gap-3">
-            <StatusRow label="Daily Check-in" value={activeAction === "Daily Check-in" ? "Draft dibuka" : "Belum submit"} tone="orange" />
-            <StatusRow label="Weekly Deadline" value={weekly?.validated ? "Verified" : "Jumat, 21:00"} tone={weekly?.validated ? "green" : "blue"} />
-            <StatusRow label="Monthly Deadline" value="Akhir bulan" tone="purple" />
-          </div>
-        </Card>
-      </section>
-
-      <section className="grid grid-cols-3 gap-4 max-xl:grid-cols-1">
-        <InfoPanel title="My Placement" icon="solar:map-point-bold-duotone" items={[["Unit", santri.unit], ["Location", santri.loc], ["PIC Reg", santri.picReg || "Belum ditentukan"]]} />
-        <InfoPanel title="My Assignment" icon="solar:target-bold-duotone" items={[["Primary", primary], ["Secondary", secondary], ["Additional / Side", side.length ? side.join(" • ") : "Tidak ada"]]} />
-        <Card>
-          <SectionTitle eyebrow="Project" title="Progress" />
-          <div className="mt-5 grid gap-4">
-            <Progress label="SoW Evidence" value={monthly?.sowPct ?? 0} tone="bg-blue" />
-            <Progress label="Project Progress" value={projectCount ? 70 : 20} tone="bg-green" />
-          </div>
-        </Card>
-      </section>
-
-      <Card>
-        <SectionTitle eyebrow="Role & SoW" title="Assignment Cards" desc="SoW bersifat read-only. Santri hanya upload evidence atau progress." />
-        <div className="mt-4 grid grid-cols-4 gap-3 max-xl:grid-cols-2 max-md:grid-cols-1">
-          {santri.roles.slice(0, 4).map((role, index) => (
-            <motion.div key={role} whileHover={{ y: -3 }} className="rounded-3xl bg-surface-strong/45 p-4 ring-1 ring-inset ring-border/50">
-              <div className="flex items-center justify-between gap-3">
-                <strong className="text-sm text-primary-dark">{role}</strong>
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[0.62rem] font-black text-primary">SoW {index + 1}</span>
-              </div>
-              <p className="mt-3 text-xs font-semibold leading-relaxed text-muted">Upload evidence ketika progress siap direview PIC.</p>
-            </motion.div>
-          ))}
         </div>
-      </Card>
+      </section>
 
-      <ActionSheet action={activeAction} onClose={() => setActiveAction(null)} />
-    </>
+      <section className="grid grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-4 max-xl:grid-cols-1">
+        <div className="grid gap-3">
+          <button type="button" onClick={() => onAction("daily")} className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-primary p-5 text-left text-white shadow-[0_18px_44px_rgba(37,99,235,0.24)] transition-transform hover:-translate-y-0.5">
+            <div className="pointer-events-none absolute -right-8 -top-14 h-44 w-44 rounded-full bg-white/13 blur-2xl" />
+            <div className="relative flex min-h-40 flex-col justify-between">
+              <div className="flex items-start justify-between gap-4"><span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/16 backdrop-blur-sm"><Iconify icon="solar:checklist-minimalistic-bold-duotone" width={25} /></span><span className="rounded-full bg-white/14 px-3 py-1 text-[0.62rem] font-black">{todayLabel()}</span></div>
+              <div className="mt-6"><p className="text-[0.62rem] font-black uppercase tracking-[0.15em] text-white/65">Prioritas Hari Ini</p><div className="mt-1 flex items-end justify-between gap-4"><div><h2 className="text-2xl font-extrabold">Daily Check-in</h2><p className="mt-1 text-xs font-semibold text-white/72">Isi rencana, hasil pekerjaan, kendala, dan mood.</p></div><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-primary transition-transform group-hover:translate-x-1"><Iconify icon="solar:arrow-right-linear" width={19} /></span></div><div className="mt-3"><ActionStatus report={daily} inverse /></div></div>
+            </div>
+          </button>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <PeriodAction action={studentActions[1]} report={weekly} period="Setiap pekan" onClick={() => onAction("weekly")} />
+            <PeriodAction action={studentActions[2]} report={monthly} period="Akhir bulan" onClick={() => onAction("monthly")} />
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          <button type="button" onClick={() => onAction("special")} className="group rounded-3xl border border-orange/20 bg-gradient-to-br from-orange/10 to-surface p-5 text-left transition-all hover:border-orange/35 hover:shadow-[0_14px_36px_rgba(249,115,22,0.1)]">
+            <div className="flex items-start justify-between gap-4"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange/12 text-orange"><Iconify icon="solar:document-add-bold-duotone" width={22} /></span><span className="rounded-full bg-orange/10 px-2.5 py-1 text-[0.58rem] font-black uppercase tracking-wide text-orange">Case khusus</span></div>
+            <h2 className="mt-5 text-lg font-extrabold text-primary-dark">Special Report</h2><p className="mt-1 text-xs font-semibold leading-relaxed text-muted">Gunakan untuk izin, kesehatan, perubahan penempatan, atau case project.</p>
+            <div className="mt-4 flex items-center justify-between border-t border-orange/12 pt-3"><span className="text-[0.65rem] font-bold text-muted">{data.specialReportCount} report pernah dikirim</span><span className="text-xs font-extrabold text-orange">Buat report <Iconify icon="solar:arrow-right-linear" width={14} className="ml-1 inline" /></span></div>
+          </button>
+
+          <div className="grid grid-cols-2 gap-3"><SupportAction icon="solar:upload-square-bold-duotone" label="Upload Evidence" meta={`${data.evidenceCount} file`} onClick={() => onAction("evidence")} /><SupportAction icon="solar:chat-round-call-bold-duotone" label="Remind PIC" meta={`${data.openClarifications} terbuka`} onClick={() => onAction("remind")} /></div>
+          <Card className="p-4!"><div className="grid grid-cols-3 gap-3"><CompactMetric label="SoW" value={`${data.latestEvaluation?.sowProgress ?? 0}%`} /><CompactMetric label="Project" value={`${projectProgress}%`} /><CompactMetric label="GYR" value={data.latestEvaluation?.gyr ?? "-"} /></div>{data.latestPicNote && <div className="mt-3 border-t border-border/55 pt-3"><p className="line-clamp-2 text-xs font-semibold text-text">“{data.latestPicNote.note}”</p><p className="mt-1 text-[0.62rem] font-black text-primary">{data.latestPicNote.actor} · {relativeTime(data.latestPicNote.createdAt)}</p></div>}</Card>
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-3xl border border-border/65 bg-surface shadow-[0_16px_48px_rgba(15,23,42,0.06)]">
+        <header className="flex items-end justify-between gap-4 border-b border-border/55 px-5 py-4"><div><p className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-primary">Role & Scope of Work</p><h2 className="mt-1 text-xl font-extrabold text-primary-dark">Tanggung Jawab Saya</h2><p className="mt-1 text-xs font-semibold text-muted">Pilih role untuk melihat fokus kerja dan melampirkan evidence.</p></div><button type="button" onClick={() => onAction("evidence")} className="hidden rounded-xl bg-primary px-3.5 py-2 text-xs font-extrabold text-white sm:inline-flex">Upload evidence</button></header>
+        {data.profile.roles.length ? <div className="grid min-h-64 md:grid-cols-[240px_1fr]"><nav className="border-b border-border/55 bg-background/30 p-3 md:border-b-0 md:border-r"><div className="scrollbar-hidden flex gap-2 overflow-x-auto md:grid md:overflow-visible">{data.profile.roles.map((role, index) => <button key={role} type="button" onClick={() => setSelectedRole(role)} className={`flex min-w-44 items-center gap-3 rounded-2xl px-3 py-3 text-left transition-all md:min-w-0 ${activeRole === role ? "bg-primary text-white shadow-[0_9px_24px_rgba(37,99,235,0.2)]" : "text-text hover:bg-surface"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${activeRole === role ? "bg-white/16" : "bg-primary/8 text-primary"}`}><Iconify icon={roleIcon(role)} width={18} /></span><div className="min-w-0"><p className="truncate text-xs font-extrabold">{role}</p><p className={`mt-0.5 text-[0.6rem] font-semibold ${activeRole === role ? "text-white/65" : "text-muted"}`}>Role {String(index + 1).padStart(2, "0")}</p></div></button>)}</div></nav><div className="relative overflow-hidden p-5"><div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-primary/7 blur-3xl" /><div className="relative"><div className="flex items-start justify-between gap-4"><div><span className="inline-flex rounded-full bg-primary/9 px-2.5 py-1 text-[0.58rem] font-black uppercase tracking-wide text-primary">Role aktif</span><h3 className="mt-3 text-xl font-extrabold text-primary-dark">{activeRole}</h3></div><span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/9 text-primary"><Iconify icon={roleIcon(activeRole)} width={24} /></span></div><div className="mt-5 grid gap-2">{activeSow.length ? activeSow.map((item, index) => <div key={item} className="flex items-start gap-3 rounded-2xl border border-border/50 bg-background/25 p-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-[0.6rem] font-black text-white">{index + 1}</span><p className="text-xs font-semibold leading-relaxed text-text">{item}</p></div>) : <Empty text="Belum ada SoW untuk role ini." />}</div><button type="button" onClick={() => onAction("evidence")} className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold text-primary sm:hidden"><Iconify icon="solar:upload-square-bold-duotone" width={16} />Upload evidence</button></div></div></div> : <Empty text="Belum ada role pada assignment." />}
+      </section>
+    </div>
   );
 }
 
-export function SiswaMappingPage({ currentId }: { currentId: string }) {
-  return (
-    <Card>
-      <div className="flex items-start justify-between gap-4 max-md:flex-col">
-        <SectionTitle eyebrow="Read-only Mapping" title="Basic Mapping Santri Lain" desc="Santri bisa melihat mapping dasar tanpa edit, approval, atau drag-drop." />
-        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-black text-primary">View only</span>
+export function SiswaMappingPage({ data }: { data: StudentWorkspaceData }) {
+  const [tab, setTab] = useState<"overview" | "roles" | "pic">("overview");
+  const [selectedRole, setSelectedRole] = useState(data.profile.roles[0] ?? "");
+  const activeRole = data.profile.roles.includes(selectedRole) ? selectedRole : data.profile.roles[0] ?? "";
+  const activeSow = data.profile.sow[activeRole] ?? [];
+
+  return <section className="grid gap-4">
+    <div className="relative overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/10 via-surface to-sky-500/8 p-5 shadow-[0_16px_50px_rgba(37,99,235,0.08)]">
+      <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-primary/12 blur-3xl" />
+      <div className="relative flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+        <div><span className="rounded-full bg-primary px-2.5 py-1 text-[0.58rem] font-black uppercase tracking-wider text-white">Read only</span><h1 className="mt-3 text-2xl font-extrabold text-primary-dark">Peta Pengabdian Saya</h1><p className="mt-1 max-w-xl text-sm font-semibold leading-relaxed text-muted">Lihat hubungan antara identitas, placement, divisi, role, SoW, dan PIC pendamping.</p></div>
+        <div className="grid grid-cols-3 gap-2"><MappingSummary label="Divisi" value={data.profile.divisions.length} /><MappingSummary label="Role" value={data.profile.roles.length} /><MappingSummary label="SoW" value={Object.values(data.profile.sow).reduce((total, items) => total + items.length, 0)} /></div>
       </div>
-      <div className="mt-5 grid gap-2">
-        {santriList.slice(0, 10).map((item) => (
-          <motion.div key={item.id} whileHover={{ x: 4 }} className="grid grid-cols-[1fr_120px_120px_120px] items-center gap-3 rounded-2xl bg-surface-strong/42 px-4 py-3 text-sm max-lg:grid-cols-1">
-            <div className="min-w-0">
-              <p className="truncate font-extrabold text-primary-dark">{item.name}</p>
-              <p className="text-xs font-semibold text-muted">{item.id}{item.id === currentId ? " • Kamu" : ""}</p>
-            </div>
-            <span className="font-bold text-text">{item.unit}</span>
-            <span className="font-bold text-muted">{item.loc}</span>
-            <span className="font-bold text-primary">{item.divs.map(getDivLabel).join(", ")}</span>
-          </motion.div>
-        ))}
+    </div>
+
+    <Card className="p-4!">
+      <p className="mb-3 text-[0.6rem] font-black uppercase tracking-[0.15em] text-muted">Alur mapping aktif</p>
+      <div className="grid items-stretch gap-2 md:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr]">
+        <MappingNode icon="solar:user-rounded-bold-duotone" eyebrow="Santri" title={data.profile.name} description={data.profile.code} active={tab === "overview"} onClick={() => setTab("overview")} />
+        <MappingArrow />
+        <MappingNode icon="solar:map-point-bold-duotone" eyebrow="Placement" title={data.profile.unit} description={data.profile.location} active={tab === "overview"} onClick={() => setTab("overview")} />
+        <MappingArrow />
+        <MappingNode icon="solar:widget-4-bold-duotone" eyebrow="Assignment" title={data.profile.divisions[0] ?? "Belum ada"} description={`${data.profile.divisions.length} divisi`} active={tab === "roles"} onClick={() => setTab("roles")} />
+        <MappingArrow />
+        <MappingNode icon="solar:target-bold-duotone" eyebrow="Role & SoW" title={data.profile.roles[0] ?? "Belum ada"} description={`${data.profile.roles.length} role aktif`} active={tab === "roles"} onClick={() => setTab("roles")} />
       </div>
     </Card>
-  );
+
+    <nav className="scrollbar-hidden flex gap-2 overflow-x-auto" aria-label="Detail mapping">
+      {([
+        ["overview", "Overview", "solar:layers-bold-duotone"],
+        ["roles", "Role & SoW", "solar:target-bold-duotone"],
+        ["pic", "PIC Pendamping", "solar:shield-user-bold-duotone"],
+      ] as const).map(([id, label, icon]) => <button key={id} type="button" onClick={() => setTab(id)} className={`inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs font-extrabold transition-all ${tab === id ? "bg-primary text-white shadow-[0_8px_22px_rgba(37,99,235,0.2)]" : "border border-border/60 bg-surface text-muted hover:text-text"}`}><Iconify icon={icon} width={16} />{label}</button>)}
+    </nav>
+
+    {tab === "overview" && <div className="grid gap-4 lg:grid-cols-2">
+      <Card><div className="flex items-start justify-between gap-3"><SectionTitle eyebrow="Placement" title="Tempat Bertugas" /><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-500"><Iconify icon="solar:buildings-2-bold-duotone" width={20} /></span></div><div className="mt-4 grid gap-2"><MappingDetail icon="solar:buildings-bold-duotone" label="Unit" value={data.profile.unit} /><MappingDetail icon="solar:map-point-bold-duotone" label="Lokasi" value={data.profile.location} /><MappingDetail icon="solar:shield-user-bold-duotone" label="PIC Regional" value={data.profile.picRegional} /></div></Card>
+      <Card><div className="flex items-start justify-between gap-3"><SectionTitle eyebrow="Assignment" title="Penugasan Aktif" /><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Iconify icon="solar:target-bold-duotone" width={20} /></span></div><div className="mt-4"><p className="text-[0.6rem] font-black uppercase tracking-wide text-muted">Divisi</p><div className="mt-2 flex flex-wrap gap-2">{data.profile.divisions.length ? data.profile.divisions.map((division) => <span key={division} className="rounded-xl bg-primary/9 px-3 py-2 text-xs font-extrabold text-primary">{division}</span>) : <span className="text-xs font-semibold text-muted">Belum ada divisi.</span>}</div><p className="mt-4 text-[0.6rem] font-black uppercase tracking-wide text-muted">Role aktif</p><div className="mt-2 flex flex-wrap gap-2">{data.profile.roles.map((role) => <button key={role} type="button" onClick={() => { setSelectedRole(role); setTab("roles"); }} className="rounded-xl border border-border/60 px-3 py-2 text-xs font-extrabold text-text transition-colors hover:border-primary/25 hover:text-primary">{role}</button>)}</div></div></Card>
+    </div>}
+
+    {tab === "roles" && <section className="overflow-hidden rounded-3xl border border-border/65 bg-surface shadow-[0_16px_48px_rgba(15,23,42,0.06)]"><div className="grid min-h-72 md:grid-cols-[250px_1fr]"><aside className="border-b border-border/55 bg-background/30 p-3 md:border-b-0 md:border-r"><p className="px-2 pb-2 text-[0.6rem] font-black uppercase tracking-wider text-muted">Pilih role</p><div className="scrollbar-hidden flex gap-2 overflow-x-auto md:grid md:overflow-visible">{data.profile.roles.map((role) => <button key={role} type="button" onClick={() => setSelectedRole(role)} className={`flex min-w-48 items-center gap-3 rounded-2xl p-3 text-left transition-all md:min-w-0 ${activeRole === role ? "bg-primary text-white shadow-[0_9px_24px_rgba(37,99,235,0.2)]" : "hover:bg-surface"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${activeRole === role ? "bg-white/16" : "bg-primary/8 text-primary"}`}><Iconify icon={roleIcon(role)} width={18} /></span><div className="min-w-0"><p className="truncate text-xs font-extrabold">{role}</p><p className={`mt-0.5 text-[0.6rem] font-semibold ${activeRole === role ? "text-white/65" : "text-muted"}`}>{data.profile.sow[role]?.length ?? 0} item SoW</p></div></button>)}</div></aside><div className="relative overflow-hidden p-5"><div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-primary/8 blur-3xl" /><div className="relative"><div className="flex items-start justify-between gap-4"><div><p className="text-[0.6rem] font-black uppercase tracking-[0.15em] text-primary">Scope of Work</p><h2 className="mt-2 text-2xl font-extrabold text-primary-dark">{activeRole || "Belum ada role"}</h2><p className="mt-1 text-xs font-semibold text-muted">Tanggung jawab ini dikelola PIC dan bersifat read-only.</p></div><span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/9 text-primary"><Iconify icon={roleIcon(activeRole)} width={24} /></span></div><div className="mt-5 grid gap-2">{activeSow.length ? activeSow.map((item, index) => <div key={item} className="group flex items-start gap-3 rounded-2xl border border-border/50 bg-background/25 p-3 transition-colors hover:border-primary/20 hover:bg-primary/4"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-primary/9 text-[0.62rem] font-black text-primary group-hover:bg-primary group-hover:text-white">{index + 1}</span><p className="pt-1 text-xs font-semibold leading-relaxed text-text">{item}</p></div>) : <Empty text="Belum ada SoW untuk role ini." />}</div></div></div></div></section>}
+
+    {tab === "pic" && <div className="grid gap-4 md:grid-cols-2"><PicCard icon="solar:shield-user-bold-duotone" role="PIC Divisi" names={data.profile.picDivisions} description="Pendamping role, SoW, evidence, dan review report mingguan." /><PicCard icon="solar:map-point-bold-duotone" role="PIC Regional" names={[data.profile.picRegional]} description="Pendamping placement regional dan final review evaluasi bulanan." /><Card className="md:col-span-2"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><p className="text-[0.6rem] font-black uppercase tracking-wider text-primary">Communication</p><h3 className="mt-1 text-base font-extrabold text-primary-dark">Request review terbuka</h3><p className="mt-1 text-xs font-semibold text-muted">Request yang belum dijawab atau ditutup oleh PIC.</p></div><span className={`inline-flex min-w-20 justify-center rounded-2xl px-4 py-3 text-xl font-extrabold ${data.openClarifications ? "bg-orange/10 text-orange" : "bg-emerald-500/10 text-emerald-600"}`}>{data.openClarifications}</span></div></Card></div>}
+  </section>;
 }
 
-export function SiswaMonitoringPage({ weekly, monthly, projectCount }: { weekly: Weekly; monthly: Monthly; projectCount: number }) {
-  return (
-    <section className="grid grid-cols-2 gap-4 max-lg:grid-cols-1">
-      <Card>
-        <SectionTitle eyebrow="Monitoring" title="Progress Pribadi" />
-        <div className="mt-5 grid gap-4">
-          <Progress label="SoW Evidence" value={monthly?.sowPct ?? 0} tone="bg-blue" />
-          <Progress label="Adab & Discipline" value={monthly?.adab ? monthly.adab * 20 : 60} tone="bg-purple" />
-          <Progress label="Project" value={projectCount ? 70 : 20} tone="bg-green" />
-        </div>
-      </Card>
-      <Card>
-        <SectionTitle eyebrow="Deadline" title="Weekly & Monthly" />
-        <div className="mt-4 grid gap-3">
-          <StatusRow label="Weekly Review" value={weekly?.validated ? "Verified" : "Need submit / waiting review"} tone={weekly?.validated ? "green" : "orange"} />
-          <StatusRow label="Monthly Report" value="Deadline akhir bulan" tone="purple" />
-          <StatusRow label="Special Report" value="Opsional saat ada case" tone="blue" />
-        </div>
-      </Card>
-    </section>
-  );
+export function SiswaMonitoringPage({ data }: { data: StudentWorkspaceData }) {
+  const [tab, setTab] = useState<"progress" | "projects" | "reports">("progress");
+  const [projectStatus, setProjectStatus] = useState("Semua");
+  const projectProgress = average(data.projects.map((project) => project.progress));
+  const projectStatuses = ["Semua", ...new Set(data.projects.map((project) => project.status))];
+  const filteredProjects = projectStatus === "Semua" ? data.projects : data.projects.filter((project) => project.status === projectStatus);
+  const verifiedReports = data.reports.filter((report) => report.status === "Divalidasi" || report.status === "Disetujui").length;
+  const revisionReports = data.reports.filter((report) => report.status === "Perlu_Revisi").length;
+
+  return <section className="grid gap-4">
+    <div className="relative overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-r from-primary/10 via-surface to-sky-500/8 p-5 shadow-[0_16px_50px_rgba(37,99,235,0.08)]">
+      <div className="pointer-events-none absolute -right-14 -top-20 h-52 w-52 rounded-full bg-primary/12 blur-3xl" />
+      <div className="relative flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><p className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-primary">Monitoring Pribadi</p><h1 className="mt-2 text-2xl font-extrabold text-primary-dark">Perkembangan Pengabdian</h1><p className="mt-1 text-sm font-semibold text-muted">{data.latestEvaluation?.period ?? "Belum ada evaluasi bulanan"}</p></div><div className="flex flex-wrap gap-2"><MonitorBadge label="GYR" value={data.latestEvaluation?.gyr ?? "-"} tone={data.latestEvaluation?.gyr === "Red" ? "red" : data.latestEvaluation?.gyr === "Yellow" ? "yellow" : "green"} /><MonitorBadge label="Mukafaah" value={data.latestEvaluation?.mukafaahReady ? "Ready" : "Belum Ready"} tone={data.latestEvaluation?.mukafaahReady ? "green" : "neutral"} /></div></div>
+    </div>
+
+    <nav className="scrollbar-hidden flex gap-2 overflow-x-auto" aria-label="Monitoring Santri">
+      {([
+        ["progress", "Progress", "solar:chart-square-bold-duotone", data.latestEvaluation ? 1 : 0],
+        ["projects", "Projects", "solar:folder-with-files-bold-duotone", data.projects.length],
+        ["reports", "Report Activity", "solar:documents-bold-duotone", data.reports.length],
+      ] as const).map(([id, label, icon, count]) => <button key={id} type="button" onClick={() => setTab(id)} className={`inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs font-extrabold transition-all ${tab === id ? "bg-primary text-white shadow-[0_8px_22px_rgba(37,99,235,0.2)]" : "border border-border/60 bg-surface text-muted hover:text-text"}`}><Iconify icon={icon} width={16} />{label}<span className={`rounded-full px-1.5 py-0.5 text-[0.56rem] ${tab === id ? "bg-white/16" : "bg-surface-strong"}`}>{count}</span></button>)}
+    </nav>
+
+    {tab === "progress" && <div className="grid gap-4">
+      <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]"><Card><SectionTitle eyebrow="Evaluasi Terbaru" title="Progress Utama" /><div className="mt-5 grid gap-5"><Progress label="SoW" value={data.latestEvaluation?.sowProgress ?? 0} tone="bg-blue" /><Progress label="Adab" value={(data.latestEvaluation?.adabScore ?? 0) * 20} tone="bg-purple" /><Progress label="Kedisiplinan" value={(data.latestEvaluation?.disciplineScore ?? 0) * 20} tone="bg-orange" /><Progress label="Project" value={projectProgress} tone="bg-green" /></div></Card><Card><SectionTitle eyebrow="Output" title="Capaian Bulan Ini" /><div className="mt-4 grid grid-cols-2 gap-2"><EvaluationMetric icon="solar:book-bookmark-bold-duotone" label="Learn" value={data.latestEvaluation?.learnCount ?? 0} /><EvaluationMetric icon="solar:folder-with-files-bold-duotone" label="Project ACC" value={data.latestEvaluation?.projectCount ?? 0} /><EvaluationMetric icon="solar:check-circle-bold-duotone" label="Check-in" value={data.latestEvaluation?.checkinCount ?? 0} /><EvaluationMetric icon="solar:paperclip-bold-duotone" label="Evidence" value={data.evidenceCount} /></div><div className="mt-4 grid gap-2"><StatusRow label="Request PIC" value={`${data.openClarifications} terbuka`} tone={data.openClarifications ? "orange" : "green"} /><StatusRow label="Special Report" value={`${data.specialReportCount} report`} tone="purple" /></div></Card></div>
+      <Card><SectionTitle eyebrow="Report Cycle" title="Status Periode Terbaru" /><div className="mt-4 grid gap-3 md:grid-cols-3"><ReportCycleCard type="Daily" report={latest(data.reports, "Daily")} icon="solar:checklist-minimalistic-bold-duotone" /><ReportCycleCard type="Weekly" report={latest(data.reports, "Weekly")} icon="solar:calendar-mark-bold-duotone" /><ReportCycleCard type="Monthly" report={latest(data.reports, "Monthly")} icon="solar:file-text-bold-duotone" /></div></Card>
+    </div>}
+
+    {tab === "projects" && <div className="grid gap-4"><div className="scrollbar-hidden flex gap-2 overflow-x-auto">{projectStatuses.map((status) => <button key={status} type="button" onClick={() => setProjectStatus(status)} className={`whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-extrabold transition-colors ${projectStatus === status ? "bg-primary text-white" : "border border-border/60 bg-surface text-muted hover:text-text"}`}>{status}</button>)}</div>{filteredProjects.length ? <div className="grid gap-3 md:grid-cols-2">{filteredProjects.map((project) => <article key={project.id} className="group rounded-3xl border border-border/60 bg-surface p-4 shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition-all hover:-translate-y-0.5 hover:border-primary/20"><div className="flex items-start justify-between gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/9 text-primary"><Iconify icon="solar:folder-with-files-bold-duotone" width={19} /></span><span className="rounded-full bg-primary/9 px-2.5 py-1 text-[0.6rem] font-black text-primary">{project.status}</span></div><h2 className="mt-4 text-sm font-extrabold text-primary-dark">{project.name}</h2><p className="mt-1 text-xs font-semibold text-muted">{project.platform || "Platform belum ditentukan"}</p><div className="mt-4"><Progress label="Progress" value={project.progress} /></div>{project.link && <a href={project.link} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-xs font-extrabold text-primary">Buka project <Iconify icon="solar:arrow-right-up-linear" width={14} /></a>}</article>)}</div> : <Empty text="Tidak ada project dengan status ini." />}</div>}
+
+    {tab === "reports" && <div className="grid gap-4"><section className="grid grid-cols-3 gap-3 max-sm:grid-cols-1"><ActivityMetric label="Total Report" value={data.reports.length} tone="primary" /><ActivityMetric label="Selesai Review" value={verifiedReports} tone="green" /><ActivityMetric label="Perlu Revisi" value={revisionReports} tone="orange" /></section><Card><SectionTitle eyebrow="Timeline" title="Aktivitas Report" />{data.reports.length ? <div className="mt-4 divide-y divide-border/55">{data.reports.map((report) => <div key={report.id} className="flex items-center gap-3 py-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/8 text-primary"><Iconify icon={report.type === "Daily" ? "solar:checklist-bold-duotone" : report.type === "Weekly" ? "solar:calendar-bold-duotone" : "solar:file-text-bold-duotone"} width={17} /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-extrabold text-primary-dark">{report.type}</p><span className="text-[0.62rem] font-semibold text-muted">{formatDate(report.periodStart)}</span></div><p className="mt-0.5 text-[0.65rem] font-semibold text-muted">{report.submittedAt ? `Dikirim ${relativeTime(report.submittedAt)}` : "Belum dikirim"}</p></div><ReportStatusPill status={report.status} /></div>)}</div> : <Empty text="Belum ada aktivitas report." />}</Card></div>}
+  </section>;
 }
 
-export function SiswaReportingPage() {
-  const [selected, setSelected] = useState(quickActions[0].label);
-  return (
-    <section className="grid grid-cols-[0.85fr_1.15fr] gap-4 max-xl:grid-cols-1">
-      <Card>
-        <SectionTitle eyebrow="Reporting" title="Pilih Form" />
-        <div className="mt-4 grid gap-2">
-          {quickActions.map((action) => (
-            <button key={action.label} type="button" onClick={() => setSelected(action.label)} className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-extrabold transition-colors ${selected === action.label ? "bg-primary text-white" : "border border-border/60 bg-surface text-text hover:bg-primary-soft/35"}`}>
-              <Iconify icon={action.icon} width={19} />
-              {action.label}
-            </button>
-          ))}
-        </div>
-      </Card>
-      <Card>
-        <SectionTitle eyebrow="Form Preview" title={selected} desc="UI ini sementara untuk simulasi submit sebelum API/database asli disambungkan." />
-        <div className="mt-5 grid gap-3">
-          <textarea className="min-h-36 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-text outline-none focus:border-primary/40" placeholder="Tulis laporan/progress/evidence di sini..." />
-          <button type="button" className="rounded-2xl bg-primary px-4 py-3 text-sm font-black text-white shadow-[0_10px_24px_rgba(37,99,235,0.24)] hover:bg-primary-dark">
-            Submit Draft
-          </button>
-        </div>
-      </Card>
-    </section>
-  );
+export function SiswaReportingPage({ data, onAction }: { data: StudentWorkspaceData; onAction: (action: StudentActionId) => void }) {
+  return <section className="grid grid-cols-[0.65fr_1.35fr] gap-4 max-xl:grid-cols-1"><Card><SectionTitle eyebrow="Reporting" title="Buat Baru" /><div className="mt-4 grid gap-1">{studentActions.map((action) => <button key={action.id} type="button" onClick={() => onAction(action.id)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-extrabold text-text transition-colors hover:bg-surface-strong"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/8 text-primary"><Iconify icon={action.icon} width={16} /></span>{action.label}<Iconify icon="solar:arrow-right-linear" width={14} className="ml-auto text-muted" /></button>)}</div></Card><Card><SectionTitle eyebrow="History" title="Report Terbaru" desc="Status berubah setelah direview PIC." />{data.reports.length ? <div className="mt-4 divide-y divide-border/55 rounded-2xl border border-border/55">{data.reports.slice(0, 12).map((report) => <div key={report.id} className="flex items-center gap-3 px-4 py-3"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/8 text-primary"><Iconify icon={report.type === "Daily" ? "solar:checklist-bold-duotone" : report.type === "Weekly" ? "solar:calendar-bold-duotone" : "solar:file-text-bold-duotone"} width={16} /></span><div className="min-w-0 flex-1"><p className="text-sm font-extrabold text-primary-dark">{report.type}</p><p className="text-xs font-semibold text-muted">{formatDate(report.periodStart)}</p></div><ReportStatusPill status={report.status} /></div>)}</div> : <Empty text="Belum ada report yang dikirim." />}</Card></section>;
 }
 
-export function SiswaProfilePage({ santri }: { santri: Santri }) {
-  return (
-    <section className="grid grid-cols-[0.8fr_1.2fr] gap-4 max-xl:grid-cols-1">
-      <Card className="text-center">
-        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-[2rem] bg-gradient-to-br from-primary to-blue font-(--font-family-head) text-2xl font-extrabold text-white shadow-[0_14px_34px_rgba(37,99,235,0.25)]">
-          {santri.name.slice(0, 2).toUpperCase()}
-        </div>
-        <h2 className="mt-4 font-(--font-family-head) text-2xl font-extrabold text-primary-dark">{santri.name}</h2>
-        <p className="mt-1 text-sm font-semibold text-muted">{santri.id}</p>
-      </Card>
-      <InfoPanel title="Profile Mapping" icon="solar:user-id-bold-duotone" items={[["Unit", santri.unit], ["Location", santri.loc], ["Divisions", santri.divs.map(getDivLabel).join(", ")], ["Roles", santri.roles.join(" • ")], ["PIC Div", santri.picDivs.join(" • ") || "Belum ada"], ["PIC Reg", santri.picReg || "Belum ada"]]} />
-    </section>
-  );
+export function SiswaProfilePage({ data }: { data: StudentWorkspaceData }) {
+  return <section className="grid grid-cols-[0.8fr_1.2fr] gap-4 max-xl:grid-cols-1"><Card className="text-center"><div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary to-blue text-2xl font-extrabold text-white">{data.profile.avatarUrl ? <img src={data.profile.avatarUrl} alt="" className="h-full w-full object-cover" /> : data.profile.name.slice(0, 2).toUpperCase()}</div><h2 className="mt-4 text-2xl font-extrabold text-primary-dark">{data.profile.name}</h2><p className="mt-1 text-sm font-semibold text-muted">{data.profile.code}</p></Card><InfoPanel title="Profile Mapping" icon="solar:user-id-bold-duotone" items={[["Unit", data.profile.unit], ["Location", data.profile.location], ["Divisions", data.profile.divisions.join(", ") || "Belum ada"], ["Roles", data.profile.roles.join(" • ") || "Belum ada"], ["PIC Div", data.profile.picDivisions.join(" • ") || "Belum ada"], ["PIC Reg", data.profile.picRegional]]} /></section>;
 }
 
-function ActionSheet({ action, onClose }: { action: string | null; onClose: () => void }) {
-  return (
-    <AnimatePresence>
-      {action && (
-        <>
-          <motion.div className="fixed inset-0 z-[70] bg-black/35 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
-          <motion.div className="fixed bottom-6 left-1/2 z-[71] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 rounded-[28px] border border-border/70 bg-surface p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)]" initial={{ opacity: 0, y: 30, x: "-50%" }} animate={{ opacity: 1, y: 0, x: "-50%" }} exit={{ opacity: 0, y: 20, x: "-50%" }}>
-            <SectionTitle eyebrow="Quick Action" title={action} desc="Form detail akan disambungkan ke modul report/evidence berikutnya." />
-            <button type="button" onClick={onClose} className="mt-4 w-full rounded-2xl bg-primary px-4 py-3 text-sm font-black text-white">Buka Form</button>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
+function ActionStatus({ report, inverse = false }: { report?: StudentReportItem; inverse?: boolean }) {
+  if (!report) return <span className={`text-[0.65rem] font-bold ${inverse ? "text-white/70" : "text-muted"}`}>Belum dikirim</span>;
+  if (inverse) return <span className="rounded-full bg-white/16 px-2.5 py-1 text-[0.6rem] font-black text-white">{report.status.replace("_", " ")}</span>;
+  return <ReportStatusPill status={report.status} />;
 }
+function MappingSummary({ label, value }: { label: string; value: number }) { return <div className="min-w-20 rounded-2xl border border-white/70 bg-surface/75 px-3 py-2.5 text-center backdrop-blur-sm"><p className="text-lg font-extrabold text-primary-dark">{value}</p><p className="text-[0.55rem] font-black uppercase tracking-wide text-muted">{label}</p></div>; }
+function MonitorBadge({ label, value, tone }: { label: string; value: string; tone: "green" | "yellow" | "red" | "neutral" }) { const cls = tone === "green" ? "bg-emerald-500/10 text-emerald-600" : tone === "yellow" ? "bg-amber-500/10 text-amber-600" : tone === "red" ? "bg-rose-500/10 text-rose-500" : "bg-surface-strong text-muted"; return <div className={`rounded-2xl px-4 py-2.5 ${cls}`}><p className="text-[0.52rem] font-black uppercase tracking-wide opacity-70">{label}</p><p className="mt-0.5 text-sm font-extrabold">{value}</p></div>; }
+function EvaluationMetric({ icon, label, value }: { icon: string; label: string; value: number }) { return <div className="rounded-2xl border border-border/50 bg-background/25 p-3"><Iconify icon={icon} width={17} className="text-primary" /><p className="mt-2 text-xl font-extrabold text-primary-dark">{value}</p><p className="text-[0.6rem] font-black uppercase tracking-wide text-muted">{label}</p></div>; }
+function ReportCycleCard({ type, report, icon }: { type: StudentReportItem["type"]; report?: StudentReportItem; icon: string }) { return <article className="rounded-2xl border border-border/55 bg-background/25 p-4"><div className="flex items-start justify-between gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/8 text-primary"><Iconify icon={icon} width={17} /></span><ActionStatus report={report} /></div><h3 className="mt-4 text-sm font-extrabold text-primary-dark">{type}</h3><p className="mt-1 text-[0.65rem] font-semibold text-muted">{report ? formatDate(report.periodStart) : "Belum ada report"}</p></article>; }
+function ActivityMetric({ label, value, tone }: { label: string; value: number; tone: "primary" | "green" | "orange" }) { const cls = tone === "green" ? "text-emerald-600 bg-emerald-500/8" : tone === "orange" ? "text-orange bg-orange/8" : "text-primary bg-primary/8"; return <div className={`rounded-2xl border border-border/55 p-4 ${cls}`}><p className="text-2xl font-extrabold">{value}</p><p className="mt-1 text-xs font-bold opacity-75">{label}</p></div>; }
+function MappingNode({ icon, eyebrow, title, description, active, onClick }: { icon: string; eyebrow: string; title: string; description: string; active: boolean; onClick: () => void }) { return <button type="button" onClick={onClick} className={`group flex min-w-0 items-center gap-3 rounded-2xl border p-3 text-left transition-all ${active ? "border-primary/25 bg-primary/7 shadow-[0_8px_22px_rgba(37,99,235,0.08)]" : "border-border/55 bg-background/25 hover:border-primary/20 hover:bg-primary/4"}`}><span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${active ? "bg-primary text-white" : "bg-primary/8 text-primary group-hover:bg-primary group-hover:text-white"}`}><Iconify icon={icon} width={19} /></span><div className="min-w-0"><p className="text-[0.54rem] font-black uppercase tracking-wide text-muted">{eyebrow}</p><p className="mt-0.5 truncate text-xs font-extrabold text-primary-dark">{title}</p><p className="truncate text-[0.6rem] font-semibold text-muted">{description}</p></div></button>; }
+function MappingArrow() { return <span className="flex items-center justify-center text-border"><Iconify icon="solar:arrow-right-linear" width={18} className="hidden md:block" /><Iconify icon="solar:arrow-down-linear" width={18} className="md:hidden" /></span>; }
+function MappingDetail({ icon, label, value }: { icon: string; label: string; value: string }) { return <div className="flex items-center gap-3 rounded-2xl border border-border/50 bg-background/25 p-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/8 text-primary"><Iconify icon={icon} width={17} /></span><div className="min-w-0"><p className="text-[0.56rem] font-black uppercase tracking-wide text-muted">{label}</p><p className="mt-0.5 truncate text-xs font-extrabold text-text">{value}</p></div></div>; }
+function PicCard({ icon, role, names, description }: { icon: string; role: string; names: string[]; description: string }) { const values = names.filter(Boolean); return <Card><div className="flex items-start gap-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/9 text-primary"><Iconify icon={icon} width={21} /></span><div><p className="text-[0.58rem] font-black uppercase tracking-wider text-primary">{role}</p><h3 className="mt-1 text-base font-extrabold text-primary-dark">{values.join(" · ") || "Belum ditentukan"}</h3><p className="mt-2 text-xs font-semibold leading-relaxed text-muted">{description}</p></div></div></Card>; }
+function ReportStatusPill({ status }: { status: StudentReportItem["status"] }) { const cls = status === "Disetujui" || status === "Divalidasi" ? "bg-emerald-500/10 text-emerald-600" : status === "Perlu_Revisi" || status === "Ditolak" ? "bg-orange/10 text-orange" : status === "Draft" ? "bg-surface-strong text-muted" : "bg-blue/10 text-blue"; return <span className={`rounded-full px-2 py-0.5 text-[0.58rem] font-black ${cls}`}>{status.replace("_", " ")}</span>; }
+function ContextContact({ icon, label, value }: { icon: string; label: string; value: string }) { return <div className="flex items-center gap-3 rounded-2xl border border-white/70 bg-surface/75 p-3 shadow-[0_8px_24px_rgba(15,23,42,0.04)] backdrop-blur-sm"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/9 text-primary"><Iconify icon={icon} width={18} /></span><div className="min-w-0"><p className="text-[0.56rem] font-black uppercase tracking-wide text-muted">{label}</p><p className="mt-0.5 truncate text-xs font-extrabold text-text">{value}</p></div></div>; }
+function PeriodAction({ action, report, period, onClick }: { action: (typeof studentActions)[number]; report?: StudentReportItem; period: string; onClick: () => void }) { return <button type="button" onClick={onClick} className="group rounded-3xl border border-border/60 bg-surface p-4 text-left shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition-all hover:-translate-y-0.5 hover:border-primary/25"><div className="flex items-start justify-between gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/9 text-primary"><Iconify icon={action.icon} width={20} /></span><span className="text-[0.6rem] font-black text-muted">{period}</span></div><h3 className="mt-4 text-sm font-extrabold text-primary-dark">{action.label}</h3><div className="mt-2 flex items-center justify-between gap-2"><ActionStatus report={report} /><Iconify icon="solar:arrow-right-linear" width={16} className="text-muted transition-transform group-hover:translate-x-1 group-hover:text-primary" /></div></button>; }
+function SupportAction({ icon, label, meta, onClick }: { icon: string; label: string; meta: string; onClick: () => void }) { return <button type="button" onClick={onClick} className="group rounded-2xl border border-border/60 bg-surface p-3 text-left transition-all hover:border-primary/25 hover:bg-primary/4"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/8 text-primary"><Iconify icon={icon} width={18} /></span><p className="mt-3 text-xs font-extrabold text-primary-dark">{label}</p><p className="mt-0.5 text-[0.62rem] font-semibold text-muted">{meta}</p></button>; }
+function CompactMetric({ label, value }: { label: string; value: string }) { return <div className="text-center"><p className="text-lg font-extrabold text-primary-dark">{value}</p><p className="text-[0.56rem] font-black uppercase tracking-wide text-muted">{label}</p></div>; }
+function Empty({ text }: { text: string }) { return <div className="mt-4 rounded-2xl border border-dashed border-border p-7 text-center text-xs font-bold text-muted">{text}</div>; }
+function latest(reports: StudentReportItem[], type: StudentReportItem["type"]) { return reports.find((report) => report.type === type); }
+function average(values: number[]) { return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0; }
+function formatDate(value: string) { return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${value}T00:00:00`)); }
+function relativeTime(value: string) { const hours = Math.floor((Date.now() - new Date(value).getTime()) / 3600000); return hours < 1 ? "Baru saja" : hours < 24 ? `${hours} jam lalu` : `${Math.floor(hours / 24)} hari lalu`; }
+function todayLabel() { return new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "short" }).format(new Date()); }
+function roleIcon(role: string) { const value = role.toLowerCase(); if (value.includes("developer") || value.includes("it") || value.includes("system")) return "solar:code-bold-duotone"; if (value.includes("design") || value.includes("video") || value.includes("media")) return "solar:palette-bold-duotone"; if (value.includes("ajar") || value.includes("teacher") || value.includes("tahfidz")) return "solar:square-academic-cap-bold-duotone"; if (value.includes("admin") || value.includes("operation")) return "solar:settings-minimalistic-bold-duotone"; return "solar:target-bold-duotone"; }

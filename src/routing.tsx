@@ -212,12 +212,12 @@ function LoginRoleRouteComponent() {
 }
 
 function PortalSiswaRouteComponent() {
-  const { login } = useAuth();
+  const { loginSiswaWithSupabase } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
-  function handleLogin(credentials: Session) {
-    login(credentials);
+  async function handleLogin(email: string, password: string) {
+    const credentials = await loginSiswaWithSupabase(email, password);
     router.update({ context: { session: credentials } });
     toast.success("Login berhasil", "Selamat datang di Portal Siswa.");
     navigate({ to: "/dashboard/$tab", params: { tab: "home" } });
