@@ -37,6 +37,7 @@ import {
 import { roles } from "./data/monitoringData";
 import type { RoleId, Session } from "./types";
 import { useToast } from "./components/ui/ToastProvider";
+import { getErrorMessage } from "./lib/errors";
 
 interface RouterContext {
   session: Session | null;
@@ -250,7 +251,7 @@ function DashboardLayout() {
     } catch (error) {
       toast.error(
         "Logout gagal",
-        error instanceof Error ? error.message : "Silakan coba lagi.",
+        getErrorMessage(error, "Logout gagal. Silakan coba lagi."),
       );
     }
   }

@@ -23,6 +23,7 @@ import { LearnForm } from "./LearnForm";
 import { MonitoringLoadingState } from "./MonitoringLoadingState";
 import { useToast } from "../../../../../components/ui/ToastProvider";
 import { ConfirmDeleteDialog } from "../../../../../components/ui/ConfirmDeleteDialog";
+import { getErrorMessage } from "../../../../../lib/errors";
 
 const phaseColors: Record<string, string> = {
   1: "border-l-[#f472b6]",
@@ -88,7 +89,7 @@ export function LearnsView() {
   useEffect(() => {
     getMonitoringLearnParticipants()
       .then(setParticipants)
-      .catch((err) => toast.error("Peserta gagal dimuat", err instanceof Error ? err.message : "Silakan coba lagi."))
+      .catch((error) => toast.error("Peserta gagal dimuat", getErrorMessage(error, "Silakan coba lagi.")))
       .finally(() => setParticipantsLoading(false));
   }, [toast]);
 
@@ -139,7 +140,7 @@ export function LearnsView() {
         });
         setActiveAttendance(next);
       })
-      .catch((err) => toast.error("Absensi gagal dimuat", err instanceof Error ? err.message : "Silakan coba lagi."));
+      .catch((error) => toast.error("Absensi gagal dimuat", getErrorMessage(error, "Silakan coba lagi.")));
   }, [activeSession?.databaseId, participants, toast]);
 
   const handleSetAttendance = useCallback(
@@ -156,14 +157,15 @@ export function LearnsView() {
       });
       try {
         await setMonitoringLearnAttendance(session.databaseId, participant.pengabdianId, status);
-      } catch (err) {
+        toast.success("Absensi disimpan", `${participant.name} · ${status}`);
+      } catch (error) {
         setActiveAttendance((current) => {
           const next = { ...current };
           if (previous) next[santriId] = previous;
           else delete next[santriId];
           return next;
         });
-        toast.error("Absensi gagal disimpan", err instanceof Error ? err.message : "Silakan coba lagi.");
+        toast.error("Absensi gagal disimpan", getErrorMessage(error, "Silakan coba lagi."));
       }
     },
     [activeAttendance, participants, sessions, toast],
@@ -179,43 +181,61 @@ export function LearnsView() {
           prev.map((item) => item.id === sessionId ? { ...item, status } : item),
         );
         toast.success("Status sesi diperbarui", `${session.title} · ${status}`);
-      } catch (err) {
-        toast.error("Status gagal diperbarui", err instanceof Error ? err.message : "Silakan coba lagi.");
+      } catch (error) {
+        toast.error("Status gagal diperbarui", getErrorMessage(error, "Silakan coba lagi."));
       }
     },
     [sessions, setSessions, toast],
   );
 
   const handleSaveSession = useCallback(async (draft: Omit<LearnSession, "id" | "databaseId">) => {
-    if (editingSession?.databaseId) {
-      await updateMonitoringLearnSession(editingSession.databaseId, { ...draft, totalSantri: participants.length });
-      await refresh();
-      toast.success("Learn session diperbarui", draft.title);
-      setEditingSession(null);
-      return;
+    const isUpdate = Boolean(editingSession?.databaseId);
+    try {
+      if (editingSession?.databaseId) {
+        await updateMonitoringLearnSession(editingSession.databaseId, { ...draft, totalSantri: participants.length });
+      } else {
+        const prefix = draft.type === "mandatory" ? "L" : "RS";
+        const numbers = sessions
+          .filter((session) => session.id.startsWith(prefix))
+          .map((session) => Number(session.id.replace(/\D/g, "")))
+          .filter(Number.isFinite);
+        const code = `${prefix}${String((Math.max(0, ...numbers) || 0) + 1).padStart(2, "0")}`;
+        await createMonitoringLearnSession(code, { ...draft, totalSantri: participants.length });
+      }
+    } catch (error) {
+      toast.error(
+        isUpdate ? "Learn session gagal diperbarui" : "Learn session gagal ditambahkan",
+        getErrorMessage(error, "Gagal menyimpan learn session."),
+      );
+      throw error;
     }
-    const prefix = draft.type === "mandatory" ? "L" : "RS";
-    const numbers = sessions
-      .filter((session) => session.id.startsWith(prefix))
-      .map((session) => Number(session.id.replace(/\D/g, "")))
-      .filter(Number.isFinite);
-    const code = `${prefix}${String((Math.max(0, ...numbers) || 0) + 1).padStart(2, "0")}`;
-    await createMonitoringLearnSession(code, { ...draft, totalSantri: participants.length });
-    await refresh();
-    toast.success("Learn session ditambahkan", draft.title);
+    toast.success(isUpdate ? "Learn session diperbarui" : "Learn session ditambahkan", draft.title);
+    try {
+      await refresh();
+    } catch (error) {
+      toast.error("Data gagal dimuat ulang", getErrorMessage(error, "Gagal memuat ulang data learn session."));
+    }
+    if (isUpdate) setEditingSession(null);
   }, [editingSession, participants.length, refresh, sessions, toast]);
 
   const handleDeleteSession = useCallback(async () => {
     if (!activeSession?.databaseId) return;
     setDeleting(true);
     try {
-      await deleteMonitoringLearnSession(activeSession.databaseId);
+      try {
+        await deleteMonitoringLearnSession(activeSession.databaseId);
+      } catch (error) {
+        toast.error("Sesi gagal dihapus", getErrorMessage(error, "Gagal menghapus learn session."));
+        return;
+      }
       toast.success("Learn session dihapus", activeSession.title);
       setConfirmDelete(false);
       handleCloseDrawer();
-      await refresh();
-    } catch (err) {
-      toast.error("Sesi gagal dihapus", err instanceof Error ? err.message : "Silakan coba lagi.");
+      try {
+        await refresh();
+      } catch (error) {
+        toast.error("Data gagal dimuat ulang", getErrorMessage(error, "Gagal memuat ulang data learn session."));
+      }
     } finally {
       setDeleting(false);
     }

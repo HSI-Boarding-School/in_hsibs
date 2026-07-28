@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { CustomSelect } from "../../../components/ui/CustomSelect";
 import { useToast } from "../../../components/ui/ToastProvider";
+import { getErrorMessage } from "../../../lib/errors";
 import {
   sendReportReminder,
   setReportManagementStatus,
@@ -65,9 +66,15 @@ export function AdminDashboardReport() {
       toast.success("Status laporan diperbarui", `${item.studentName} · ${nextStatus.replace("_", " ")}`);
       setRevisionItem(null);
       setRevisionNote("");
+    } catch (err) {
+      toast.error("Update laporan gagal", getErrorMessage(err, "Silakan coba lagi."));
+      setBusyId(null);
+      return;
+    }
+    try {
       await refresh();
     } catch (err) {
-      toast.error("Update laporan gagal", err instanceof Error ? err.message : "Silakan coba lagi.");
+      toast.error("Data gagal dimuat ulang", getErrorMessage(err, "Status sudah tersimpan, tetapi data terbaru belum dapat dimuat."));
     } finally {
       setBusyId(null);
     }
@@ -78,9 +85,15 @@ export function AdminDashboardReport() {
     try {
       await sendReportReminder(item);
       toast.success("Reminder dikirim", `${item.studentName} · ${item.scope}`);
+    } catch (err) {
+      toast.error("Reminder gagal", getErrorMessage(err, "Silakan coba lagi."));
+      setBusyId(null);
+      return;
+    }
+    try {
       await refresh();
     } catch (err) {
-      toast.error("Reminder gagal", err instanceof Error ? err.message : "Silakan coba lagi.");
+      toast.error("Data gagal dimuat ulang", getErrorMessage(err, "Reminder sudah dikirim, tetapi data terbaru belum dapat dimuat."));
     } finally {
       setBusyId(null);
     }

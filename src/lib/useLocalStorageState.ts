@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useState, type Dispatch, type SetStateAction } from "react";
 
 type Initializer<T> = T | (() => T);
 
@@ -21,15 +21,21 @@ export function useLocalStorageState<T>(key: string, initialValue: Initializer<T
 
     return resolveInitial(initialValue);
   });
+  const stateRef = useRef(state);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  const setStoredState = useCallback<Dispatch<SetStateAction<T>>>((nextValue) => {
+    const next = typeof nextValue === "function"
+      ? (nextValue as (current: T) => T)(stateRef.current)
+      : nextValue;
     try {
-      window.localStorage.setItem(key, JSON.stringify(state));
-    } catch {
-      // Ignore quota/private-mode failures; UI state still works in memory.
+      if (typeof window !== "undefined") window.localStorage.setItem(key, JSON.stringify(next));
+    } catch (error) {
+      const detail = error instanceof Error && error.message ? ` ${error.message}` : "";
+      throw new Error(`Pengaturan tidak dapat disimpan ke browser.${detail}`);
     }
-  }, [key, state]);
+    stateRef.current = next;
+    setState(next);
+  }, [key]);
 
-  return [state, setState] as const;
+  return [state, setStoredState] as const;
 }

@@ -169,8 +169,9 @@ export async function uploadStudentEvidence(pengabdianId: string, authUserId: st
   if (upload.error) throw new Error(`Upload evidence gagal: ${upload.error.message}`);
   const { error } = await supabase.from("pengabdian_report_attachment").insert({ report_id: input.reportId, storage_bucket: attachmentBucket, storage_path: path, nama_file: input.file.name, mime_type: input.file.type || null, ukuran_byte: input.file.size, diunggah_oleh: authUserId } as never);
   if (error) {
-    await supabase.storage.from(attachmentBucket).remove([path]);
-    throw new Error(`Metadata evidence gagal disimpan: ${error.message}`);
+    const cleanup = await supabase.storage.from(attachmentBucket).remove([path]);
+    const cleanupDetail = cleanup.error ? ` File yang sudah terunggah juga gagal dibersihkan: ${cleanup.error.message}` : " File yang sudah terunggah berhasil dibersihkan.";
+    throw new Error(`Metadata evidence gagal disimpan: ${error.message}.${cleanupDetail}`);
   }
 }
 

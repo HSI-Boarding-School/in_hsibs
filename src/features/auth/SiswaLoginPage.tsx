@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { Iconify } from "../../components/iconify/iconify";
+import { useToast } from "../../components/ui/ToastProvider";
+import { getErrorMessage } from "../../lib/errors";
 
 interface SiswaLoginPageProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -11,6 +13,7 @@ export function SiswaLoginPage({
   onLogin,
   onBackToMainPortal,
 }: SiswaLoginPageProps) {
+  const toast = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +26,11 @@ export function SiswaLoginPage({
     setSubmitting(true);
     setError(null);
     try { await onLogin(email, password); }
-    catch (err) { setError(err instanceof Error ? err.message : "Login Santri gagal."); }
+    catch (err) {
+      const message = getErrorMessage(err, "Login santri gagal. Silakan coba lagi.");
+      setError(message);
+      toast.error("Login gagal", message);
+    }
     finally { setSubmitting(false); }
   }
 
@@ -162,7 +169,7 @@ export function SiswaLoginPage({
             </div>
           </div>
 
-          {error && <div className="rounded-xl border border-orange-500/20 bg-orange-500/8 px-3 py-2.5 text-xs font-bold text-orange-600">{error}</div>}
+          {error && <div role="alert" aria-live="polite" className="rounded-xl border border-orange-500/20 bg-orange-500/8 px-3 py-2.5 text-xs font-bold text-orange-600">{error}</div>}
 
           {/* Submit */}
           <motion.button

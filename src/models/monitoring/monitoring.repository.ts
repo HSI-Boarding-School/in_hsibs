@@ -420,7 +420,11 @@ export async function createMonitoringProject(input: MonitoringProjectInput, cre
     .select("id")
     .single();
   if (error) throw new Error(`Gagal membuat project: ${error.message}`);
-  await replaceProjectOwners((data as { id: string }).id, input.ownerIds);
+  try {
+    await replaceProjectOwners((data as { id: string }).id, input.ownerIds);
+  } catch (ownerError) {
+    throw new Error(`Project berhasil dibuat, tetapi owner gagal disimpan: ${ownerError instanceof Error ? ownerError.message : "Kesalahan tidak diketahui."}`);
+  }
 }
 
 export async function updateMonitoringProject(projectId: string, input: MonitoringProjectInput, creatorId?: string) {
@@ -441,7 +445,11 @@ export async function updateMonitoringProject(projectId: string, input: Monitori
   const { data, error } = await query.select("id").maybeSingle();
   if (error) throw new Error(`Gagal memperbarui project: ${error.message}`);
   if (!data) throw new Error("Project tidak ditemukan atau bukan milik akun ini.");
-  await replaceProjectOwners(projectId, input.ownerIds);
+  try {
+    await replaceProjectOwners(projectId, input.ownerIds);
+  } catch (ownerError) {
+    throw new Error(`Project berhasil diperbarui, tetapi owner gagal disimpan: ${ownerError instanceof Error ? ownerError.message : "Kesalahan tidak diketahui."}`);
+  }
 }
 
 export async function deleteMonitoringProject(projectId: string, creatorId?: string) {

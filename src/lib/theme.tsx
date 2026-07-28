@@ -89,8 +89,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const setMode = useCallback((next: ThemeMode) => {
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // ignore
+    } catch (error) {
+      const detail = error instanceof Error && error.message ? ` ${error.message}` : "";
+      throw new Error(`Tema tidak dapat disimpan ke browser.${detail}`);
     }
     setModeState(next);
   }, []);

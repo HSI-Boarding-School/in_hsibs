@@ -5,6 +5,8 @@ import { Scrollbar } from "../../../../components/scrollbar";
 import type { Santri } from "../../../../data/santriData";
 import { getDivColor, getDivLabel } from "../../../../data/santriData";
 import { useLocalStorageState } from "../../../../lib/useLocalStorageState";
+import { useToast } from "../../../../components/ui/ToastProvider";
+import { getErrorMessage } from "../../../../lib/errors";
 
 interface UnitTheme {
   avatar: string;
@@ -190,6 +192,7 @@ export function SantriDetailDrawer({ santri, open, onClose, readOnly = false }: 
 }
 
 function DrawerContent({ santri, onClose, readOnly }: { santri: Santri; onClose: () => void; readOnly: boolean }) {
+  const toast = useToast();
   const shortId = santri.id.replace("IN_HSIBS_", "");
   const unit = getUnitTheme(santri.unit);
   const status = statusTheme[santri.status];
@@ -214,13 +217,13 @@ function DrawerContent({ santri, onClose, readOnly }: { santri: Santri; onClose:
   function addSowItem() {
     const text = newSow.trim();
     if (!text || !selectedRole) return;
-    setSowBySantri((prev) => ({
-      ...prev,
-      [santri.id]: {
-        ...sowMap,
-        [selectedRole]: [...(sowMap[selectedRole] ?? []), text],
-      },
-    }));
+    try {
+      setSowBySantri((prev) => ({ ...prev, [santri.id]: { ...sowMap, [selectedRole]: [...(sowMap[selectedRole] ?? []), text] } }));
+    } catch (error) {
+      toast.error("SoW gagal ditambahkan", getErrorMessage(error, "Penyimpanan browser tidak tersedia."));
+      return;
+    }
+    toast.success("SoW ditambahkan", text);
     setNewSow("");
   }
 

@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { useLocalStorageState } from "../../../lib/useLocalStorageState";
 import { santriList } from "../../../data/santriData";
+import { useToast } from "../../../components/ui/ToastProvider";
+import { getErrorMessage } from "../../../lib/errors";
 
 const CURRENT_DIVISION = "IT";
 const CURRENT_DIVISION_LABEL = "IT";
@@ -193,6 +195,7 @@ const defaultSows: SowItem[] = [
 ];
 
 function SowSettings() {
+  const toast = useToast();
   const [sows, setSows] = useLocalStorageState<SowItem[]>(
     `in_hsibs.picdiv.sow.${CURRENT_DIVISION}`,
     defaultSows,
@@ -206,15 +209,13 @@ function SowSettings() {
 
   function handleAdd() {
     if (!newRole || !newTitle.trim() || !newTarget.trim()) return;
-    setSows((prev) => [
-      ...prev,
-      {
-        id: `sow-${Date.now()}`,
-        role: newRole,
-        title: newTitle.trim(),
-        target: newTarget.trim(),
-      },
-    ]);
+    try {
+      setSows((prev) => [...prev, { id: `sow-${Date.now()}`, role: newRole, title: newTitle.trim(), target: newTarget.trim() }]);
+    } catch (error) {
+      toast.error("SoW gagal ditambahkan", getErrorMessage(error, "Penyimpanan browser tidak tersedia."));
+      return;
+    }
+    toast.success("SoW ditambahkan", newTitle.trim());
     setNewRole("");
     setNewTitle("");
     setNewTarget("");
@@ -222,7 +223,10 @@ function SowSettings() {
   }
 
   function handleDelete(id: string) {
-    setSows((prev) => prev.filter((s) => s.id !== id));
+    const item = sows.find((sow) => sow.id === id);
+    try { setSows((prev) => prev.filter((sow) => sow.id !== id)); }
+    catch (error) { toast.error("SoW gagal dihapus", getErrorMessage(error, "Penyimpanan browser tidak tersedia.")); return; }
+    toast.success("SoW dihapus", item?.title ?? "Item SoW dihapus.");
   }
 
   return (
@@ -351,6 +355,7 @@ const notifPrefs = [
 ];
 
 function NotificationSettings() {
+  const toast = useToast();
   const [enabled, setEnabled] = useLocalStorageState<Record<string, boolean>>(
     "in_hsibs.picdiv.settings.notif",
     Object.fromEntries(notifPrefs.map((p) => [p.id, true])),
@@ -366,7 +371,11 @@ function NotificationSettings() {
           right={
             <Toggle
               checked={enabled[pref.id]}
-              onChange={() => setEnabled((prev) => ({ ...prev, [pref.id]: !prev[pref.id] }))}
+              onChange={() => {
+                const next = !enabled[pref.id];
+                try { setEnabled((prev) => ({ ...prev, [pref.id]: next })); toast.success("Preferensi notifikasi diperbarui", `${pref.title} ${next ? "diaktifkan" : "dinonaktifkan"}.`); }
+                catch (error) { toast.error("Preferensi gagal disimpan", getErrorMessage(error, "Penyimpanan browser tidak tersedia.")); }
+              }}
             />
           }
         />

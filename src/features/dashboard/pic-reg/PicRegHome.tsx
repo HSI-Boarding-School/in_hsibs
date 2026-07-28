@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { useToast } from "../../../components/ui/ToastProvider";
 import { useAuth } from "../../../lib/auth";
+import { getErrorMessage } from "../../../lib/errors";
 import { usePicRegDashboard, type PicRegApprovalItem, type PicRegLocationSummary, type PicRegMukafaahItem, type PicRegWarningItem } from "../../../models/pic-reg";
 import { setReportManagementStatus } from "../../../models/report";
 
@@ -16,10 +17,16 @@ export function PicRegHome() {
     setBusyId(item.reportId);
     try {
       await setReportManagementStatus(item.reportId, status);
-      await refresh();
       toast.success(status === "Disetujui" ? "Laporan disetujui" : "Revisi diminta", `${item.studentName} · ${item.period}`);
     } catch (err) {
-      toast.error("Approval gagal", err instanceof Error ? err.message : "Coba kembali beberapa saat lagi.");
+      toast.error("Approval gagal", getErrorMessage(err, "Coba kembali beberapa saat lagi."));
+      setBusyId(null);
+      return;
+    }
+    try {
+      await refresh();
+    } catch (err) {
+      toast.error("Data gagal dimuat ulang", getErrorMessage(err, "Approval sudah tersimpan, tetapi dashboard belum dapat diperbarui."));
     } finally {
       setBusyId(null);
     }

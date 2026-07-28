@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { CustomSelect } from "../../../components/ui/CustomSelect";
 import { useToast } from "../../../components/ui/ToastProvider";
+import { getErrorMessage } from "../../../lib/errors";
 import {
   remindStudentPic,
   submitDailyReport,
@@ -54,11 +55,15 @@ export function StudentActionDialog({ action, data, authUserId, onClose, onSucce
         await uploadStudentEvidence(data.profile.pengabdianId, authUserId, { reportId: fields.reportId, file });
       }
       if (action === "remind") await remindStudentPic(data.profile.pengabdianId, data.primaryAssignmentId, data.primaryPicDivisionId, { reportId: fields.reportId || null, message: fields.message ?? "" });
-      await onSuccess();
       toast.success(`${copy.title} berhasil`, action === "evidence" ? "Evidence sudah tersimpan." : action === "remind" ? "Permintaan review sudah dikirim." : "Data sudah dikirim ke PIC.");
       onClose();
+      try {
+        await onSuccess();
+      } catch (error) {
+        toast.error("Data gagal dimuat ulang", getErrorMessage(error, "Perubahan sudah tersimpan, tetapi data terbaru belum dapat dimuat."));
+      }
     } catch (err) {
-      toast.error(`${copy.title} gagal`, err instanceof Error ? err.message : "Silakan coba lagi.");
+      toast.error(`${copy.title} gagal`, getErrorMessage(err, "Silakan coba lagi."));
     } finally { setSaving(false); }
   }
 

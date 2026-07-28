@@ -16,6 +16,7 @@ import {
 } from "../../../../../models/monitoring";
 import { MonitoringLoadingState } from "./MonitoringLoadingState";
 import { useToast } from "../../../../../components/ui/ToastProvider";
+import { getErrorMessage } from "../../../../../lib/errors";
 
 const emptyOptions: MonitoringProjectOptions = { tracks: [], divisions: [], owners: [], reviewers: [] };
 
@@ -84,21 +85,42 @@ export function ProjectView({ creatorId }: { creatorId?: string }) {
   }, [projects]);
 
   async function handleSaveProject(input: MonitoringProjectInput) {
-    if (activeProject?.databaseId) {
-      await updateMonitoringProject(activeProject.databaseId, input, creatorId);
-      toast.success("Project diperbarui", input.name);
-    } else {
-      await createMonitoringProject(input, creatorId);
-      toast.success("Project ditambahkan", input.name);
+    const isUpdate = Boolean(activeProject?.databaseId);
+    try {
+      if (activeProject?.databaseId) {
+        await updateMonitoringProject(activeProject.databaseId, input, creatorId);
+      } else {
+        await createMonitoringProject(input, creatorId);
+      }
+    } catch (error) {
+      toast.error(
+        isUpdate ? "Project gagal diperbarui" : "Project gagal ditambahkan",
+        getErrorMessage(error, "Gagal menyimpan project."),
+      );
+      throw error;
     }
-    await refresh();
+    toast.success(isUpdate ? "Project diperbarui" : "Project ditambahkan", input.name);
+    try {
+      await refresh();
+    } catch (error) {
+      toast.error("Data gagal dimuat ulang", getErrorMessage(error, "Gagal memuat ulang data project."));
+    }
   }
 
   async function handleDeleteProject() {
     if (!activeProject?.databaseId) return;
-    await deleteMonitoringProject(activeProject.databaseId, creatorId);
+    try {
+      await deleteMonitoringProject(activeProject.databaseId, creatorId);
+    } catch (error) {
+      toast.error("Project gagal dihapus", getErrorMessage(error, "Gagal menghapus project."));
+      throw error;
+    }
     toast.success("Project dihapus", activeProject.name);
-    await refresh();
+    try {
+      await refresh();
+    } catch (error) {
+      toast.error("Data gagal dimuat ulang", getErrorMessage(error, "Gagal memuat ulang data project."));
+    }
   }
 
   function openCreateForm() {

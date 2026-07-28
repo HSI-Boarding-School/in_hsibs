@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { useToast } from "../../../components/ui/ToastProvider";
 import { useAuth } from "../../../lib/auth";
+import { getErrorMessage } from "../../../lib/errors";
 import { useAdminMappingData } from "../../../models/admin";
 import { setReportManagementStatus, useReportManagement, type ReportQueueItem } from "../../../models/report";
 import { ProjectView } from "../admin/components/monitoring/ProjectView";
@@ -43,12 +44,18 @@ export function PicDivValidation() {
     setSavingId(report.id);
     try {
       await setReportManagementStatus(report.id, status, noteTargetId === report.id ? noteText : undefined);
-      await reports.refresh();
       setNoteTargetId(null);
       setNoteText("");
       toast.success(status === "Divalidasi" ? "Laporan divalidasi" : "Revisi diminta", `${report.studentName} · ${report.summary}`);
     } catch (error) {
-      toast.error("Status gagal diperbarui", error instanceof Error ? error.message : "Coba kembali beberapa saat lagi.");
+      toast.error("Status gagal diperbarui", getErrorMessage(error, "Coba kembali beberapa saat lagi."));
+      setSavingId(null);
+      return;
+    }
+    try {
+      await reports.refresh();
+    } catch (error) {
+      toast.error("Data gagal dimuat ulang", getErrorMessage(error, "Status sudah tersimpan, tetapi antrean laporan belum dapat diperbarui."));
     } finally {
       setSavingId(null);
     }

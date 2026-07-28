@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { useToast } from "../../../components/ui/ToastProvider";
+import { getErrorMessage } from "../../../lib/errors";
 import { useAuth } from "../../../lib/auth";
 import type { ReportStatus } from "../../../lib/supabase/types";
 import { usePicRegDashboard, usePicRegMapping, type PicRegMukafaahItem, type PicRegWarningItem } from "../../../models/pic-reg";
@@ -47,10 +48,16 @@ export function PicRegMonitoring() {
     setBusyId(reportId);
     try {
       await setReportManagementStatus(reportId, status);
-      await Promise.all([dashboard.refresh(), reports.refresh()]);
       toast.success(status === "Disetujui" ? "Evaluasi difinalisasi" : status === "Divalidasi" ? "Weekly divalidasi" : "Revisi diminta", label);
     } catch (err) {
-      toast.error("Status gagal diperbarui", err instanceof Error ? err.message : "Coba kembali beberapa saat lagi.");
+      toast.error("Status gagal diperbarui", getErrorMessage(err, "Coba kembali beberapa saat lagi."));
+      setBusyId(null);
+      return;
+    }
+    try {
+      await Promise.all([dashboard.refresh(), reports.refresh()]);
+    } catch (err) {
+      toast.error("Data gagal dimuat ulang", getErrorMessage(err, "Status sudah tersimpan, tetapi data monitoring belum dapat diperbarui."));
     } finally {
       setBusyId(null);
     }

@@ -21,11 +21,14 @@ import {
   type ReactNode,
 } from "react";
 import type { Session as SupabaseSession } from "@supabase/supabase-js";
+import { useToast } from "../components/ui/ToastProvider";
+import { getErrorMessage } from "./errors";
 import { supabase } from "./supabase/client";
 import type { Session } from "../types";
 import {
   restoreStaffAuth,
   restoreStudentAuth,
+  getAuthErrorMessage,
   signInStudent,
   signInStaff,
   signOutStaff,
@@ -49,6 +52,16 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 const legacySessionStorageKey = "in_hsibs.auth.legacySession";
+const portalRoleStorageKey = "in_hsibs.auth.portalRole";
+
+async function restoreApplicationAuth(user: SupabaseSession["user"]) {
+  const studentSession = await restoreStudentAuth(user);
+  const staffAuth = studentSession ? null : await restoreStaffAuth(user);
+  if (!studentSession && !staffAuth) {
+    throw new Error("Sesi ditemukan, tetapi akun tidak terhubung ke staff atau Santri aktif.");
+  }
+  return { studentSession, staffAuth };
+}
 
 function readLegacySession(): Session | null {
   try {
@@ -57,13 +70,31 @@ function readLegacySession(): Session | null {
     const stored = JSON.parse(value) as Partial<Session>;
     if (stored.role !== "siswa" || !stored.userId || !stored.roleLabel) return null;
     return { ...stored, password: "" } as Session;
-  } catch {
-    window.localStorage.removeItem(legacySessionStorageKey);
-    return null;
+  } catch (error) {
+    let cleanupDetail = "";
+    try {
+      window.localStorage.removeItem(legacySessionStorageKey);
+    } catch (cleanupError) {
+      cleanupDetail = ` Data rusak juga gagal dibersihkan: ${getErrorMessage(cleanupError, "kesalahan tidak diketahui")}`;
+    }
+    throw new Error(`Sesi lokal tidak dapat dibaca: ${getErrorMessage(error, "format data tidak valid")}.${cleanupDetail}`);
+  }
+}
+
+async function describeRestoreFailure(error: unknown): Promise<string> {
+  const message = getErrorMessage(error, "Sesi tidak dapat dipulihkan. Silakan login kembali.");
+  try {
+    const cleanup = await supabase.auth.signOut();
+    return cleanup.error
+      ? `${message} Sesi Supabase juga gagal dibersihkan: ${getAuthErrorMessage(cleanup.error, "kesalahan tidak diketahui")}`
+      : message;
+  } catch (cleanupError) {
+    return `${message} Sesi Supabase juga gagal dibersihkan: ${getErrorMessage(cleanupError, "kesalahan tidak diketahui")}`;
   }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const toast = useToast();
   const [sbSession, setSbSession] = useState<SupabaseSession | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<StaffProfileModel | null>(null);
@@ -72,20 +103,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function restoreSession() {
       try {
-        const { data } = await supabase.auth.getSession();
-        setSbSession(data.session);
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          throw new Error(getAuthErrorMessage(error, "Gagal memeriksa sesi login."));
+        }
         if (data.session?.user) {
-          const studentSession = await restoreStudentAuth(data.session.user);
-          const auth = studentSession ? null : await restoreStaffAuth(data.session.user);
-          setProfile(auth?.profile ?? null);
-          setSession(auth?.session ?? studentSession);
+          const { studentSession, staffAuth } = await restoreApplicationAuth(data.session.user);
+          setSbSession(data.session);
+          setProfile(staffAuth?.profile ?? null);
+          setSession(staffAuth?.session ?? studentSession);
         } else {
+          setSbSession(null);
           setSession(readLegacySession());
         }
-      } catch {
+      } catch (error) {
+        const message = await describeRestoreFailure(error);
         setSbSession(null);
         setProfile(null);
         setSession(null);
+        toast.error("Pemulihan sesi gagal", message);
       } finally {
         setLoading(false);
       }
@@ -94,21 +130,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void restoreSession();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, newSbSession) => {
-        setSbSession(newSbSession);
+      async (event, newSbSession) => {
+        if (event === "INITIAL_SESSION") return;
         if (newSbSession?.user) {
           try {
-            const studentSession = await restoreStudentAuth(newSbSession.user);
-            const auth = studentSession ? null : await restoreStaffAuth(newSbSession.user);
-            setProfile(auth?.profile ?? null);
-            setSession(auth?.session ?? studentSession);
-          } catch {
+            const { studentSession, staffAuth } = await restoreApplicationAuth(newSbSession.user);
+            setSbSession(newSbSession);
+            setProfile(staffAuth?.profile ?? null);
+            setSession(staffAuth?.session ?? studentSession);
+          } catch (error) {
+            const message = await describeRestoreFailure(error);
+            setSbSession(null);
             setProfile(null);
             setSession(null);
+            toast.error("Pemulihan sesi gagal", message);
           }
         } else {
-          setProfile(null);
-          setSession(readLegacySession());
+          try {
+            setSbSession(null);
+            setProfile(null);
+            setSession(readLegacySession());
+          } catch (error) {
+            setSession(null);
+            toast.error("Pemulihan sesi lokal gagal", getErrorMessage(error, "Sesi lokal tidak dapat dipulihkan."));
+          }
         }
       },
     );
@@ -124,21 +169,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     expectedRole: Session["role"],
   ) {
     const auth = await signInStaff({ email, password, expectedRole });
-    window.localStorage.removeItem(legacySessionStorageKey);
-    const { data } = await supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      const message = getAuthErrorMessage(error, "Gagal memeriksa sesi login staff.");
+      let cleanupDetail = "";
+      try {
+        await signOutStaff();
+      } catch (cleanupError) {
+        cleanupDetail = ` Sesi login juga gagal dibersihkan: ${getErrorMessage(cleanupError, "kesalahan tidak diketahui")}`;
+      }
+      throw new Error(`${message}${cleanupDetail}`);
+    }
     setSbSession(data.session);
     setProfile(auth.profile);
     setSession(auth.session);
+    try {
+      window.localStorage.setItem(portalRoleStorageKey, expectedRole);
+      window.localStorage.removeItem(legacySessionStorageKey);
+    } catch (storageError) {
+      toast.error("Preferensi sesi gagal disimpan", getErrorMessage(storageError, "Login berhasil, tetapi pilihan portal tidak dapat disimpan di browser."));
+    }
     return auth.session;
   }
 
   async function loginSiswaWithSupabase(email: string, password: string) {
     const studentSession = await signInStudent(email, password);
-    window.localStorage.removeItem(legacySessionStorageKey);
-    const { data } = await supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      const message = getAuthErrorMessage(error, "Gagal memeriksa sesi login santri.");
+      let cleanupDetail = "";
+      try {
+        await signOutStaff();
+      } catch (cleanupError) {
+        cleanupDetail = ` Sesi login juga gagal dibersihkan: ${getErrorMessage(cleanupError, "kesalahan tidak diketahui")}`;
+      }
+      throw new Error(`${message}${cleanupDetail}`);
+    }
     setSbSession(data.session);
     setProfile(null);
     setSession(studentSession);
+    try {
+      window.localStorage.removeItem(portalRoleStorageKey);
+      window.localStorage.removeItem(legacySessionStorageKey);
+    } catch (storageError) {
+      toast.error("Preferensi sesi gagal dibersihkan", getErrorMessage(storageError, "Login berhasil, tetapi preferensi portal lama tidak dapat dibersihkan."));
+    }
     return studentSession;
   }
 
@@ -146,7 +221,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Tetap ada agar routing.tsx tidak error saat demo
   function login(credentials: Session) {
     const safeSession = { ...credentials, password: "" };
-    window.localStorage.setItem(legacySessionStorageKey, JSON.stringify(safeSession));
+    try {
+      window.localStorage.setItem(legacySessionStorageKey, JSON.stringify(safeSession));
+    } catch (storageError) {
+      const message = getErrorMessage(storageError, "Sesi lokal tidak dapat disimpan.");
+      toast.error("Login lokal gagal", message);
+      throw new Error(message);
+    }
     setSession(safeSession);
   }
 
@@ -155,7 +236,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setProfile(null);
     setSbSession(null);
-    window.localStorage.removeItem(legacySessionStorageKey);
+    try {
+      window.localStorage.removeItem(legacySessionStorageKey);
+      window.localStorage.removeItem(portalRoleStorageKey);
+    } catch (storageError) {
+      toast.error("Data sesi lokal gagal dibersihkan", getErrorMessage(storageError, "Logout berhasil, tetapi data sesi browser tidak dapat dibersihkan."));
+    }
   }
 
   return (

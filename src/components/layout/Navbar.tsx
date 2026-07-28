@@ -4,6 +4,8 @@ import { Iconify } from "../iconify/iconify";
 import { CustomSelect, type SelectOption } from "../ui/CustomSelect";
 import { useTheme } from "../../lib/theme";
 import { useLocalStorageState } from "../../lib/useLocalStorageState";
+import { getErrorMessage } from "../../lib/errors";
+import { useToast } from "../ui/ToastProvider";
 import type { Session } from "../../types";
 
 interface NavbarProps {
@@ -50,6 +52,7 @@ function Avatar({ user }: { user: Session }) {
 }
 
 export function Navbar({ onLogout, user }: NavbarProps) {
+  const toast = useToast();
   const [showProfile, setShowProfile] = useState(false);
   const [academicYear, setAcademicYear] = useLocalStorageState(
     "in_hsibs.filters.academicYear",
@@ -83,7 +86,10 @@ export function Navbar({ onLogout, user }: NavbarProps) {
         {showAcademicYear && (
           <CustomSelect
             value={academicYear}
-            onChange={setAcademicYear}
+            onChange={(value) => {
+              try { setAcademicYear(value); toast.success("Tahun ajaran diperbarui", value); }
+              catch (error) { toast.error("Tahun ajaran gagal disimpan", getErrorMessage(error, "Penyimpanan browser tidak tersedia.")); }
+            }}
             options={academicYearOptions}
             icon="solar:calendar-bold-duotone"
             align="right"
@@ -96,7 +102,10 @@ export function Navbar({ onLogout, user }: NavbarProps) {
           type="button"
           aria-label={isDark ? "Aktifkan light mode" : "Aktifkan dark mode"}
           aria-pressed={isDark}
-          onClick={toggle}
+          onClick={() => {
+            try { toggle(); toast.success("Tema diperbarui", isDark ? "Light mode diaktifkan." : "Dark mode diaktifkan."); }
+            catch (error) { toast.error("Tema gagal disimpan", getErrorMessage(error, "Penyimpanan browser tidak tersedia.")); }
+          }}
           className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-strong text-muted transition-colors hover:border-primary/30 hover:bg-primary-soft/35 hover:text-primary-dark max-sm:h-9 max-sm:w-9"
         >
           <AnimatePresence mode="wait" initial={false}>

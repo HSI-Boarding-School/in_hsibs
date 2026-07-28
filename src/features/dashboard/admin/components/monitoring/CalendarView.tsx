@@ -10,6 +10,7 @@ import {
 } from "../../../../../models/monitoring";
 import { MonitoringLoadingState } from "./MonitoringLoadingState";
 import { useToast } from "../../../../../components/ui/ToastProvider";
+import { getErrorMessage } from "../../../../../lib/errors";
 
 export function CalendarView() {
   const { events, setEvents, isLoading, error } = useMonitoringCalendarEvents();
@@ -32,14 +33,22 @@ export function CalendarView() {
 
   const handleFormSubmit = useCallback(
     async (data: Omit<CalendarEvent, "id">) => {
-      if (activeEvent) {
-        const updated = await updateMonitoringCalendarEvent(activeEvent.id, data);
-        setEvents((current) => current.map((event) => event.id === activeEvent.id ? updated : event));
-        toast.success("Event diperbarui", updated.title);
-      } else {
-        const created = await createMonitoringCalendarEvent(data);
-        setEvents((current) => [...current, created]);
-        toast.success("Event ditambahkan", created.title);
+      try {
+        if (activeEvent) {
+          const updated = await updateMonitoringCalendarEvent(activeEvent.id, data);
+          setEvents((current) => current.map((event) => event.id === activeEvent.id ? updated : event));
+          toast.success("Event diperbarui", updated.title);
+        } else {
+          const created = await createMonitoringCalendarEvent(data);
+          setEvents((current) => [...current, created]);
+          toast.success("Event ditambahkan", created.title);
+        }
+      } catch (error) {
+        toast.error(
+          activeEvent ? "Event gagal diperbarui" : "Event gagal ditambahkan",
+          getErrorMessage(error, "Gagal menyimpan event."),
+        );
+        throw error;
       }
     },
     [activeEvent, setEvents, toast],
@@ -47,9 +56,14 @@ export function CalendarView() {
 
   const handleDeleteEvent = useCallback(async () => {
     if (!activeEvent) return;
-    await deleteMonitoringCalendarEvent(activeEvent.id);
-    setEvents((current) => current.filter((event) => event.id !== activeEvent.id));
-    toast.success("Event dihapus", activeEvent.title);
+    try {
+      await deleteMonitoringCalendarEvent(activeEvent.id);
+      setEvents((current) => current.filter((event) => event.id !== activeEvent.id));
+      toast.success("Event dihapus", activeEvent.title);
+    } catch (error) {
+      toast.error("Event gagal dihapus", getErrorMessage(error, "Gagal menghapus event."));
+      throw error;
+    }
   }, [activeEvent, setEvents, toast]);
 
   if (isLoading) {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { useToast } from "../../../components/ui/ToastProvider";
 import { useAuth } from "../../../lib/auth";
+import { getErrorMessage } from "../../../lib/errors";
 import { usePicDivDashboard } from "../../../models/pic-div";
 import { setReportManagementStatus } from "../../../models/report";
 
@@ -17,10 +18,16 @@ export function PicDivHome() {
     setValidatingId(reportId);
     try {
       await setReportManagementStatus(reportId, "Divalidasi");
-      await refresh();
       toast.success("Laporan divalidasi", "Weekly report telah masuk ke tahap berikutnya.");
     } catch (err) {
-      toast.error("Validasi gagal", err instanceof Error ? err.message : "Coba kembali beberapa saat lagi.");
+      toast.error("Validasi gagal", getErrorMessage(err, "Coba kembali beberapa saat lagi."));
+      setValidatingId(null);
+      return;
+    }
+    try {
+      await refresh();
+    } catch (err) {
+      toast.error("Data gagal dimuat ulang", getErrorMessage(err, "Validasi sudah tersimpan, tetapi dashboard belum dapat diperbarui."));
     } finally {
       setValidatingId(null);
     }

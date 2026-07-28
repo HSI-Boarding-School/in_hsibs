@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { santriList } from "../../../data/santriData";
 import { useLocalStorageState } from "../../../lib/useLocalStorageState";
+import { useToast } from "../../../components/ui/ToastProvider";
+import { getErrorMessage } from "../../../lib/errors";
 
 const CURRENT_REGION = "Regional Barat";
 const PIC_NAME = "Kak Hana";
@@ -262,6 +264,7 @@ function ProfileTab() {
 }
 
 function PicManagementTab() {
+  const toast = useToast();
   const [pics, setPics] = useState(mockPicDivs);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteName, setInviteName] = useState("");
@@ -341,7 +344,7 @@ function PicManagementTab() {
               <button
                 type="button"
                 onClick={() => {
-                  if (inviteName.trim() && inviteDiv.trim()) {
+                   if (inviteName.trim() && inviteDiv.trim()) {
                     setPics((p) => [
                       ...p,
                       {
@@ -353,8 +356,11 @@ function PicManagementTab() {
                     ]);
                     setInviteName("");
                     setInviteDiv("");
-                    setShowInvite(false);
-                  }
+                     setShowInvite(false);
+                     toast.success("PIC ditambahkan", "PIC tersimpan sementara pada daftar ini.");
+                   } else {
+                     toast.error("PIC gagal ditambahkan", "Nama PIC dan divisi wajib diisi.");
+                   }
                 }}
                 className="rounded-lg bg-primary px-4 py-2 text-xs font-black text-white hover:bg-primary-dark"
               >
@@ -378,6 +384,7 @@ function PicManagementTab() {
 }
 
 function NotificationTab() {
+  const toast = useToast();
   const [enabled, setEnabled] = useLocalStorageState<Record<string, boolean>>(
     "in_hsibs.picreg.settings.notif",
     Object.fromEntries(notifPrefs.map((p) => [p.id, true])),
@@ -399,9 +406,11 @@ function NotificationTab() {
           <button
             type="button"
             aria-pressed={enabled[pref.id]}
-            onClick={() =>
-              setEnabled((p) => ({ ...p, [pref.id]: !p[pref.id] }))
-            }
+            onClick={() => {
+              const next = !enabled[pref.id];
+              try { setEnabled((current) => ({ ...current, [pref.id]: next })); toast.success("Preferensi notifikasi diperbarui", `${pref.title} ${next ? "diaktifkan" : "dinonaktifkan"}.`); }
+              catch (error) { toast.error("Preferensi gagal disimpan", getErrorMessage(error, "Penyimpanan browser tidak tersedia.")); }
+            }}
             className={`relative h-8 w-14 shrink-0 rounded-full p-1 transition-colors ${enabled[pref.id] ? "bg-[#16a34a]" : "bg-surface-strong"}`}
           >
             <span

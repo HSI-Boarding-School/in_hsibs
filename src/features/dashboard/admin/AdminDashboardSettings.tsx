@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { useLocalStorageState } from "../../../lib/useLocalStorageState";
+import { getErrorMessage } from "../../../lib/errors";
+import { useToast } from "../../../components/ui/ToastProvider";
 
 type SettingsTab =
   | "academic"
@@ -190,6 +192,7 @@ function OrgSettings() {
 }
 
 function ReportRulesSettings() {
+  const toast = useToast();
   const [enabled, setEnabled] = useLocalStorageState<Record<string, boolean>>(
     "in_hsibs.settings.reportRules.enabled",
     Object.fromEntries(reportRules.map((rule) => [rule.title, true])),
@@ -207,7 +210,11 @@ function ReportRulesSettings() {
               <span className="min-w-[220px] rounded-xl border border-border bg-surface-strong/45 px-3 py-2 text-[0.72rem] font-extrabold text-text max-sm:min-w-0">
                 {rule.rule}
               </span>
-              <Toggle checked={enabled[rule.title]} onChange={() => setEnabled((prev) => ({ ...prev, [rule.title]: !prev[rule.title] }))} />
+              <Toggle checked={enabled[rule.title]} onChange={() => {
+                const next = !enabled[rule.title];
+                try { setEnabled((prev) => ({ ...prev, [rule.title]: next })); toast.success("Aturan report diperbarui", `${rule.title} ${next ? "diaktifkan" : "dinonaktifkan"}.`); }
+                catch (error) { toast.error("Aturan report gagal disimpan", getErrorMessage(error, "Penyimpanan browser tidak tersedia.")); }
+              }} />
             </div>
           }
         />

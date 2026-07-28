@@ -7,6 +7,7 @@ import { usePicRegMapping } from "../../../models/pic-reg";
 import { createMappingMaster, moveStudentMapping } from "../../../models/admin";
 import { KanbanBoard, type KanbanColumnDef } from "../../../components/ui/KanbanBoard";
 import { useToast } from "../../../components/ui/ToastProvider";
+import { getErrorMessage } from "../../../lib/errors";
 import { SantriCard } from "../admin/components/SantriCard";
 import { SantriDetailDrawer } from "../admin/components/SantriDetailDrawer";
 
@@ -49,9 +50,11 @@ export function PicRegSantri() {
   }, {});
 
   async function addLocation(_id: string, label: string) {
-    await createMappingMaster("location", label, regionId);
-    await refresh();
+    try { await createMappingMaster("location", label, regionId); }
+    catch (error) { toast.error("Lokasi gagal ditambahkan", getErrorMessage(error, "Silakan coba lagi.")); throw error; }
     toast.success("Lokasi ditambahkan", label);
+    try { await refresh(); }
+    catch (error) { toast.error("Data gagal dimuat ulang", getErrorMessage(error, "Lokasi sudah dibuat, tetapi data regional belum dapat diperbarui.")); }
   }
 
   async function confirmMove() {
@@ -59,12 +62,16 @@ export function PicRegSantri() {
     setMoveSaving(true);
     try {
       await moveStudentMapping(pendingMove.student.placementId, "location", pendingMove.targetLocationId);
-      await refresh();
       toast.success("Lokasi Santri diperbarui", `${pendingMove.student.name} dipindahkan ke ${pendingMove.to}.`);
       setPendingMove(null);
     } catch (error) {
-      toast.error("Perpindahan gagal", error instanceof Error ? error.message : "Silakan coba lagi.");
-    } finally { setMoveSaving(false); }
+      toast.error("Perpindahan gagal", getErrorMessage(error, "Silakan coba lagi."));
+      setMoveSaving(false);
+      return;
+    }
+    try { await refresh(); }
+    catch (error) { toast.error("Data gagal dimuat ulang", getErrorMessage(error, "Lokasi sudah tersimpan, tetapi data regional belum dapat diperbarui.")); }
+    finally { setMoveSaving(false); }
   }
 
   return (

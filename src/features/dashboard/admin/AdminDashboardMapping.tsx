@@ -9,6 +9,7 @@ import { KanbanBoard } from "../../../components/ui/KanbanBoard";
 import type { KanbanColumnDef } from "../../../components/ui/KanbanBoard";
 import { createMappingMaster, moveStudentMapping, useAdminMappingData } from "../../../models/admin";
 import { useToast } from "../../../components/ui/ToastProvider";
+import { getErrorMessage } from "../../../lib/errors";
 
 type ViewTab = "santri" | "unit" | "divisi" | "lokasi" | "pic" | "projek";
 
@@ -92,10 +93,23 @@ export function AdminDashboardMapping() {
   const confirmPendingMove = useCallback(async () => {
     if (!pendingMove || moveSaving) return;
     setMoveSaving(true);
-    try { await pendingMove.apply(); setPendingMove(null); toast.success("Mapping diperbarui", "Perubahan Santri sudah disimpan ke database."); }
-    catch (error) { toast.error("Mapping gagal diperbarui", error instanceof Error ? error.message : "Silakan coba lagi."); }
-    finally { setMoveSaving(false); }
-  }, [moveSaving, pendingMove, toast]);
+    try {
+      await pendingMove.apply();
+      setPendingMove(null);
+      toast.success("Mapping diperbarui", "Perubahan Santri sudah disimpan ke database.");
+    } catch (error) {
+      toast.error("Mapping gagal diperbarui", getErrorMessage(error, "Silakan coba lagi."));
+      setMoveSaving(false);
+      return;
+    }
+    try {
+      await refresh();
+    } catch (error) {
+      toast.error("Data gagal dimuat ulang", getErrorMessage(error, "Mapping sudah tersimpan, tetapi data terbaru belum dapat dimuat."));
+    } finally {
+      setMoveSaving(false);
+    }
+  }, [moveSaving, pendingMove, refresh, toast]);
 
   // ── Unit View ──────────────────────────────────────────────
   const unitColumns: KanbanColumnDef[] = useMemo(
@@ -131,14 +145,18 @@ export function AdminDashboardMapping() {
         fieldLabel: "Unit",
         fromLabel: mappingData?.unitRecords.find((item) => item.id === activeCol)?.label ?? "Belum ada",
         toLabel: target.label,
-        apply: async () => { await moveStudentMapping(student.placementId!, "unit", target.id); await refresh(); },
+        apply: () => moveStudentMapping(student.placementId!, "unit", target.id),
       });
     },
-    [mappingData?.unitRecords, refresh, requestKanbanMove, santriList]
+    [mappingData?.unitRecords, requestKanbanMove, santriList]
   );
 
   const handleAddUnit = useCallback(async (_id: string, label: string) => {
-    await createMappingMaster("unit", label); await refresh(); toast.success("Unit ditambahkan", label);
+    try { await createMappingMaster("unit", label); }
+    catch (error) { toast.error("Unit gagal ditambahkan", getErrorMessage(error, "Silakan coba lagi.")); throw error; }
+    toast.success("Unit ditambahkan", label);
+    try { await refresh(); }
+    catch (error) { toast.error("Data gagal dimuat ulang", getErrorMessage(error, "Unit sudah dibuat, tetapi data terbaru belum dapat dimuat.")); }
   }, [refresh, toast]);
 
   // ── Divisi View ────────────────────────────────────────────
@@ -178,14 +196,18 @@ export function AdminDashboardMapping() {
         fieldLabel: "Divisi utama",
         fromLabel: mappingData?.divisions.find((item) => item.id === activeCol)?.label ?? "Belum ada",
         toLabel: target.label,
-        apply: async () => { await moveStudentMapping(student.placementId!, "division", target.id); await refresh(); },
+        apply: () => moveStudentMapping(student.placementId!, "division", target.id),
       });
     },
-    [mappingData?.divisions, refresh, requestKanbanMove, santriList]
+    [mappingData?.divisions, requestKanbanMove, santriList]
   );
 
   const handleAddDiv = useCallback(async (_id: string, label: string) => {
-    await createMappingMaster("division", label); await refresh(); toast.success("Divisi ditambahkan", label);
+    try { await createMappingMaster("division", label); }
+    catch (error) { toast.error("Divisi gagal ditambahkan", getErrorMessage(error, "Silakan coba lagi.")); throw error; }
+    toast.success("Divisi ditambahkan", label);
+    try { await refresh(); }
+    catch (error) { toast.error("Data gagal dimuat ulang", getErrorMessage(error, "Divisi sudah dibuat, tetapi data terbaru belum dapat dimuat.")); }
   }, [refresh, toast]);
 
   // ── Lokasi View ────────────────────────────────────────────
@@ -222,14 +244,18 @@ export function AdminDashboardMapping() {
         fieldLabel: "Lokasi",
         fromLabel: mappingData?.locationRecords.find((item) => item.id === activeCol)?.label ?? "Belum ada",
         toLabel: target.label,
-        apply: async () => { await moveStudentMapping(student.placementId!, "location", target.id); await refresh(); },
+        apply: () => moveStudentMapping(student.placementId!, "location", target.id),
       });
     },
-    [mappingData?.locationRecords, refresh, requestKanbanMove, santriList]
+    [mappingData?.locationRecords, requestKanbanMove, santriList]
   );
 
   const handleAddLoc = useCallback(async (_id: string, label: string) => {
-    await createMappingMaster("location", label); await refresh(); toast.success("Lokasi ditambahkan", label);
+    try { await createMappingMaster("location", label); }
+    catch (error) { toast.error("Lokasi gagal ditambahkan", getErrorMessage(error, "Silakan coba lagi.")); throw error; }
+    toast.success("Lokasi ditambahkan", label);
+    try { await refresh(); }
+    catch (error) { toast.error("Data gagal dimuat ulang", getErrorMessage(error, "Lokasi sudah dibuat, tetapi data terbaru belum dapat dimuat.")); }
   }, [refresh, toast]);
 
   // ── PIC View ───────────────────────────────────────────────
@@ -269,10 +295,10 @@ export function AdminDashboardMapping() {
         fieldLabel: "PIC Divisi utama",
         fromLabel: mappingData?.staffRecords.find((item) => item.id === activeCol)?.label ?? "Belum ada",
         toLabel: target.label,
-        apply: async () => { await moveStudentMapping(student.placementId!, "pic_division", target.id); await refresh(); },
+        apply: () => moveStudentMapping(student.placementId!, "pic_division", target.id),
       });
     },
-    [mappingData?.staffRecords, refresh, requestKanbanMove, santriList]
+    [mappingData?.staffRecords, requestKanbanMove, santriList]
   );
 
   const renderCard = useCallback(
