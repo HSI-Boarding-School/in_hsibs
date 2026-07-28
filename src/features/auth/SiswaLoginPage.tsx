@@ -86,15 +86,6 @@ export function SiswaLoginPage({
               </h1>
             </div>
           </div>
-
-          <p className="relative mt-4 text-sm font-semibold leading-relaxed text-white/78">
-            Ruang kerja khusus santri untuk melihat tugas harian, report,
-            project, learn, dan feedback PIC.
-          </p>
-
-          <div className="relative mt-5 rounded-2xl bg-black/12 p-3 text-[0.72rem] font-bold text-white/82 ring-1 ring-inset ring-white/14">
-            Gunakan email akun yang terhubung ke data pengabdian santri.
-          </div>
         </div>
 
         {/* Login form */}
