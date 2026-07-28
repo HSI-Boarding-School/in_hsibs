@@ -38,8 +38,16 @@ export interface AdminAuditLog {
 }
 
 export interface AdminMappingDivisionOption {
+  id: string;
   code: string;
   label: string;
+}
+
+export interface AdminMappingMasterOption {
+  id: string;
+  code?: string;
+  label: string;
+  regionId?: string | null;
 }
 
 export interface AdminMappingData {
@@ -48,4 +56,7 @@ export interface AdminMappingData {
   divisions: AdminMappingDivisionOption[];
   locations: string[];
   scopeDivision?: AdminMappingDivisionOption;
+  unitRecords: AdminMappingMasterOption[];
+  locationRecords: AdminMappingMasterOption[];
+  staffRecords: AdminMappingMasterOption[];
 }

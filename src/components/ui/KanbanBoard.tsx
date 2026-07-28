@@ -30,7 +30,8 @@ interface KanbanBoardProps {
   renderCard: (itemId: string) => ReactNode;
   onDragEnd: (activeId: string, overId: string | null, activeCol: string, overCol: string, newIndex: number) => void;
   getColumnId: (itemId: string) => string;
-  onAddColumn?: (id: string, label: string) => void;
+  onAddColumn?: (id: string, label: string) => void | Promise<void>;
+  hideHorizontalScrollbar?: boolean;
 }
 
 function SortableItem({ id, children }: { id: string; children: ReactNode }) {
@@ -87,10 +88,13 @@ export function KanbanBoard({
   onDragEnd,
   getColumnId,
   onAddColumn,
+  hideHorizontalScrollbar = false,
 }: KanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
+  const [addingColumn, setAddingColumn] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -134,19 +138,22 @@ export function KanbanBoard({
     [columns, columnItems, getColumnId, onDragEnd]
   );
 
-  const handleAdd = useCallback(() => {
+  const handleAdd = useCallback(async () => {
     const trimmed = newName.trim();
-    if (trimmed) {
+    if (!trimmed || !onAddColumn || addingColumn) return;
+    setAddingColumn(true); setAddError(null);
+    try {
       const id = trimmed.toLowerCase().replace(/\s+/g, "-");
-      onAddColumn?.(id, trimmed);
-    }
-    setNewName("");
-    setAdding(false);
-  }, [newName, onAddColumn]);
+      await onAddColumn(id, trimmed);
+      setNewName(""); setAdding(false);
+    } catch (error) {
+      setAddError(error instanceof Error ? error.message : "Gagal menambah kolom.");
+    } finally { setAddingColumn(false); }
+  }, [addingColumn, newName, onAddColumn]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") handleAdd();
+      if (e.key === "Enter") void handleAdd();
       if (e.key === "Escape") {
         setNewName("");
         setAdding(false);
@@ -162,7 +169,7 @@ export function KanbanBoard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 scrollbar-x pb-2">
+      <div className={`flex gap-4 pb-2 ${hideHorizontalScrollbar ? "scrollbar-hidden overflow-x-auto" : "scrollbar-x"}`}>
         {columns.map((col) => {
           const items = columnItems[col.id] || [];
           return (
@@ -206,18 +213,17 @@ export function KanbanBoard({
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  onBlur={handleAdd}
                   placeholder="Nama kolom..."
                   className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm font-bold text-text outline-none transition-all focus:border-primary/40 focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)]"
                 />
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={handleAdd}
-                    disabled={!newName.trim()}
+                    onClick={() => void handleAdd()}
+                    disabled={!newName.trim() || addingColumn}
                     className="flex-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-primary-dark disabled:opacity-40"
                   >
-                    Tambah
+                    {addingColumn ? "Menyimpan..." : "Tambah"}
                   </button>
                   <button
                     type="button"
@@ -227,6 +233,7 @@ export function KanbanBoard({
                     Batal
                   </button>
                 </div>
+                {addError && <p className="text-[0.65rem] font-bold text-orange">{addError}</p>}
               </div>
             ) : (
               <button

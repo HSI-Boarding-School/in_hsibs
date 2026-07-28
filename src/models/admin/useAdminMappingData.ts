@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { AdminDataFilter, AdminMappingData } from "./admin.model";
 import { getAdminMappingData } from "./admin.repository";
 
@@ -7,28 +7,14 @@ export function useAdminMappingData(filter: AdminDataFilter = {}) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let ignore = false;
-
-    async function load() {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const snapshot = await getAdminMappingData(filter);
-        if (!ignore) setData(snapshot);
-      } catch (err) {
-        if (!ignore) setError(err instanceof Error ? err.message : "Gagal memuat data mapping.");
-      } finally {
-        if (!ignore) setIsLoading(false);
-      }
-    }
-
-    void load();
-
-    return () => {
-      ignore = true;
-    };
+  const refresh = useCallback(async () => {
+    setIsLoading(true); setError(null);
+    try { setData(await getAdminMappingData(filter)); }
+    catch (err) { setError(err instanceof Error ? err.message : "Gagal memuat data mapping."); throw err; }
+    finally { setIsLoading(false); }
   }, [filter.academicYearId, filter.gender, filter.divisionId]);
 
-  return { data, isLoading, error };
+  useEffect(() => { void refresh().catch(() => undefined); }, [refresh]);
+
+  return { data, isLoading, error, refresh };
 }

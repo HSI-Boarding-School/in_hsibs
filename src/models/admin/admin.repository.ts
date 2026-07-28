@@ -56,7 +56,7 @@ export async function getAdminDashboardSnapshot(
     supabase.from("pengabdian_penempatan_santri").select("id,unit_id,lokasi_id,pic_reg_id"),
     supabase.from("pengabdian_penugasan_divisi").select("id,divisi_id,pic_div_id,disetujui_oleh"),
     supabase.from("pengabdian_divisi").select("id,nama_divisi").order("nama_divisi"),
-    supabase.from("pengabdian_lokasi").select("id,nama_lokasi").order("nama_lokasi"),
+    supabase.from("pengabdian_lokasi").select("id,nama_lokasi,region_id").order("nama_lokasi"),
     supabase.from("audit_log").select("id,aktor_id,tipe_entitas,id_entitas,aksi,dibuat_pada").order("dibuat_pada", { ascending: false }).limit(8),
   ]);
 
@@ -175,29 +175,29 @@ export async function getAdminMappingData(
     supabase.from("pengabdian_santri").select("id,siswa_id,kode_santri,status"),
     supabase.from("kesiswaan").select("id,nis,nama_lengkap"),
     supabase.from("pengabdian_penempatan_santri").select("id,pengabdian_id,unit_id,lokasi_id,pic_reg_id,status"),
-    supabase.from("pengabdian_penugasan_divisi").select("id,penempatan_id,divisi_id,pic_div_id,status"),
+    supabase.from("pengabdian_penugasan_divisi").select("id,penempatan_id,divisi_id,pic_div_id,level,status"),
     supabase.from("pengabdian_unit").select("id,kode_unit,nama_unit").order("nama_unit"),
     supabase.from("pengabdian_divisi").select("id,kode_divisi,nama_divisi").order("nama_divisi"),
-    supabase.from("pengabdian_lokasi").select("id,nama_lokasi").order("nama_lokasi"),
+    supabase.from("pengabdian_lokasi").select("id,nama_lokasi,region_id").order("nama_lokasi"),
     supabase.from("pengabdian_role").select("id,divisi_id,nama_role,role_code,default_sow_summary,self_study,status").order("nama_role"),
   ]);
 
   const error = students.error ?? identities.error ?? placements.error ?? assignments.error ?? units.error ?? divisions.error ?? locations.error ?? roles.error;
   if (error) throw new Error(`Gagal memuat data mapping: ${error.message}`);
 
-  const staff = await supabase.from("pengabdian_staff").select("id,nama_lengkap");
+  const staff = await supabase.from("pengabdian_staff").select("id,nama_lengkap,role_staff,aktif");
 
   const studentRows = (students.data ?? []) as unknown as Pick<PengabdianSantri, "id" | "siswa_id" | "kode_santri" | "status">[];
   const identityRows = (identities.data ?? []) as unknown as Pick<KesiswaanRow, "id" | "nis" | "nama_lengkap">[];
   const placementRows = (placements.data ?? []) as unknown as Pick<PenempatanSantriRow, "id" | "pengabdian_id" | "unit_id" | "lokasi_id" | "pic_reg_id" | "status">[];
-  const assignmentRows = (assignments.data ?? []) as unknown as Pick<PenugasanDivisiRow, "id" | "penempatan_id" | "divisi_id" | "pic_div_id" | "status">[];
+  const assignmentRows = (assignments.data ?? []) as unknown as Pick<PenugasanDivisiRow, "id" | "penempatan_id" | "divisi_id" | "pic_div_id" | "level" | "status">[];
   const unitRows = (units.data ?? []) as unknown as Pick<PengabdianUnitRow, "id" | "kode_unit" | "nama_unit">[];
   const divisionRows = (divisions.data ?? []) as unknown as Pick<PengabdianDivisiRow, "id" | "kode_divisi" | "nama_divisi">[];
-  const locationRows = (locations.data ?? []) as unknown as Pick<PengabdianLokasiRow, "id" | "nama_lokasi">[];
+  const locationRows = (locations.data ?? []) as unknown as Pick<PengabdianLokasiRow, "id" | "nama_lokasi" | "region_id">[];
   const roleRows = ((roles.data ?? []) as unknown as Pick<PengabdianRoleRow, "id" | "divisi_id" | "nama_role" | "role_code" | "default_sow_summary" | "self_study" | "status">[]).filter(
     (row) => row.status !== "Inactive",
   );
-  const staffRows = staff.error ? [] : (staff.data ?? []) as unknown as Pick<PengabdianStaff, "id" | "nama_lengkap">[];
+  const staffRows = staff.error ? [] : (staff.data ?? []) as unknown as Pick<PengabdianStaff, "id" | "nama_lengkap" | "role_staff" | "aktif">[];
 
   const identityById = new Map(identityRows.map((row) => [row.id, row]));
   const placementByPengabdianId = new Map(placementRows.map((row) => [row.pengabdian_id, row]));
@@ -226,7 +226,9 @@ export async function getAdminMappingData(
       const identity = identityById.get(student.siswa_id);
       const placement = placementByPengabdianId.get(student.id);
       const studentAssignments = (placement ? assignmentsByPlacementId.get(placement.id) ?? [] : [])
-        .filter((row) => !row.status || row.status === "Aktif");
+        .filter((row) => !row.status || row.status === "Aktif")
+        .sort((a, b) => ({ Primary: 0, Secondary: 1, Additional: 2 }[a.level] - { Primary: 0, Secondary: 1, Additional: 2 }[b.level]));
+      const primaryAssignment = studentAssignments[0];
       const divs = compactUnique(studentAssignments.map((row) => divisionById.get(row.divisi_id)?.kode_divisi));
       const picDivs = compactUnique(studentAssignments.map((row) => row.pic_div_id ? staffById.get(row.pic_div_id)?.nama_lengkap ?? "PIC Divisi belum terbaca" : null));
       const roleAssignments = studentAssignments.flatMap((row) => rolesByDivisionId.get(row.divisi_id) ?? []);
@@ -240,7 +242,10 @@ export async function getAdminMappingData(
         id: student.kode_santri || identity?.nis || `PENGABDIAN-${index + 1}`,
         pengabdianId: student.id,
         placementId: placement?.id,
+        unitId: placement?.unit_id ?? undefined,
         locationId: placement?.lokasi_id ?? undefined,
+        primaryDivisionId: primaryAssignment?.divisi_id,
+        primaryPicDivId: primaryAssignment?.pic_div_id ?? undefined,
         name: identity?.nama_lengkap || "Santri tanpa nama",
         unit: (placement?.unit_id ? unitById.get(placement.unit_id)?.nama_unit : "") as Santri["unit"],
         loc: placement?.lokasi_id ? locationById.get(placement.lokasi_id)?.nama_lokasi ?? "Belum ditempatkan" : "Belum ditempatkan",
@@ -258,10 +263,25 @@ export async function getAdminMappingData(
       ? mappedSantri.filter((student) => student.divs.includes(scopeDivision.kode_divisi))
       : mappedSantri,
     units: compactUnique(unitRows.map((row) => row.nama_unit)),
-    divisions: divisionRows.map((row) => ({ code: row.kode_divisi, label: row.nama_divisi })),
+    divisions: divisionRows.map((row) => ({ id: row.id, code: row.kode_divisi, label: row.nama_divisi })),
     locations: compactUnique(locationRows.map((row) => row.nama_lokasi)),
+    unitRecords: unitRows.map((row) => ({ id: row.id, code: row.kode_unit ?? undefined, label: row.nama_unit })),
+    locationRecords: locationRows.map((row) => ({ id: row.id, label: row.nama_lokasi, regionId: row.region_id })),
+    staffRecords: staffRows.filter((row) => row.role_staff === "PIC_Div" && row.aktif !== false).map((row) => ({ id: row.id, label: row.nama_lengkap })),
     scopeDivision: scopeDivision
-      ? { code: scopeDivision.kode_divisi, label: scopeDivision.nama_divisi }
+      ? { id: scopeDivision.id, code: scopeDivision.kode_divisi, label: scopeDivision.nama_divisi }
       : undefined,
   };
+}
+
+export async function createMappingMaster(kind: "unit" | "division" | "location", name: string, regionId?: string | null) {
+  const call = supabase.rpc as unknown as (name: string, args: { p_kind: string; p_name: string; p_region_id: string | null }) => Promise<{ error: { message: string } | null }>;
+  const { error } = await call("pengabdian_mapping_create_master", { p_kind: kind, p_name: name, p_region_id: regionId ?? null });
+  if (error) throw new Error(`Gagal membuat master mapping: ${error.message}`);
+}
+
+export async function moveStudentMapping(placementId: string, field: "unit" | "division" | "location" | "pic_division", targetId: string) {
+  const call = supabase.rpc as unknown as (name: string, args: { p_placement_id: string; p_field: string; p_target_id: string }) => Promise<{ error: { message: string } | null }>;
+  const { error } = await call("pengabdian_mapping_move_student", { p_placement_id: placementId, p_field: field, p_target_id: targetId });
+  if (error) throw new Error(`Gagal memindahkan mapping Santri: ${error.message}`);
 }

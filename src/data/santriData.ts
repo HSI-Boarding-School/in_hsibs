@@ -2,7 +2,10 @@ export interface Santri {
   id: string;
   pengabdianId?: string;
   placementId?: string;
+  unitId?: string;
   locationId?: string;
+  primaryDivisionId?: string;
+  primaryPicDivId?: string;
   name: string;
   unit: string;
   loc: string;

@@ -1,15 +1,14 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Iconify } from "../../../components/iconify/iconify";
 import { SantriCard } from "./components/SantriCard";
 import { SantriDetailDrawer } from "./components/SantriDetailDrawer";
 import { MappingToolbar, type FilterState } from "./components/MappingToolbar";
-import { santriList as initialSantriList, units, divisions, locations } from "../../../data/santriData";
 import type { Santri } from "../../../data/santriData";
 import { KanbanBoard } from "../../../components/ui/KanbanBoard";
 import type { KanbanColumnDef } from "../../../components/ui/KanbanBoard";
-import { useLocalStorageState } from "../../../lib/useLocalStorageState";
-import { useAdminMappingData } from "../../../models/admin";
+import { createMappingMaster, moveStudentMapping, useAdminMappingData } from "../../../models/admin";
+import { useToast } from "../../../components/ui/ToastProvider";
 
 type ViewTab = "santri" | "unit" | "divisi" | "lokasi" | "pic" | "projek";
 
@@ -17,9 +16,10 @@ type PendingMove = {
   activeId: string;
   activeCol: string;
   overCol: string;
-  newIndex: number;
   fieldLabel: string;
-  apply: () => void;
+  fromLabel: string;
+  toLabel: string;
+  apply: () => Promise<void>;
 };
 
 const viewTabs: { id: ViewTab; label: string; icon: string }[] = [
@@ -42,33 +42,15 @@ const defaultFilters: FilterState = {
 export function AdminDashboardMapping() {
   const [viewTab, setViewTab] = useState<ViewTab>("santri");
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
-  const { data: mappingData, isLoading: mappingLoading, error: mappingError } = useAdminMappingData();
-  const [storedSantriList, setStoredSantriList] = useLocalStorageState<Santri[]>(
-    "in_hsibs.mapping.santri",
-    initialSantriList,
-  );
-  const [workingSantriList, setWorkingSantriList] = useState<Santri[] | null>(null);
+  const { data: mappingData, isLoading: mappingLoading, error: mappingError, refresh } = useAdminMappingData();
+  const toast = useToast();
   const [activeSantriId, setActiveSantriId] = useState<string | null>(null);
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
-
-  useEffect(() => {
-    if (mappingData) setWorkingSantriList(mappingData.santri);
-  }, [mappingData]);
-
-  const santriList = workingSantriList ?? storedSantriList;
-  const setSantriList = useCallback(
-    (updater: (prev: Santri[]) => Santri[]) => {
-      if (workingSantriList !== null) {
-        setWorkingSantriList((prev) => (prev ? updater(prev) : prev));
-        return;
-      }
-      setStoredSantriList(updater);
-    },
-    [setStoredSantriList, workingSantriList],
-  );
-  const baseUnits = mappingData?.units.length ? mappingData.units : [...units];
-  const baseDivisions = mappingData?.divisions.length ? mappingData.divisions : divisions;
-  const baseLocations = mappingData?.locations.length ? mappingData.locations : locations;
+  const [moveSaving, setMoveSaving] = useState(false);
+  const santriList = mappingData?.santri ?? [];
+  const baseUnits = mappingData?.units ?? [];
+  const baseDivisions = mappingData?.divisions ?? [];
+  const baseLocations = mappingData?.locations ?? [];
 
   const activeSantri = useMemo(
     () => (activeSantriId ? santriList.find((s) => s.id === activeSantriId) ?? null : null),
@@ -97,43 +79,6 @@ export function AdminDashboardMapping() {
     });
   }, [santriList, filters]);
 
-  const commitKanbanMove = useCallback(
-    (
-      activeId: string,
-      newIndex: number,
-      updater: (s: Santri) => Santri,
-      getColumnFromSantri: (s: Santri) => string,
-    ) => {
-      setSantriList((prev) => {
-        const active = prev.find((s) => s.id === activeId);
-        if (!active) return prev;
-
-        const updatedActive = updater(active);
-        const withoutActive = prev.filter((s) => s.id !== activeId);
-        const targetColumn = getColumnFromSantri(updatedActive);
-        const targetIds = withoutActive
-          .filter((s) => getColumnFromSantri(s) === targetColumn)
-          .map((s) => s.id);
-        const insertIndex = Math.max(0, Math.min(newIndex, targetIds.length));
-        const beforeId = targetIds[insertIndex];
-        const next: Santri[] = [];
-        let inserted = false;
-
-        withoutActive.forEach((s) => {
-          if (!inserted && beforeId && s.id === beforeId) {
-            next.push(updatedActive);
-            inserted = true;
-          }
-          next.push(s);
-        });
-
-        if (!inserted) next.push(updatedActive);
-        return next;
-      });
-    },
-    [setSantriList],
-  );
-
   const requestKanbanMove = useCallback(
     (move: PendingMove) => {
       const { overCol } = move;
@@ -144,75 +89,68 @@ export function AdminDashboardMapping() {
     [],
   );
 
-  const confirmPendingMove = useCallback(() => {
-    pendingMove?.apply();
-    setPendingMove(null);
-  }, [pendingMove]);
-
-  // ── Mutable column lists ────────────────────────────────────
-  const [extraUnits, setExtraUnits] = useLocalStorageState<string[]>("in_hsibs.mapping.extraUnits", []);
-  const [extraDivs, setExtraDivs] = useLocalStorageState<{ code: string; label: string }[]>("in_hsibs.mapping.extraDivs", []);
-  const [extraLocs, setExtraLocs] = useLocalStorageState<string[]>("in_hsibs.mapping.extraLocs", []);
-  const [extraPics, setExtraPics] = useLocalStorageState<string[]>("in_hsibs.mapping.extraPics", []);
+  const confirmPendingMove = useCallback(async () => {
+    if (!pendingMove || moveSaving) return;
+    setMoveSaving(true);
+    try { await pendingMove.apply(); setPendingMove(null); toast.success("Mapping diperbarui", "Perubahan Santri sudah disimpan ke database."); }
+    catch (error) { toast.error("Mapping gagal diperbarui", error instanceof Error ? error.message : "Silakan coba lagi."); }
+    finally { setMoveSaving(false); }
+  }, [moveSaving, pendingMove, toast]);
 
   // ── Unit View ──────────────────────────────────────────────
   const unitColumns: KanbanColumnDef[] = useMemo(
-    () => [...baseUnits.map((u) => ({ id: u, label: u })), ...extraUnits.map((u) => ({ id: u, label: u }))],
-    [baseUnits, extraUnits]
+    () => (mappingData?.unitRecords ?? []).map((unit) => ({ id: unit.id, label: unit.label })),
+    [mappingData?.unitRecords]
   );
 
   const unitColumnItems = useMemo(() => {
     const map: Record<string, string[]> = {};
     filtered.forEach((s) => {
-      if (!map[s.unit]) map[s.unit] = [];
-      map[s.unit].push(s.id);
+      if (!s.unitId) return;
+      if (!map[s.unitId]) map[s.unitId] = [];
+      map[s.unitId].push(s.id);
     });
     unitColumns.forEach((c) => { if (!map[c.id]) map[c.id] = []; });
     return map;
   }, [filtered, unitColumns]);
 
   const getUnitColumn = useCallback((itemId: string) => {
-    return santriList.find((s) => s.id === itemId)?.unit ?? "";
+    return santriList.find((s) => s.id === itemId)?.unitId ?? "";
   }, [santriList]);
 
   const handleUnitDragEnd = useCallback(
-    (activeId: string, _overId: string | null, activeCol: string, overCol: string, newIndex: number) => {
+    (activeId: string, _overId: string | null, activeCol: string, overCol: string) => {
+      if (activeCol === overCol) return;
+      const student = santriList.find((item) => item.id === activeId);
+      const target = mappingData?.unitRecords.find((item) => item.id === overCol);
+      if (!student?.placementId || !target) return;
       requestKanbanMove({
         activeId,
         activeCol,
         overCol,
-        newIndex,
         fieldLabel: "Unit",
-        apply: () => commitKanbanMove(
-          activeId,
-          newIndex,
-          (s) => ({ ...s, unit: overCol as Santri["unit"] }),
-          (s) => s.unit,
-        ),
+        fromLabel: mappingData?.unitRecords.find((item) => item.id === activeCol)?.label ?? "Belum ada",
+        toLabel: target.label,
+        apply: async () => { await moveStudentMapping(student.placementId!, "unit", target.id); await refresh(); },
       });
     },
-    [commitKanbanMove, requestKanbanMove]
+    [mappingData?.unitRecords, refresh, requestKanbanMove, santriList]
   );
 
-  const handleAddUnit = useCallback((_id: string, label: string) => {
-    setExtraUnits((prev) => (prev.includes(label) ? prev : [...prev, label]));
-  }, []);
+  const handleAddUnit = useCallback(async (_id: string, label: string) => {
+    await createMappingMaster("unit", label); await refresh(); toast.success("Unit ditambahkan", label);
+  }, [refresh, toast]);
 
   // ── Divisi View ────────────────────────────────────────────
   const divColumns: KanbanColumnDef[] = useMemo(
-    () => [
-      ...baseDivisions.map((d) => ({ id: d.code, label: `${d.label} (${d.code})` })),
-      ...extraDivs.map((d) => ({ id: d.code, label: d.label })),
-    ],
-    [baseDivisions, extraDivs]
+    () => baseDivisions.map((d) => ({ id: d.id, label: `${d.label} (${d.code})` })),
+    [baseDivisions]
   );
-
-  const getPrimaryDiv = useCallback((s: Santri) => s.divs[0] || "", []);
 
   const divColumnItems = useMemo(() => {
     const map: Record<string, string[]> = {};
     filtered.forEach((s) => {
-      const key = getPrimaryDiv(s);
+      const key = s.primaryDivisionId;
       if (key) {
         if (!map[key]) map[key] = [];
         if (!map[key].includes(s.id)) map[key].push(s.id);
@@ -220,97 +158,90 @@ export function AdminDashboardMapping() {
     });
     divColumns.forEach((c) => { if (!map[c.id]) map[c.id] = []; });
     return map;
-  }, [filtered, divColumns, getPrimaryDiv]);
+  }, [filtered, divColumns]);
 
   const getDivColumn = useCallback(
-    (itemId: string) => getPrimaryDiv(santriList.find((s) => s.id === itemId)!) || "",
-    [santriList, getPrimaryDiv]
+    (itemId: string) => santriList.find((s) => s.id === itemId)?.primaryDivisionId ?? "",
+    [santriList]
   );
 
   const handleDivDragEnd = useCallback(
-    (activeId: string, _overId: string | null, activeCol: string, overCol: string, newIndex: number) => {
+    (activeId: string, _overId: string | null, activeCol: string, overCol: string) => {
+      if (activeCol === overCol) return;
+      const student = santriList.find((item) => item.id === activeId);
+      const target = mappingData?.divisions.find((item) => item.id === overCol);
+      if (!student?.placementId || !target) return;
       requestKanbanMove({
         activeId,
         activeCol,
         overCol,
-        newIndex,
         fieldLabel: "Divisi utama",
-        apply: () => commitKanbanMove(
-          activeId,
-          newIndex,
-          (s) => {
-            const newDivs = [overCol, ...s.divs.filter((d) => d !== overCol && d !== activeCol)];
-            return { ...s, divs: newDivs };
-          },
-          (s) => getPrimaryDiv(s),
-        ),
+        fromLabel: mappingData?.divisions.find((item) => item.id === activeCol)?.label ?? "Belum ada",
+        toLabel: target.label,
+        apply: async () => { await moveStudentMapping(student.placementId!, "division", target.id); await refresh(); },
       });
     },
-    [commitKanbanMove, getPrimaryDiv, requestKanbanMove]
+    [mappingData?.divisions, refresh, requestKanbanMove, santriList]
   );
 
-  const handleAddDiv = useCallback((id: string, label: string) => {
-    setExtraDivs((prev) => (prev.some((d) => d.code === id) ? prev : [...prev, { code: id, label }]));
-  }, []);
+  const handleAddDiv = useCallback(async (_id: string, label: string) => {
+    await createMappingMaster("division", label); await refresh(); toast.success("Divisi ditambahkan", label);
+  }, [refresh, toast]);
 
   // ── Lokasi View ────────────────────────────────────────────
   const locColumns: KanbanColumnDef[] = useMemo(
-    () => [...baseLocations.map((l) => ({ id: l, label: l })), ...extraLocs.map((l) => ({ id: l, label: l }))],
-    [baseLocations, extraLocs]
+    () => (mappingData?.locationRecords ?? []).map((location) => ({ id: location.id, label: location.label })),
+    [mappingData?.locationRecords]
   );
 
   const locColumnItems = useMemo(() => {
     const map: Record<string, string[]> = {};
     filtered.forEach((s) => {
-      if (!map[s.loc]) map[s.loc] = [];
-      map[s.loc].push(s.id);
+      if (!s.locationId) return;
+      if (!map[s.locationId]) map[s.locationId] = [];
+      map[s.locationId].push(s.id);
     });
     locColumns.forEach((c) => { if (!map[c.id]) map[c.id] = []; });
     return map;
   }, [filtered, locColumns]);
 
   const getLocColumn = useCallback((itemId: string) => {
-    return santriList.find((s) => s.id === itemId)?.loc ?? "";
+    return santriList.find((s) => s.id === itemId)?.locationId ?? "";
   }, [santriList]);
 
   const handleLocDragEnd = useCallback(
-    (activeId: string, _overId: string | null, activeCol: string, overCol: string, newIndex: number) => {
+    (activeId: string, _overId: string | null, activeCol: string, overCol: string) => {
+      if (activeCol === overCol) return;
+      const student = santriList.find((item) => item.id === activeId);
+      const target = mappingData?.locationRecords.find((item) => item.id === overCol);
+      if (!student?.placementId || !target) return;
       requestKanbanMove({
         activeId,
         activeCol,
         overCol,
-        newIndex,
         fieldLabel: "Lokasi",
-        apply: () => commitKanbanMove(
-          activeId,
-          newIndex,
-          (s) => ({ ...s, loc: overCol }),
-          (s) => s.loc,
-        ),
+        fromLabel: mappingData?.locationRecords.find((item) => item.id === activeCol)?.label ?? "Belum ada",
+        toLabel: target.label,
+        apply: async () => { await moveStudentMapping(student.placementId!, "location", target.id); await refresh(); },
       });
     },
-    [commitKanbanMove, requestKanbanMove]
+    [mappingData?.locationRecords, refresh, requestKanbanMove, santriList]
   );
 
-  const handleAddLoc = useCallback((_id: string, label: string) => {
-    setExtraLocs((prev) => (prev.includes(label) ? prev : [...prev, label]));
-  }, []);
+  const handleAddLoc = useCallback(async (_id: string, label: string) => {
+    await createMappingMaster("location", label); await refresh(); toast.success("Lokasi ditambahkan", label);
+  }, [refresh, toast]);
 
   // ── PIC View ───────────────────────────────────────────────
   const picColumns: KanbanColumnDef[] = useMemo(
-    () => [
-      ...[...new Set(santriList.flatMap((s) => s.picDivs))].map((p) => ({ id: p, label: p })),
-      ...extraPics.map((p) => ({ id: p, label: p })),
-    ],
-    [santriList, extraPics]
+    () => (mappingData?.staffRecords ?? []).map((staff) => ({ id: staff.id, label: staff.label })),
+    [mappingData?.staffRecords]
   );
-
-  const getPrimaryPic = useCallback((s: Santri) => s.picDivs[0] || "", []);
 
   const picColumnItems = useMemo(() => {
     const map: Record<string, string[]> = {};
     filtered.forEach((s) => {
-      const key = getPrimaryPic(s);
+      const key = s.primaryPicDivId;
       if (key) {
         if (!map[key]) map[key] = [];
         if (!map[key].includes(s.id)) map[key].push(s.id);
@@ -318,38 +249,31 @@ export function AdminDashboardMapping() {
     });
     picColumns.forEach((c) => { if (!map[c.id]) map[c.id] = []; });
     return map;
-  }, [filtered, picColumns, getPrimaryPic]);
+  }, [filtered, picColumns]);
 
   const getPicColumn = useCallback(
-    (itemId: string) => getPrimaryPic(santriList.find((s) => s.id === itemId)!) || "",
-    [santriList, getPrimaryPic]
+    (itemId: string) => santriList.find((s) => s.id === itemId)?.primaryPicDivId ?? "",
+    [santriList]
   );
 
   const handlePicDragEnd = useCallback(
-    (activeId: string, _overId: string | null, activeCol: string, overCol: string, newIndex: number) => {
+    (activeId: string, _overId: string | null, activeCol: string, overCol: string) => {
+      if (activeCol === overCol) return;
+      const student = santriList.find((item) => item.id === activeId);
+      const target = mappingData?.staffRecords.find((item) => item.id === overCol);
+      if (!student?.placementId || !target) return;
       requestKanbanMove({
         activeId,
         activeCol,
         overCol,
-        newIndex,
         fieldLabel: "PIC Divisi utama",
-        apply: () => commitKanbanMove(
-          activeId,
-          newIndex,
-          (s) => {
-            const newPics = [overCol, ...s.picDivs.filter((p) => p !== overCol && p !== activeCol)];
-            return { ...s, picDivs: newPics };
-          },
-          (s) => getPrimaryPic(s),
-        ),
+        fromLabel: mappingData?.staffRecords.find((item) => item.id === activeCol)?.label ?? "Belum ada",
+        toLabel: target.label,
+        apply: async () => { await moveStudentMapping(student.placementId!, "pic_division", target.id); await refresh(); },
       });
     },
-    [commitKanbanMove, getPrimaryPic, requestKanbanMove]
+    [mappingData?.staffRecords, refresh, requestKanbanMove, santriList]
   );
-
-  const handleAddPic = useCallback((_id: string, label: string) => {
-    setExtraPics((prev) => (prev.includes(label) ? prev : [...prev, label]));
-  }, []);
 
   const renderCard = useCallback(
     (itemId: string) => {
@@ -447,7 +371,6 @@ export function AdminDashboardMapping() {
                   renderCard={renderCard}
                   onDragEnd={handlePicDragEnd}
                   getColumnId={getPicColumn}
-                  onAddColumn={handleAddPic}
                 />
               )}
               {viewTab === "projek" && (
@@ -487,7 +410,8 @@ export function AdminDashboardMapping() {
             : ""
         }
         onCancel={() => setPendingMove(null)}
-        onConfirm={confirmPendingMove}
+        onConfirm={() => void confirmPendingMove()}
+        busy={moveSaving}
       />
     </div>
   );
@@ -522,11 +446,13 @@ function KanbanMoveConfirmDialog({
   santriName,
   onCancel,
   onConfirm,
+  busy,
 }: {
   move: PendingMove | null;
   santriName: string;
   onCancel: () => void;
   onConfirm: () => void;
+  busy: boolean;
 }) {
   return (
     <AnimatePresence>
@@ -582,15 +508,11 @@ function KanbanMoveConfirmDialog({
                   </div>
                   <div className="flex items-center justify-between gap-3 rounded-xl bg-surface px-3 py-2">
                     <span className="text-muted">Dari</span>
-                    <span className="text-text">{move.activeCol || "Belum ada"}</span>
+                    <span className="text-text">{move.fromLabel}</span>
                   </div>
                   <div className="flex items-center justify-between gap-3 rounded-xl bg-surface px-3 py-2">
                     <span className="text-muted">Ke</span>
-                    <span className="text-primary-dark">{move.overCol}</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 rounded-xl bg-surface px-3 py-2">
-                    <span className="text-muted">Posisi</span>
-                    <span className="text-primary-dark">#{move.newIndex + 1}</span>
+                    <span className="text-primary-dark">{move.toLabel}</span>
                   </div>
                 </div>
               </div>
@@ -599,6 +521,7 @@ function KanbanMoveConfirmDialog({
                 <button
                   type="button"
                   onClick={onCancel}
+                  disabled={busy}
                   className="rounded-xl border border-border bg-surface px-4 py-2 text-[0.78rem] font-extrabold text-muted transition-colors hover:bg-surface-strong hover:text-text"
                 >
                   Batal
@@ -606,9 +529,11 @@ function KanbanMoveConfirmDialog({
                 <button
                   type="button"
                   onClick={onConfirm}
-                  className="rounded-xl bg-primary px-4 py-2 text-[0.78rem] font-extrabold text-white shadow-[0_10px_22px_rgba(37,99,235,0.24)] transition-all hover:bg-primary-dark active:scale-95"
+                  disabled={busy}
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-[0.78rem] font-extrabold text-white shadow-[0_10px_22px_rgba(37,99,235,0.24)] transition-all hover:bg-primary-dark active:scale-95 disabled:cursor-wait disabled:opacity-60"
                 >
-                  Ya, Pindahkan
+                  {busy && <Iconify icon="svg-spinners:ring-resize" width={14} />}
+                  {busy ? "Menyimpan..." : "Ya, Pindahkan"}
                 </button>
               </div>
             </div>
